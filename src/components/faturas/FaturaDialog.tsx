@@ -62,7 +62,17 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange }: FaturaDialogProps
       const { data: faturaData, error: faturaError } = await supabase
         .from('faturas')
         .select(`
-          *,
+          id,
+          numero,
+          titulo,
+          descricao,
+          status,
+          valor_total,
+          data_vencimento,
+          data_pagamento,
+          forma_pagamento,
+          observacoes,
+          created_at,
           clientes:cliente_id (
             nome,
             email,
@@ -102,15 +112,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange }: FaturaDialogProps
       const { error } = await supabase.functions.invoke('enviar-fatura', {
         body: {
           clienteEmail: fatura.cliente.email,
-          clienteNome: fatura.cliente.nome,
-          fatura: {
-            numero: fatura.numero,
-            titulo: fatura.titulo,
-            items: fatura.items,
-            valorTotal: fatura.valor_total,
-            dataVencimento: fatura.data_vencimento,
-            observacoes: fatura.observacoes,
-          }
+          faturaId: faturaId,
         }
       });
 

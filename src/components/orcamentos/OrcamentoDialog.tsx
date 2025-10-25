@@ -60,7 +60,15 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange }: OrcamentoDi
       const { data: orcamentoData, error: orcamentoError } = await supabase
         .from('orcamentos')
         .select(`
-          *,
+          id,
+          numero,
+          titulo,
+          descricao,
+          status,
+          valor_total,
+          validade_dias,
+          observacoes,
+          created_at,
           clientes:cliente_id (
             nome,
             email,
@@ -100,15 +108,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange }: OrcamentoDi
       const { error } = await supabase.functions.invoke('enviar-orcamento', {
         body: {
           clienteEmail: orcamento.cliente.email,
-          clienteNome: orcamento.cliente.nome,
-          orcamento: {
-            numero: orcamento.numero,
-            titulo: orcamento.titulo,
-            items: orcamento.items,
-            valorTotal: orcamento.valor_total,
-            validade: orcamento.validade_dias,
-            observacoes: orcamento.observacoes,
-          }
+          orcamentoId: orcamentoId,
         }
       });
 

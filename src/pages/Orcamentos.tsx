@@ -35,7 +35,12 @@ const Orcamentos = () => {
       const { data, error } = await supabase
         .from('orcamentos')
         .select(`
-          *,
+          id,
+          numero,
+          titulo,
+          status,
+          valor_total,
+          created_at,
           clientes:cliente_id (nome)
         `)
         .order('created_at', { ascending: false });

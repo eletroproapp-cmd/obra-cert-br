@@ -36,7 +36,13 @@ const Faturas = () => {
       const { data, error } = await supabase
         .from('faturas')
         .select(`
-          *,
+          id,
+          numero,
+          titulo,
+          status,
+          valor_total,
+          data_vencimento,
+          created_at,
           clientes:cliente_id (nome)
         `)
         .order('created_at', { ascending: false });
