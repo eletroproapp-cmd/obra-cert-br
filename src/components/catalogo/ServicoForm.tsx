@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -31,10 +32,11 @@ type ServicoFormData = z.infer<typeof servicoSchema>;
 
 interface ServicoFormProps {
   onSuccess?: () => void;
+  servicoId?: string;
 }
 
-export const ServicoForm = ({ onSuccess }: ServicoFormProps) => {
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<ServicoFormData>({
+export const ServicoForm = ({ onSuccess, servicoId }: ServicoFormProps) => {
+  const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<ServicoFormData>({
     resolver: zodResolver(servicoSchema),
     defaultValues: {
       unidade: 'h',
@@ -42,26 +44,71 @@ export const ServicoForm = ({ onSuccess }: ServicoFormProps) => {
     }
   });
 
+  useEffect(() => {
+    if (servicoId) {
+      loadServico();
+    }
+  }, [servicoId]);
+
+  const loadServico = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('servicos')
+        .select('*')
+        .eq('id', servicoId)
+        .single();
+
+      if (error) throw error;
+
+      reset(data);
+      setValue('categoria', data.categoria);
+      setValue('unidade', data.unidade);
+    } catch (error: any) {
+      toast.error('Erro ao carregar serviço');
+    }
+  };
+
   const onSubmit = async (data: ServicoFormData) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const payload = {
-        ...data,
-        user_id: user.id,
-      } as unknown as Database['public']['Tables']['servicos']['Insert'];
+      if (servicoId) {
+        // Atualizar serviço existente
+        const { error } = await supabase
+          .from('servicos')
+          .update(data)
+          .eq('id', servicoId);
 
-      const { error } = await supabase
-        .from('servicos')
-        .insert([payload]);
+        if (error) throw error;
+        toast.success('Serviço atualizado com sucesso!');
+      } else {
+        // Gerar código automático se não fornecido
+        let codigo = data.codigo;
+        if (!codigo) {
+          const { data: codigoData, error: codigoError } = await supabase
+            .rpc('generate_servico_codigo');
+          if (codigoError) throw codigoError;
+          codigo = codigoData;
+        }
 
-      if (error) throw error;
+        const payload = {
+          ...data,
+          codigo,
+          user_id: user.id,
+        } as unknown as Database['public']['Tables']['servicos']['Insert'];
 
-      toast.success('Serviço cadastrado com sucesso!');
+        const { error } = await supabase
+          .from('servicos')
+          .insert([payload]);
+
+        if (error) throw error;
+        toast.success('Serviço cadastrado com sucesso!');
+      }
+
       onSuccess?.();
     } catch (error: any) {
-      toast.error('Erro ao cadastrar serviço: ' + error.message);
+      toast.error('Erro ao salvar serviço: ' + error.message);
     }
   };
 
@@ -179,7 +226,7 @@ export const ServicoForm = ({ onSuccess }: ServicoFormProps) => {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting} variant="hero">
-          {isSubmitting ? 'Salvando...' : 'Salvar Serviço'}
+          {isSubmitting ? 'Salvando...' : (servicoId ? 'Atualizar Serviço' : 'Salvar Serviço')}
         </Button>
       </div>
     </form>

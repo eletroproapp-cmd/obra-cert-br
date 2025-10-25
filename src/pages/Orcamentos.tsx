@@ -25,6 +25,7 @@ const Orcamentos = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [selectedOrcamento, setSelectedOrcamento] = useState<string | null>(null);
+  const [editingOrcamentoId, setEditingOrcamentoId] = useState<string | undefined>();
 
   useEffect(() => {
     loadOrcamentos();
@@ -57,7 +58,16 @@ const Orcamentos = () => {
 
   const handleSuccess = () => {
     setShowForm(false);
+    setEditingOrcamentoId(undefined);
     loadOrcamentos();
+  };
+
+  const handleEdit = () => {
+    if (selectedOrcamento) {
+      setEditingOrcamentoId(selectedOrcamento);
+      setShowForm(true);
+      setSelectedOrcamento(null);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -135,13 +145,16 @@ const Orcamentos = () => {
         </div>
       )}
 
-      {/* Dialog para criar orçamento */}
-      <Dialog open={showForm} onOpenChange={setShowForm}>
+      {/* Dialog para criar/editar orçamento */}
+      <Dialog open={showForm} onOpenChange={(open) => {
+        setShowForm(open);
+        if (!open) setEditingOrcamentoId(undefined);
+      }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Orçamento</DialogTitle>
+            <DialogTitle>{editingOrcamentoId ? 'Editar Orçamento' : 'Novo Orçamento'}</DialogTitle>
           </DialogHeader>
-          <OrcamentoForm onSuccess={handleSuccess} />
+          <OrcamentoForm onSuccess={handleSuccess} orcamentoId={editingOrcamentoId} />
         </DialogContent>
       </Dialog>
 
@@ -150,6 +163,7 @@ const Orcamentos = () => {
         orcamentoId={selectedOrcamento}
         open={!!selectedOrcamento}
         onOpenChange={(open) => !open && setSelectedOrcamento(null)}
+        onEdit={handleEdit}
       />
     </div>
   );

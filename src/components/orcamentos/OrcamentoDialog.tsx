@@ -9,12 +9,13 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { FileText, Send, Loader2 } from 'lucide-react';
+import { FileText, Send, Loader2, Pencil } from 'lucide-react';
 
 interface OrcamentoDialogProps {
   orcamentoId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEdit?: () => void;
 }
 
 interface Orcamento {
@@ -41,7 +42,7 @@ interface Orcamento {
   }>;
 }
 
-export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange }: OrcamentoDialogProps) => {
+export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: OrcamentoDialogProps) => {
   const [orcamento, setOrcamento] = useState<Orcamento | null>(null);
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -225,6 +226,15 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange }: OrcamentoDi
 
           {/* Ações */}
           <div className="flex gap-3 justify-end pt-4 border-t">
+            {onEdit && (
+              <Button variant="outline" onClick={() => {
+                onEdit();
+                onOpenChange(false);
+              }}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )}
             <Button variant="outline" disabled>
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF

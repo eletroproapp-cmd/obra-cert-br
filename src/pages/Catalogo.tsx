@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Cable, AlertTriangle, Wrench } from "lucide-react";
+import { Plus, Cable, AlertTriangle, Wrench, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MaterialForm } from "@/components/catalogo/MaterialForm";
@@ -34,6 +34,8 @@ const Catalogo = () => {
   const [loading, setLoading] = useState(true);
   const [showMaterialForm, setShowMaterialForm] = useState(false);
   const [showServicoForm, setShowServicoForm] = useState(false);
+  const [editingMaterialId, setEditingMaterialId] = useState<string | undefined>();
+  const [editingServicoId, setEditingServicoId] = useState<string | undefined>();
 
   useEffect(() => {
     loadMateriais();
@@ -74,12 +76,26 @@ const Catalogo = () => {
 
   const handleMaterialSuccess = () => {
     setShowMaterialForm(false);
+    setEditingMaterialId(undefined);
     loadMateriais();
   };
 
   const handleServicoSuccess = () => {
     setShowServicoForm(false);
+    setEditingServicoId(undefined);
     loadServicos();
+  };
+
+  const handleEditMaterial = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingMaterialId(id);
+    setShowMaterialForm(true);
+  };
+
+  const handleEditServico = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingServicoId(id);
+    setShowServicoForm(true);
   };
 
   if (loading) {
@@ -125,7 +141,15 @@ const Catalogo = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {materiais.map((material) => (
-                <Card key={material.id} className="border-border shadow-soft hover:shadow-medium transition-all">
+                <Card key={material.id} className="border-border shadow-soft hover:shadow-medium transition-all relative group">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => handleEditMaterial(material.id, e)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Cable className="h-5 w-5 text-primary" />
@@ -185,7 +209,15 @@ const Catalogo = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {servicos.map((servico) => (
-                <Card key={servico.id} className="border-border shadow-soft hover:shadow-medium transition-all">
+                <Card key={servico.id} className="border-border shadow-soft hover:shadow-medium transition-all relative group">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => handleEditServico(servico.id, e)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Wrench className="h-5 w-5 text-primary" />
@@ -218,21 +250,27 @@ const Catalogo = () => {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={showMaterialForm} onOpenChange={setShowMaterialForm}>
+      <Dialog open={showMaterialForm} onOpenChange={(open) => {
+        setShowMaterialForm(open);
+        if (!open) setEditingMaterialId(undefined);
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Material</DialogTitle>
+            <DialogTitle>{editingMaterialId ? 'Editar Material' : 'Novo Material'}</DialogTitle>
           </DialogHeader>
-          <MaterialForm onSuccess={handleMaterialSuccess} />
+          <MaterialForm onSuccess={handleMaterialSuccess} materialId={editingMaterialId} />
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showServicoForm} onOpenChange={setShowServicoForm}>
+      <Dialog open={showServicoForm} onOpenChange={(open) => {
+        setShowServicoForm(open);
+        if (!open) setEditingServicoId(undefined);
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Serviço</DialogTitle>
+            <DialogTitle>{editingServicoId ? 'Editar Serviço' : 'Novo Serviço'}</DialogTitle>
           </DialogHeader>
-          <ServicoForm onSuccess={handleServicoSuccess} />
+          <ServicoForm onSuccess={handleServicoSuccess} servicoId={editingServicoId} />
         </DialogContent>
       </Dialog>
     </div>

@@ -704,7 +704,9 @@ export type Database = {
     }
     Functions: {
       generate_fatura_numero: { Args: never; Returns: string }
+      generate_material_codigo: { Args: never; Returns: string }
       generate_orcamento_numero: { Args: never; Returns: string }
+      generate_servico_codigo: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never

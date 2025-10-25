@@ -46,9 +46,10 @@ interface Cliente {
 
 interface FaturaFormProps {
   onSuccess?: () => void;
+  faturaId?: string;
 }
 
-export const FaturaForm = ({ onSuccess }: FaturaFormProps) => {
+export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [items, setItems] = useState<FaturaItem[]>([
     { descricao: '', quantidade: 1, unidade: 'un', valor_unitario: 0, valor_total: 0 }
@@ -57,7 +58,7 @@ export const FaturaForm = ({ onSuccess }: FaturaFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FaturaFormData>({
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FaturaFormData>({
     resolver: zodResolver(faturaSchema),
     defaultValues: {
       status: 'Pendente',
@@ -69,7 +70,50 @@ export const FaturaForm = ({ onSuccess }: FaturaFormProps) => {
   useEffect(() => {
     loadClientes();
     loadCatalogo();
-  }, []);
+    if (faturaId) {
+      loadFatura();
+    }
+  }, [faturaId]);
+
+  const loadFatura = async () => {
+    try {
+      const { data: faturaData, error: faturaError } = await supabase
+        .from('faturas')
+        .select('*')
+        .eq('id', faturaId)
+        .single();
+
+      if (faturaError) throw faturaError;
+
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('fatura_items')
+        .select('*')
+        .eq('fatura_id', faturaId)
+        .order('ordem');
+
+      if (itemsError) throw itemsError;
+
+      reset({
+        cliente_id: faturaData.cliente_id || '',
+        titulo: faturaData.titulo,
+        descricao: faturaData.descricao || '',
+        data_vencimento: faturaData.data_vencimento,
+        status: faturaData.status as any,
+        forma_pagamento: faturaData.forma_pagamento || '',
+        observacoes: faturaData.observacoes || '',
+      });
+
+      setItems(itemsData.map(item => ({
+        descricao: item.descricao,
+        quantidade: item.quantidade,
+        unidade: item.unidade,
+        valor_unitario: item.valor_unitario,
+        valor_total: item.valor_total,
+      })));
+    } catch (error: any) {
+      toast.error('Erro ao carregar fatura');
+    }
+  };
 
   const loadClientes = async () => {
     const { data, error } = await supabase
@@ -154,51 +198,98 @@ export const FaturaForm = ({ onSuccess }: FaturaFormProps) => {
 
       const valorTotal = calcularValorTotal();
 
-      const { data: numeroData, error: numeroError } = await supabase
-        .rpc('generate_fatura_numero');
+      if (faturaId) {
+        // Atualizar fatura existente
+        const { error: faturaError } = await supabase
+          .from('faturas')
+          .update({
+            cliente_id: data.cliente_id,
+            titulo: data.titulo,
+            descricao: data.descricao,
+            status: data.status,
+            valor_total: valorTotal,
+            data_vencimento: data.data_vencimento,
+            forma_pagamento: data.forma_pagamento,
+            observacoes: data.observacoes,
+          })
+          .eq('id', faturaId);
 
-      if (numeroError) throw numeroError;
+        if (faturaError) throw faturaError;
 
-      const { data: fatura, error: faturaError } = await supabase
-        .from('faturas')
-        .insert({
-          user_id: user.id,
-          cliente_id: data.cliente_id,
-          numero: numeroData,
-          titulo: data.titulo,
-          descricao: data.descricao,
-          status: data.status,
-          valor_total: valorTotal,
-          data_vencimento: data.data_vencimento,
-          forma_pagamento: data.forma_pagamento,
-          observacoes: data.observacoes,
-        })
-        .select()
-        .single();
+        // Deletar itens antigos
+        await supabase
+          .from('fatura_items')
+          .delete()
+          .eq('fatura_id', faturaId);
 
-      if (faturaError) throw faturaError;
+        // Inserir novos itens
+        const itemsToInsert = items.map((item, index) => ({
+          fatura_id: faturaId,
+          descricao: item.descricao,
+          quantidade: item.quantidade,
+          unidade: item.unidade,
+          valor_unitario: item.valor_unitario,
+          valor_total: item.valor_total,
+          ordem: index,
+        }));
 
-      const itemsToInsert = items.map((item, index) => ({
-        fatura_id: fatura.id,
-        descricao: item.descricao,
-        quantidade: item.quantidade,
-        unidade: item.unidade,
-        valor_unitario: item.valor_unitario,
-        valor_total: item.valor_total,
-        ordem: index,
-      }));
+        const { error: itemsError } = await supabase
+          .from('fatura_items')
+          .insert(itemsToInsert);
 
-      const { error: itemsError } = await supabase
-        .from('fatura_items')
-        .insert(itemsToInsert);
+        if (itemsError) throw itemsError;
 
-      if (itemsError) throw itemsError;
+        toast.success('Fatura atualizada com sucesso!');
+        onSuccess?.();
+        return { id: faturaId };
+      } else {
+        // Criar nova fatura
+        const { data: numeroData, error: numeroError } = await supabase
+          .rpc('generate_fatura_numero');
 
-      toast.success('Fatura criada com sucesso!');
-      onSuccess?.();
-      return fatura;
+        if (numeroError) throw numeroError;
+
+        const { data: fatura, error: faturaError } = await supabase
+          .from('faturas')
+          .insert({
+            user_id: user.id,
+            cliente_id: data.cliente_id,
+            numero: numeroData,
+            titulo: data.titulo,
+            descricao: data.descricao,
+            status: data.status,
+            valor_total: valorTotal,
+            data_vencimento: data.data_vencimento,
+            forma_pagamento: data.forma_pagamento,
+            observacoes: data.observacoes,
+          })
+          .select()
+          .single();
+
+        if (faturaError) throw faturaError;
+
+        const itemsToInsert = items.map((item, index) => ({
+          fatura_id: fatura.id,
+          descricao: item.descricao,
+          quantidade: item.quantidade,
+          unidade: item.unidade,
+          valor_unitario: item.valor_unitario,
+          valor_total: item.valor_total,
+          ordem: index,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('fatura_items')
+          .insert(itemsToInsert);
+
+        if (itemsError) throw itemsError;
+
+        toast.success('Fatura criada com sucesso!');
+        onSuccess?.();
+        return fatura;
+      }
     } catch (error: any) {
-      toast.error('Erro ao criar fatura: ' + error.message);
+      toast.error('Erro ao salvar fatura: ' + error.message);
       return null;
     } finally {
       setIsSubmitting(false);
@@ -436,17 +527,19 @@ export const FaturaForm = ({ onSuccess }: FaturaFormProps) => {
 
       <div className="flex gap-3 justify-end">
         <Button type="submit" disabled={isSubmitting} variant="hero">
-          {isSubmitting ? 'Salvando...' : 'Salvar Fatura'}
+          {isSubmitting ? 'Salvando...' : (faturaId ? 'Atualizar Fatura' : 'Salvar Fatura')}
         </Button>
-        <Button
-          type="button"
-          onClick={handleSubmit(handleSendEmail)}
-          disabled={isSendingEmail || !selectedClienteId}
-          variant="outline"
-        >
-          <Send className="h-4 w-4 mr-2" />
-          {isSendingEmail ? 'Enviando...' : 'Salvar e Enviar Email'}
-        </Button>
+        {!faturaId && (
+          <Button
+            type="button"
+            onClick={handleSubmit(handleSendEmail)}
+            disabled={isSendingEmail || !selectedClienteId}
+            variant="outline"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            {isSendingEmail ? 'Enviando...' : 'Salvar e Enviar Email'}
+          </Button>
+        )}
       </div>
     </form>
   );

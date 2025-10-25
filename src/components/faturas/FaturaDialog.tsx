@@ -9,12 +9,13 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { FileText, Send, Loader2 } from 'lucide-react';
+import { FileText, Send, Loader2, Pencil } from 'lucide-react';
 
 interface FaturaDialogProps {
   faturaId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEdit?: () => void;
 }
 
 interface Fatura {
@@ -43,7 +44,7 @@ interface Fatura {
   }>;
 }
 
-export const FaturaDialog = ({ faturaId, open, onOpenChange }: FaturaDialogProps) => {
+export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDialogProps) => {
   const [fatura, setFatura] = useState<Fatura | null>(null);
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -253,6 +254,15 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange }: FaturaDialogProps
 
           {/* Ações */}
           <div className="flex gap-3 justify-end pt-4 border-t">
+            {onEdit && (
+              <Button variant="outline" onClick={() => {
+                onEdit();
+                onOpenChange(false);
+              }}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Editar
+              </Button>
+            )}
             <Button variant="outline" disabled>
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF

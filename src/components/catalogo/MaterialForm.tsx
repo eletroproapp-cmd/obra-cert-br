@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -32,10 +33,11 @@ type MaterialFormData = z.infer<typeof materialSchema>;
 
 interface MaterialFormProps {
   onSuccess?: () => void;
+  materialId?: string;
 }
 
-export const MaterialForm = ({ onSuccess }: MaterialFormProps) => {
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<MaterialFormData>({
+export const MaterialForm = ({ onSuccess, materialId }: MaterialFormProps) => {
+  const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<MaterialFormData>({
     resolver: zodResolver(materialSchema),
     defaultValues: {
       unidade: 'un',
@@ -44,26 +46,70 @@ export const MaterialForm = ({ onSuccess }: MaterialFormProps) => {
     }
   });
 
+  useEffect(() => {
+    if (materialId) {
+      loadMaterial();
+    }
+  }, [materialId]);
+
+  const loadMaterial = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('materiais')
+        .select('*')
+        .eq('id', materialId)
+        .single();
+
+      if (error) throw error;
+
+      reset(data);
+      setValue('categoria', data.categoria);
+    } catch (error: any) {
+      toast.error('Erro ao carregar material');
+    }
+  };
+
   const onSubmit = async (data: MaterialFormData) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const payload = {
-        ...data,
-        user_id: user.id,
-      } as unknown as Database['public']['Tables']['materiais']['Insert'];
+      if (materialId) {
+        // Atualizar material existente
+        const { error } = await supabase
+          .from('materiais')
+          .update(data)
+          .eq('id', materialId);
 
-      const { error } = await supabase
-        .from('materiais')
-        .insert([payload]);
+        if (error) throw error;
+        toast.success('Material atualizado com sucesso!');
+      } else {
+        // Gerar código automático se não fornecido
+        let codigo = data.codigo;
+        if (!codigo) {
+          const { data: codigoData, error: codigoError } = await supabase
+            .rpc('generate_material_codigo');
+          if (codigoError) throw codigoError;
+          codigo = codigoData;
+        }
 
-      if (error) throw error;
+        const payload = {
+          ...data,
+          codigo,
+          user_id: user.id,
+        } as unknown as Database['public']['Tables']['materiais']['Insert'];
 
-      toast.success('Material cadastrado com sucesso!');
+        const { error } = await supabase
+          .from('materiais')
+          .insert([payload]);
+
+        if (error) throw error;
+        toast.success('Material cadastrado com sucesso!');
+      }
+
       onSuccess?.();
     } catch (error: any) {
-      toast.error('Erro ao cadastrar material: ' + error.message);
+      toast.error('Erro ao salvar material: ' + error.message);
     }
   };
 
@@ -193,7 +239,7 @@ export const MaterialForm = ({ onSuccess }: MaterialFormProps) => {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting} variant="hero">
-          {isSubmitting ? 'Salvando...' : 'Salvar Material'}
+          {isSubmitting ? 'Salvando...' : (materialId ? 'Atualizar Material' : 'Salvar Material')}
         </Button>
       </div>
     </form>

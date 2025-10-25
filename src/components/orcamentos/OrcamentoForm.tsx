@@ -57,7 +57,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<OrcamentoFormData>({
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<OrcamentoFormData>({
     resolver: zodResolver(orcamentoSchema),
     defaultValues: {
       status: 'Pendente',
@@ -70,7 +70,49 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
   useEffect(() => {
     loadClientes();
     loadCatalogo();
-  }, []);
+    if (orcamentoId) {
+      loadOrcamento();
+    }
+  }, [orcamentoId]);
+
+  const loadOrcamento = async () => {
+    try {
+      const { data: orcamentoData, error: orcamentoError } = await supabase
+        .from('orcamentos')
+        .select('*')
+        .eq('id', orcamentoId)
+        .single();
+
+      if (orcamentoError) throw orcamentoError;
+
+      const { data: itemsData, error: itemsError } = await supabase
+        .from('orcamento_items')
+        .select('*')
+        .eq('orcamento_id', orcamentoId)
+        .order('ordem');
+
+      if (itemsError) throw itemsError;
+
+      reset({
+        cliente_id: orcamentoData.cliente_id || '',
+        titulo: orcamentoData.titulo,
+        descricao: orcamentoData.descricao || '',
+        validade_dias: orcamentoData.validade_dias,
+        observacoes: orcamentoData.observacoes || '',
+        status: orcamentoData.status as any,
+      });
+
+      setItems(itemsData.map(item => ({
+        descricao: item.descricao,
+        quantidade: item.quantidade,
+        unidade: item.unidade,
+        valor_unitario: item.valor_unitario,
+        valor_total: item.valor_total,
+      })));
+    } catch (error: any) {
+      toast.error('Erro ao carregar orçamento');
+    }
+  };
 
   const loadClientes = async () => {
     const { data, error } = await supabase
@@ -155,50 +197,96 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
 
       const valorTotal = calcularValorTotal();
 
-      const { data: numeroData, error: numeroError } = await supabase
-        .rpc('generate_orcamento_numero');
+      if (orcamentoId) {
+        // Atualizar orçamento existente
+        const { error: orcamentoError } = await supabase
+          .from('orcamentos')
+          .update({
+            cliente_id: data.cliente_id,
+            titulo: data.titulo,
+            descricao: data.descricao,
+            status: data.status,
+            valor_total: valorTotal,
+            validade_dias: data.validade_dias,
+            observacoes: data.observacoes,
+          })
+          .eq('id', orcamentoId);
 
-      if (numeroError) throw numeroError;
+        if (orcamentoError) throw orcamentoError;
 
-      const { data: orcamento, error: orcamentoError } = await supabase
-        .from('orcamentos')
-        .insert({
-          user_id: user.id,
-          cliente_id: data.cliente_id,
-          numero: numeroData,
-          titulo: data.titulo,
-          descricao: data.descricao,
-          status: data.status,
-          valor_total: valorTotal,
-          validade_dias: data.validade_dias,
-          observacoes: data.observacoes,
-        })
-        .select()
-        .single();
+        // Deletar itens antigos
+        await supabase
+          .from('orcamento_items')
+          .delete()
+          .eq('orcamento_id', orcamentoId);
 
-      if (orcamentoError) throw orcamentoError;
+        // Inserir novos itens
+        const itemsToInsert = items.map((item, index) => ({
+          orcamento_id: orcamentoId,
+          descricao: item.descricao,
+          quantidade: item.quantidade,
+          unidade: item.unidade,
+          valor_unitario: item.valor_unitario,
+          valor_total: item.valor_total,
+          ordem: index,
+        }));
 
-      const itemsToInsert = items.map((item, index) => ({
-        orcamento_id: orcamento.id,
-        descricao: item.descricao,
-        quantidade: item.quantidade,
-        unidade: item.unidade,
-        valor_unitario: item.valor_unitario,
-        valor_total: item.valor_total,
-        ordem: index,
-      }));
+        const { error: itemsError } = await supabase
+          .from('orcamento_items')
+          .insert(itemsToInsert);
 
-      const { error: itemsError } = await supabase
-        .from('orcamento_items')
-        .insert(itemsToInsert);
+        if (itemsError) throw itemsError;
 
-      if (itemsError) throw itemsError;
+        toast.success('Orçamento atualizado com sucesso!');
+        onSuccess?.();
+        return { id: orcamentoId };
+      } else {
+        // Criar novo orçamento
+        const { data: numeroData, error: numeroError } = await supabase
+          .rpc('generate_orcamento_numero');
 
-      toast.success('Orçamento criado com sucesso!');
-      onSuccess?.();
-      return orcamento;
+        if (numeroError) throw numeroError;
+
+        const { data: orcamento, error: orcamentoError } = await supabase
+          .from('orcamentos')
+          .insert({
+            user_id: user.id,
+            cliente_id: data.cliente_id,
+            numero: numeroData,
+            titulo: data.titulo,
+            descricao: data.descricao,
+            status: data.status,
+            valor_total: valorTotal,
+            validade_dias: data.validade_dias,
+            observacoes: data.observacoes,
+          })
+          .select()
+          .single();
+
+        if (orcamentoError) throw orcamentoError;
+
+        const itemsToInsert = items.map((item, index) => ({
+          orcamento_id: orcamento.id,
+          descricao: item.descricao,
+          quantidade: item.quantidade,
+          unidade: item.unidade,
+          valor_unitario: item.valor_unitario,
+          valor_total: item.valor_total,
+          ordem: index,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('orcamento_items')
+          .insert(itemsToInsert);
+
+        if (itemsError) throw itemsError;
+
+        toast.success('Orçamento criado com sucesso!');
+        onSuccess?.();
+        return orcamento;
+      }
     } catch (error: any) {
-      toast.error('Erro ao criar orçamento: ' + error.message);
+      toast.error('Erro ao salvar orçamento: ' + error.message);
       return null;
     } finally {
       setIsSubmitting(false);
@@ -416,17 +504,19 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
 
       <div className="flex gap-3 justify-end">
         <Button type="submit" disabled={isSubmitting} variant="hero">
-          {isSubmitting ? 'Salvando...' : 'Salvar Orçamento'}
+          {isSubmitting ? 'Salvando...' : (orcamentoId ? 'Atualizar Orçamento' : 'Salvar Orçamento')}
         </Button>
-        <Button
-          type="button"
-          onClick={handleSubmit(handleSendEmail)}
-          disabled={isSendingEmail || !selectedClienteId}
-          variant="outline"
-        >
-          <Send className="h-4 w-4 mr-2" />
-          {isSendingEmail ? 'Enviando...' : 'Salvar e Enviar Email'}
-        </Button>
+        {!orcamentoId && (
+          <Button
+            type="button"
+            onClick={handleSubmit(handleSendEmail)}
+            disabled={isSendingEmail || !selectedClienteId}
+            variant="outline"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            {isSendingEmail ? 'Enviando...' : 'Salvar e Enviar Email'}
+          </Button>
+        )}
       </div>
     </form>
   );

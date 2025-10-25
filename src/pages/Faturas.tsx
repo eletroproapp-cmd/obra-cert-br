@@ -26,6 +26,7 @@ const Faturas = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [selectedFatura, setSelectedFatura] = useState<string | null>(null);
+  const [editingFaturaId, setEditingFaturaId] = useState<string | undefined>();
 
   useEffect(() => {
     loadFaturas();
@@ -59,7 +60,16 @@ const Faturas = () => {
 
   const handleSuccess = () => {
     setShowForm(false);
+    setEditingFaturaId(undefined);
     loadFaturas();
+  };
+
+  const handleEdit = () => {
+    if (selectedFatura) {
+      setEditingFaturaId(selectedFatura);
+      setShowForm(true);
+      setSelectedFatura(null);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -139,13 +149,16 @@ const Faturas = () => {
         </div>
       )}
 
-      {/* Dialog para criar fatura */}
-      <Dialog open={showForm} onOpenChange={setShowForm}>
+      {/* Dialog para criar/editar fatura */}
+      <Dialog open={showForm} onOpenChange={(open) => {
+        setShowForm(open);
+        if (!open) setEditingFaturaId(undefined);
+      }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Fatura</DialogTitle>
+            <DialogTitle>{editingFaturaId ? 'Editar Fatura' : 'Nova Fatura'}</DialogTitle>
           </DialogHeader>
-          <FaturaForm onSuccess={handleSuccess} />
+          <FaturaForm onSuccess={handleSuccess} faturaId={editingFaturaId} />
         </DialogContent>
       </Dialog>
 
@@ -154,6 +167,7 @@ const Faturas = () => {
         faturaId={selectedFatura}
         open={!!selectedFatura}
         onOpenChange={(open) => !open && setSelectedFatura(null)}
+        onEdit={handleEdit}
       />
     </div>
   );
