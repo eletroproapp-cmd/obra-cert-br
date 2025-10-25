@@ -15,6 +15,7 @@ import {
   Settings,
   UserPlus,
   HelpCircle,
+  CheckSquare,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import logo from "@/assets/logo-eletropro.png";
@@ -49,6 +50,7 @@ const menuItems = [
       { title: "Faturas", url: "/faturas", icon: Receipt },
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Catálogo", url: "/catalogo", icon: FolderOpen },
+      { title: "NBR 5410", url: "/nbr5410", icon: CheckSquare },
     ],
   },
   {

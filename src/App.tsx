@@ -15,6 +15,7 @@ import Instalacoes from "./pages/Instalacoes";
 import Clientes from "./pages/Clientes";
 import Fornecedores from "./pages/Fornecedores";
 import Planejamento from "./pages/Planejamento";
+import NBR5410 from "./pages/NBR5410";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/catalogo" element={<ProtectedRoute><DashboardLayout><Catalogo /></DashboardLayout></ProtectedRoute>} />
           <Route path="/instalacoes" element={<ProtectedRoute><DashboardLayout><Instalacoes /></DashboardLayout></ProtectedRoute>} />
           <Route path="/fornecedores" element={<ProtectedRoute><DashboardLayout><Fornecedores /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/nbr5410" element={<ProtectedRoute><DashboardLayout><NBR5410 /></DashboardLayout></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
