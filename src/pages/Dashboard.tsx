@@ -56,22 +56,30 @@ const Dashboard = () => {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Button variant="hero" size="lg" className="h-auto py-6 flex-col gap-2">
-            <Plus className="h-6 w-6" />
-            <span>Novo Orçamento</span>
-          </Button>
-          <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2">
-            <FileText className="h-6 w-6" />
-            <span>Nova Fatura</span>
-          </Button>
-          <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2">
-            <Cable className="h-6 w-6" />
-            <span>Adicionar Material</span>
-          </Button>
-          <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2">
-            <Zap className="h-6 w-6" />
-            <span>Nova Instalação</span>
-          </Button>
+          <Link to="/orcamentos" className="w-full">
+            <Button variant="hero" size="lg" className="h-auto py-6 flex-col gap-2 w-full">
+              <Plus className="h-6 w-6" />
+              <span>Novo Orçamento</span>
+            </Button>
+          </Link>
+          <Link to="/faturas" className="w-full">
+            <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2 w-full">
+              <FileText className="h-6 w-6" />
+              <span>Nova Fatura</span>
+            </Button>
+          </Link>
+          <Link to="/catalogo" className="w-full">
+            <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2 w-full">
+              <Cable className="h-6 w-6" />
+              <span>Adicionar Material</span>
+            </Button>
+          </Link>
+          <Link to="/instalacoes" className="w-full">
+            <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2 w-full">
+              <Zap className="h-6 w-6" />
+              <span>Nova Instalação</span>
+            </Button>
+          </Link>
         </div>
 
         {/* Stats Grid */}
