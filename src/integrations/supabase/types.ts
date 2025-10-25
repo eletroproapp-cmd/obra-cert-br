@@ -59,6 +59,109 @@ export type Database = {
         }
         Relationships: []
       }
+      fatura_items: {
+        Row: {
+          created_at: string
+          descricao: string
+          fatura_id: string
+          id: string
+          ordem: number | null
+          quantidade: number
+          unidade: string | null
+          valor_total: number
+          valor_unitario: number
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          fatura_id: string
+          id?: string
+          ordem?: number | null
+          quantidade?: number
+          unidade?: string | null
+          valor_total: number
+          valor_unitario: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          fatura_id?: string
+          id?: string
+          ordem?: number | null
+          quantidade?: number
+          unidade?: string | null
+          valor_total?: number
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fatura_items_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faturas: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          data_pagamento: string | null
+          data_vencimento: string
+          descricao: string | null
+          forma_pagamento: string | null
+          id: string
+          numero: string
+          observacoes: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          user_id: string
+          valor_total: number
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento: string
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          numero: string
+          observacoes?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+          valor_total?: number
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          data_pagamento?: string | null
+          data_vencimento?: string
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          numero?: string
+          observacoes?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faturas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamento_items: {
         Row: {
           created_at: string
@@ -161,6 +264,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_fatura_numero: { Args: never; Returns: string }
       generate_orcamento_numero: { Args: never; Returns: string }
     }
     Enums: {

@@ -1,51 +1,155 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { FaturaForm } from "@/components/faturas/FaturaForm";
+import { FaturaDialog } from "@/components/faturas/FaturaDialog";
+
+interface Fatura {
+  id: string;
+  numero: string;
+  titulo: string;
+  status: string;
+  valor_total: number;
+  data_vencimento: string;
+  created_at: string;
+  clientes: {
+    nome: string;
+  };
+}
 
 const Faturas = () => {
+  const [faturas, setFaturas] = useState<Fatura[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [selectedFatura, setSelectedFatura] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadFaturas();
+  }, []);
+
+  const loadFaturas = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('faturas')
+        .select(`
+          *,
+          clientes:cliente_id (nome)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setFaturas(data || []);
+    } catch (error: any) {
+      toast.error('Erro ao carregar faturas: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSuccess = () => {
+    setShowForm(false);
+    loadFaturas();
+  };
+
+  const getStatusColor = (status: string) => {
+    const colors = {
+      'Pago': 'text-success',
+      'Pendente': 'text-accent',
+      'Vencido': 'text-destructive',
+      'Cancelado': 'text-muted-foreground',
+    };
+    return colors[status as keyof typeof colors] || 'text-muted-foreground';
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Faturas</h1>
-            <p className="text-muted-foreground">Gerencie suas faturas e pagamentos</p>
-          </div>
-          <Button variant="hero" size="lg">
-            <Plus className="mr-2 h-5 w-5" />
-            Nova Fatura
-          </Button>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Faturas</h1>
+          <p className="text-muted-foreground">Gerencie suas faturas e pagamentos</p>
         </div>
+        <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
+          <Plus className="mr-2 h-5 w-5" />
+          Nova Fatura
+        </Button>
+      </div>
 
+      {faturas.length === 0 ? (
+        <Card className="text-center p-12">
+          <p className="text-muted-foreground mb-4">Nenhuma fatura criada ainda</p>
+          <Button variant="hero" onClick={() => setShowForm(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Criar Primeira Fatura
+          </Button>
+        </Card>
+      ) : (
         <div className="grid gap-4">
-          {[
-            { id: "FAT-2024-015", client: "Instalação Residencial XYZ", value: "R$ 7.300", due: "15/01", status: "Pendente" },
-            { id: "FAT-2024-016", client: "Quadro Comercial Nova", value: "R$ 15.800", due: "18/01", status: "Pendente" },
-            { id: "FAT-2024-017", client: "Manutenção Industrial", value: "R$ 22.500", due: "22/01", status: "Pago" },
-          ].map((item) => (
-            <Card key={item.id} className="border-border shadow-soft hover:shadow-medium transition-all">
+          {faturas.map((fatura) => (
+            <Card
+              key={fatura.id}
+              className="border-border shadow-soft hover:shadow-medium transition-all cursor-pointer"
+              onClick={() => setSelectedFatura(fatura.id)}
+            >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>{item.id}</span>
-                  <span className="text-sm font-normal text-muted-foreground">{item.status}</span>
+                  <span>{fatura.numero}</span>
+                  <span className={`text-sm font-normal ${getStatusColor(fatura.status)}`}>
+                    {fatura.status}
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Cliente</p>
-                    <p className="font-medium">{item.client}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Vencimento: {item.due}</p>
+                    <p className="font-medium">{fatura.clientes.nome}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Vencimento: {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Valor</p>
-                    <p className="text-2xl font-bold text-accent">{item.value}</p>
+                    <p className="text-2xl font-bold text-accent">
+                      R$ {fatura.valor_total.toFixed(2)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-      </div>
+      )}
+
+      {/* Dialog para criar fatura */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nova Fatura</DialogTitle>
+          </DialogHeader>
+          <FaturaForm onSuccess={handleSuccess} />
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para visualizar fatura */}
+      <FaturaDialog
+        faturaId={selectedFatura}
+        open={!!selectedFatura}
+        onOpenChange={(open) => !open && setSelectedFatura(null)}
+      />
+    </div>
   );
 };
 
