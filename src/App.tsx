@@ -1,7 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -18,35 +17,31 @@ import Planejamento from "./pages/Planejamento";
 import NBR5410 from "./pages/NBR5410";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
-
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          
-          {/* Dashboard Routes with Sidebar - Protected */}
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/planejamento" element={<ProtectedRoute><DashboardLayout><Planejamento /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/orcamentos" element={<ProtectedRoute><DashboardLayout><Orcamentos /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/faturas" element={<ProtectedRoute><DashboardLayout><Faturas /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/clientes" element={<ProtectedRoute><DashboardLayout><Clientes /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/catalogo" element={<ProtectedRoute><DashboardLayout><Catalogo /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/instalacoes" element={<ProtectedRoute><DashboardLayout><Instalacoes /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/fornecedores" element={<ProtectedRoute><DashboardLayout><Fornecedores /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/nbr5410" element={<ProtectedRoute><DashboardLayout><NBR5410 /></DashboardLayout></ProtectedRoute>} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <TooltipProvider>
+    <Toaster />
+    <Sonner />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        
+        {/* Dashboard Routes with Sidebar - Protected */}
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/planejamento" element={<ProtectedRoute><DashboardLayout><Planejamento /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/orcamentos" element={<ProtectedRoute><DashboardLayout><Orcamentos /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/faturas" element={<ProtectedRoute><DashboardLayout><Faturas /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/clientes" element={<ProtectedRoute><DashboardLayout><Clientes /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/catalogo" element={<ProtectedRoute><DashboardLayout><Catalogo /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/instalacoes" element={<ProtectedRoute><DashboardLayout><Instalacoes /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/fornecedores" element={<ProtectedRoute><DashboardLayout><Fornecedores /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/nbr5410" element={<ProtectedRoute><DashboardLayout><NBR5410 /></DashboardLayout></ProtectedRoute>} />
+        
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  </TooltipProvider>
 );
 
 export default App;
