@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Hammer,
   FileText,
   DollarSign,
   TrendingUp,
@@ -12,8 +11,11 @@ import {
   ClipboardList,
   Package,
   Settings,
+  Zap,
+  Cable,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo-eletropro.png";
 
 const Dashboard = () => {
   return (
@@ -25,11 +27,8 @@ const Dashboard = () => {
             <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />
             </Button>
-            <Link to="/" className="flex items-center gap-2">
-              <Hammer className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                ObraGestão
-              </span>
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="EletroPro" className="h-10" />
             </Link>
           </div>
           <div className="flex items-center gap-2">
@@ -66,12 +65,12 @@ const Dashboard = () => {
             <span>Nova Fatura</span>
           </Button>
           <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2">
-            <Package className="h-6 w-6" />
-            <span>Adicionar Item</span>
+            <Cable className="h-6 w-6" />
+            <span>Adicionar Material</span>
           </Button>
           <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2">
-            <ClipboardList className="h-6 w-6" />
-            <span>Nova Obra</span>
+            <Zap className="h-6 w-6" />
+            <span>Nova Instalação</span>
           </Button>
         </div>
 
@@ -116,7 +115,7 @@ const Dashboard = () => {
           <Card className="border-border shadow-soft hover:shadow-medium transition-all">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Obras em Andamento
+                Instalações em Andamento
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -160,9 +159,9 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 {[
-                  { id: "ORC-2024-001", client: "Construtora ABC", value: "R$ 15.400", status: "Aprovado" },
-                  { id: "ORC-2024-002", client: "Reforma Silva", value: "R$ 8.200", status: "Pendente" },
-                  { id: "ORC-2024-003", client: "Obras Premium", value: "R$ 22.100", status: "Em Análise" },
+                  { id: "ORC-2024-001", client: "Residencial Jardins", value: "R$ 8.400", status: "Aprovado" },
+                  { id: "ORC-2024-002", client: "Comércio Silva", value: "R$ 12.200", status: "Pendente" },
+                  { id: "ORC-2024-003", client: "Indústria Premium", value: "R$ 28.100", status: "Em Análise" },
                 ].map((item) => (
                   <div
                     key={item.id}
@@ -193,9 +192,9 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 {[
-                  { id: "FAT-2024-015", client: "Construtora XYZ", value: "R$ 12.300", due: "15/01" },
-                  { id: "FAT-2024-016", client: "Engenharia Nova", value: "R$ 9.800", due: "18/01" },
-                  { id: "FAT-2024-017", client: "Reforma Total", value: "R$ 6.500", due: "22/01" },
+                  { id: "FAT-2024-015", client: "Instalação Residencial XYZ", value: "R$ 7.300", due: "15/01" },
+                  { id: "FAT-2024-016", client: "Quadro Comercial Nova", value: "R$ 15.800", due: "18/01" },
+                  { id: "FAT-2024-017", client: "Manutenção Industrial", value: "R$ 22.500", due: "22/01" },
                 ].map((item) => (
                   <div
                     key={item.id}

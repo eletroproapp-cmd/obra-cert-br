@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Hammer, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import logo from "@/assets/logo-eletropro.png";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -41,11 +42,8 @@ const Auth = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <Hammer className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              ObraGestão
-            </span>
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logo} alt="EletroPro" className="h-10" />
           </Link>
           <Link to="/">
             <Button variant="ghost" size="sm">
@@ -60,9 +58,9 @@ const Auth = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-large">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Bem-vindo ao ObraGestão</CardTitle>
+            <CardTitle className="text-2xl">Bem-vindo ao EletroPro</CardTitle>
             <CardDescription>
-              Entre ou crie sua conta para começar a gerenciar suas obras
+              Entre ou crie sua conta para começar a gerenciar seus serviços elétricos
             </CardDescription>
           </CardHeader>
           <CardContent>

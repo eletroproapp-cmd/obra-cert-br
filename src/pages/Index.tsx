@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, CheckCircle, FileText, Hammer, BarChart3, Smartphone } from "lucide-react";
+import { ArrowRight, CheckCircle, FileText, Zap, BarChart3, Smartphone, Shield, Cable } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-construction.jpg";
 import iconEstimates from "@/assets/icon-estimates.png";
 import iconCatalog from "@/assets/icon-catalog.png";
 import iconDashboard from "@/assets/icon-dashboard.png";
+import logo from "@/assets/logo-eletropro.png";
 
 const Index = () => {
   return (
@@ -13,12 +14,9 @@ const Index = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Hammer className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              ObraGestão
-            </span>
-          </div>
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logo} alt="EletroPro" className="h-10" />
+          </Link>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#recursos" className="text-foreground hover:text-primary transition-colors">
               Recursos
@@ -46,14 +44,14 @@ const Index = () => {
             <div className="space-y-8">
               <div className="space-y-4">
                 <h1 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                  Gestão completa para sua{" "}
+                  Gestão elétrica completa para{" "}
                   <span className="bg-gradient-primary bg-clip-text text-transparent">
-                    empresa de construção
+                    eletricistas profissionais
                   </span>
                 </h1>
                 <p className="text-xl text-muted-foreground">
-                  Crie orçamentos profissionais, emita faturas e controle suas obras em um único lugar. 
-                  Simples, rápido e feito para o mercado brasileiro.
+                  Crie orçamentos com NBR 5410, emita faturas e gerencie seus serviços elétricos em um único lugar. 
+                  Simples, rápido e desenvolvido para eletricistas brasileiros.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -99,10 +97,10 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl font-bold text-foreground">
-              Tudo que você precisa para gerenciar suas obras
+              Tudo que você precisa para gerenciar seus serviços elétricos
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Ferramentas profissionais desenvolvidas especialmente para empresas de construção civil
+              Ferramentas profissionais desenvolvidas especialmente para eletricistas e empresas de instalações elétricas
             </p>
           </div>
 
@@ -112,9 +110,9 @@ const Index = () => {
                 <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-subtle flex items-center justify-center">
                   <img src={iconEstimates} alt="Orçamentos" className="w-12 h-12" />
                 </div>
-                <CardTitle>Orçamentos Profissionais</CardTitle>
+                <CardTitle>Orçamentos com NBR 5410</CardTitle>
                 <CardDescription>
-                  Crie orçamentos detalhados em minutos. Converta para fatura com 1 clique.
+                  Crie orçamentos elétricos detalhados conforme normas brasileiras. Converta para fatura com 1 clique.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -122,11 +120,11 @@ const Index = () => {
             <Card className="border-border hover:shadow-large transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-subtle flex items-center justify-center">
-                  <img src={iconCatalog} alt="Catálogo" className="w-12 h-12" />
+                  <Cable className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle>Catálogo de Serviços</CardTitle>
+                <CardTitle>Catálogo Elétrico</CardTitle>
                 <CardDescription>
-                  Biblioteca completa de itens, materiais e serviços com preços atualizados.
+                  Biblioteca completa de materiais elétricos: cabos, disjuntores, DR, eletrodutos e mais.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -134,11 +132,11 @@ const Index = () => {
             <Card className="border-border hover:shadow-large transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-subtle flex items-center justify-center">
-                  <img src={iconDashboard} alt="Dashboard" className="w-12 h-12" />
+                  <Shield className="w-8 h-8 text-accent" />
                 </div>
-                <CardTitle>Dashboard Intuitivo</CardTitle>
+                <CardTitle>Conformidade NBR 5410</CardTitle>
                 <CardDescription>
-                  Visualize métricas importantes e acompanhe o desempenho das suas obras.
+                  Assistente de conformidade com checklist e validações automáticas da norma brasileira.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -150,7 +148,7 @@ const Index = () => {
                 </div>
                 <CardTitle>Gestão de Faturas</CardTitle>
                 <CardDescription>
-                  Emita faturas, notas fiscais e controle pagamentos de forma simplificada.
+                  Emita faturas, notas fiscais e controle pagamentos de serviços elétricos de forma simplificada.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -158,11 +156,11 @@ const Index = () => {
             <Card className="border-border hover:shadow-large transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-subtle flex items-center justify-center">
-                  <BarChart3 className="w-8 h-8 text-accent" />
+                  <img src={iconDashboard} alt="Dashboard" className="w-12 h-12" />
                 </div>
-                <CardTitle>Análise de Rentabilidade</CardTitle>
+                <CardTitle>Dashboard de Projetos</CardTitle>
                 <CardDescription>
-                  Entenda o lucro real de cada obra com análise de custos e receitas.
+                  Visualize métricas de instalações, acompanhe serviços e analise rentabilidade em tempo real.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -172,9 +170,9 @@ const Index = () => {
                 <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-subtle flex items-center justify-center">
                   <Smartphone className="w-8 h-8 text-primary" />
                 </div>
-                <CardTitle>Acesso Mobile</CardTitle>
+                <CardTitle>App Mobile</CardTitle>
                 <CardDescription>
-                  Trabalhe de qualquer lugar. App otimizado para celular e tablet.
+                  Crie orçamentos no local, tire fotos das instalações e envie para clientes direto do celular.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -188,7 +186,7 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h2 className="text-4xl font-bold text-foreground">
-                Por que escolher o ObraGestão?
+                Por que escolher o EletroPro?
               </h2>
               <div className="space-y-4">
                 <div className="flex gap-4">
@@ -198,9 +196,9 @@ const Index = () => {
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">Economia de Tempo</h3>
+                    <h3 className="font-semibold text-lg mb-1">Orçamentos Técnicos Rápidos</h3>
                     <p className="text-muted-foreground">
-                      Reduza o tempo de criação de orçamentos em até 70% com modelos prontos e catálogo integrado.
+                      Reduza o tempo de criação de orçamentos elétricos em até 70% com assistente NBR 5410 e catálogo de materiais.
                     </p>
                   </div>
                 </div>
@@ -212,9 +210,9 @@ const Index = () => {
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">100% Brasileiro</h3>
+                    <h3 className="font-semibold text-lg mb-1">Conformidade com Normas</h3>
                     <p className="text-muted-foreground">
-                      Sistema desenvolvido para o mercado brasileiro, com suporte a impostos e documentos locais.
+                      Sistema desenvolvido seguindo a NBR 5410, com validações automáticas e checklist de conformidade integrado.
                     </p>
                   </div>
                 </div>
@@ -226,9 +224,9 @@ const Index = () => {
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">Profissionalismo</h3>
+                    <h3 className="font-semibold text-lg mb-1">Profissionalismo Técnico</h3>
                     <p className="text-muted-foreground">
-                      Impressione seus clientes com orçamentos e faturas profissionais e personalizadas.
+                      Impressione seus clientes com orçamentos técnicos detalhados, anexos NBR 5410 e documentação profissional.
                     </p>
                   </div>
                 </div>
@@ -240,9 +238,9 @@ const Index = () => {
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">Controle Financeiro</h3>
+                    <h3 className="font-semibold text-lg mb-1">Gestão Completa</h3>
                     <p className="text-muted-foreground">
-                      Tenha visibilidade total sobre receitas, custos e rentabilidade de cada projeto.
+                      Controle total sobre serviços elétricos, custos de materiais, prazos e rentabilidade de cada instalação.
                     </p>
                   </div>
                 </div>
@@ -264,7 +262,11 @@ const Index = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-success" />
-                    <span>Catálogo completo de serviços</span>
+                    <span>Catálogo elétrico completo</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-success" />
+                    <span>Assistente NBR 5410 integrado</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-success" />
@@ -292,12 +294,9 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Hammer className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold">ObraGestão</span>
-              </div>
+              <img src={logo} alt="EletroPro" className="h-8 mb-4" />
               <p className="text-sm text-muted-foreground">
-                Sistema completo de gestão para empresas de construção civil.
+                Sistema completo de gestão elétrica para eletricistas profissionais.
               </p>
             </div>
             <div>
@@ -325,7 +324,7 @@ const Index = () => {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            © 2025 ObraGestão. Todos os direitos reservados.
+            © 2025 EletroPro. Todos os direitos reservados.
           </div>
         </div>
       </footer>
