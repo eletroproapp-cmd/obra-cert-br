@@ -14,13 +14,154 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clientes: {
+        Row: {
+          cep: string | null
+          cidade: string | null
+          cpf_cnpj: string | null
+          created_at: string
+          email: string
+          endereco: string | null
+          estado: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cep?: string | null
+          cidade?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string
+          email: string
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cep?: string | null
+          cidade?: string | null
+          cpf_cnpj?: string | null
+          created_at?: string
+          email?: string
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orcamento_items: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          orcamento_id: string
+          ordem: number | null
+          quantidade: number
+          unidade: string | null
+          valor_total: number
+          valor_unitario: number
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          orcamento_id: string
+          ordem?: number | null
+          quantidade?: number
+          unidade?: string | null
+          valor_total: number
+          valor_unitario: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          orcamento_id?: string
+          ordem?: number | null
+          quantidade?: number
+          unidade?: string | null
+          valor_total?: number
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_items_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orcamentos: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          numero: string
+          observacoes: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          user_id: string
+          validade_dias: number | null
+          valor_total: number
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          numero: string
+          observacoes?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+          validade_dias?: number | null
+          valor_total?: number
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          numero?: string
+          observacoes?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+          validade_dias?: number | null
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamentos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_orcamento_numero: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
