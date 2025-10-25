@@ -38,8 +38,8 @@ export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
       const { error } = await supabase
         .from('clientes')
         .insert({
-          user_id: user.id,
           ...data,
+          user_id: user.id,
         });
 
       if (error) throw error;

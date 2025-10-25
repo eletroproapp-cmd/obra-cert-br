@@ -38,8 +38,8 @@ export const FornecedorForm = ({ onSuccess }: FornecedorFormProps) => {
       const { error } = await supabase
         .from('fornecedores')
         .insert({
-          user_id: user.id,
           ...data,
+          user_id: user.id,
         });
 
       if (error) throw error;

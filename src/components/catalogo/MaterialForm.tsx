@@ -51,8 +51,8 @@ export const MaterialForm = ({ onSuccess }: MaterialFormProps) => {
       const { error } = await supabase
         .from('materiais')
         .insert({
-          user_id: user.id,
           ...data,
+          user_id: user.id,
         });
 
       if (error) throw error;
