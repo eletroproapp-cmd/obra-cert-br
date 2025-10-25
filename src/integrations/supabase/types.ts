@@ -210,6 +210,65 @@ export type Database = {
         }
         Relationships: []
       }
+      instalacoes: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          data_conclusao_prevista: string | null
+          data_conclusao_real: string | null
+          data_inicio: string | null
+          descricao: string | null
+          endereco: string | null
+          id: string
+          observacoes: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          user_id: string
+          valor_total: number | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          data_conclusao_prevista?: string | null
+          data_conclusao_real?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          endereco?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+          valor_total?: number | null
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          data_conclusao_prevista?: string | null
+          data_conclusao_real?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          endereco?: string | null
+          id?: string
+          observacoes?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+          valor_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instalacoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materiais: {
         Row: {
           categoria: string
@@ -351,6 +410,56 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefas: {
+        Row: {
+          created_at: string
+          data_vencimento: string | null
+          descricao: string | null
+          id: string
+          instalacao_id: string | null
+          prioridade: string | null
+          responsavel: string | null
+          status: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_vencimento?: string | null
+          descricao?: string | null
+          id?: string
+          instalacao_id?: string | null
+          prioridade?: string | null
+          responsavel?: string | null
+          status?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_vencimento?: string | null
+          descricao?: string | null
+          id?: string
+          instalacao_id?: string | null
+          prioridade?: string | null
+          responsavel?: string | null
+          status?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_instalacao_id_fkey"
+            columns: ["instalacao_id"]
+            isOneToOne: false
+            referencedRelation: "instalacoes"
             referencedColumns: ["id"]
           },
         ]
