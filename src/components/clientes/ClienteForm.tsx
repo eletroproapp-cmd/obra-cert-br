@@ -8,12 +8,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
+import { validarCPFouCNPJ, formatarCPFouCNPJ } from '@/utils/validators';
 
 const clienteSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
   telefone: z.string().optional(),
-  cpf_cnpj: z.string().optional(),
+  cpf_cnpj: z.string().optional().refine(
+    (val) => !val || validarCPFouCNPJ(val),
+    'CPF/CNPJ inválido'
+  ),
   endereco: z.string().optional(),
   cidade: z.string().optional(),
   estado: z.string().optional(),
@@ -98,8 +102,15 @@ export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
           <Input
             id="cpf_cnpj"
             {...register('cpf_cnpj')}
-            placeholder="000.000.000-00"
+            placeholder="000.000.000-00 ou 00.000.000/0000-00"
+            onChange={(e) => {
+              const formatted = formatarCPFouCNPJ(e.target.value);
+              e.target.value = formatted;
+            }}
           />
+          {errors.cpf_cnpj && (
+            <p className="text-sm text-destructive">{errors.cpf_cnpj.message}</p>
+          )}
         </div>
       </div>
 

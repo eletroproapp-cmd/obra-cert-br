@@ -11,6 +11,7 @@ import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save } from 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { validarCNPJ, formatarCNPJ } from "@/utils/validators";
 
 interface EmpresaData {
   nome_fantasia: string;
@@ -30,6 +31,11 @@ interface EmpresaData {
   cor_secundaria: string;
   observacoes_padrao: string;
   termos_condicoes: string;
+  certificado_digital_tipo: string;
+  certificado_digital_validade: string;
+  ambiente_nfe: string;
+  serie_nfe: string;
+  proximo_numero_nfe: number;
 }
 
 const Configuracoes = () => {
@@ -142,7 +148,15 @@ const Configuracoes = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="cnpj">CNPJ</Label>
-                      <Input id="cnpj" {...register('cnpj')} placeholder="00.000.000/0000-00" />
+                      <Input 
+                        id="cnpj" 
+                        {...register('cnpj')} 
+                        placeholder="00.000.000/0000-00"
+                        onChange={(e) => {
+                          const formatted = formatarCNPJ(e.target.value);
+                          e.target.value = formatted;
+                        }}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="regime_tributario">Regime Tributário</Label>
@@ -265,6 +279,80 @@ const Configuracoes = () => {
           </form>
 
           <TabsContent value="financeiro" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Nota Fiscal Eletrônica (NF-e)</CardTitle>
+                <CardDescription>Configure a emissão de NF-e</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="certificado_digital_tipo">Certificado Digital</Label>
+                    <Select 
+                      defaultValue="nenhum" 
+                      onValueChange={(value) => setValue('certificado_digital_tipo', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="nenhum">Nenhum</SelectItem>
+                        <SelectItem value="A1">A1 (arquivo digital)</SelectItem>
+                        <SelectItem value="A3">A3 (token/cartão)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="certificado_digital_validade">Validade do Certificado</Label>
+                    <Input 
+                      id="certificado_digital_validade" 
+                      type="date" 
+                      {...register('certificado_digital_validade')} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ambiente_nfe">Ambiente NF-e</Label>
+                    <Select 
+                      defaultValue="homologacao" 
+                      onValueChange={(value) => setValue('ambiente_nfe', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o ambiente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="homologacao">Homologação (Testes)</SelectItem>
+                        <SelectItem value="producao">Produção</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="serie_nfe">Série NF-e</Label>
+                    <Input 
+                      id="serie_nfe" 
+                      {...register('serie_nfe')} 
+                      defaultValue="1" 
+                      placeholder="1" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="proximo_numero_nfe">Próximo Número NF-e</Label>
+                    <Input 
+                      id="proximo_numero_nfe" 
+                      type="number" 
+                      {...register('proximo_numero_nfe')} 
+                      defaultValue={1}
+                    />
+                  </div>
+                </div>
+                <div className="rounded-lg bg-muted p-4 mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Atenção:</strong> Para emitir NF-e em produção, você precisa de um certificado digital válido (A1 ou A3) 
+                    emitido por uma Autoridade Certificadora credenciada pela ICP-Brasil. Use o ambiente de homologação para testes.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Impostos e Taxas</CardTitle>

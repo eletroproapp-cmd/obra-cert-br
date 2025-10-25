@@ -9,7 +9,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { FileText, Send, Loader2, Pencil } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Send, Loader2, Pencil, Receipt, Download, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface FaturaDialogProps {
   faturaId: string | null;
@@ -30,6 +31,13 @@ interface Fatura {
   forma_pagamento: string | null;
   observacoes: string;
   created_at: string;
+  nfe_status?: string;
+  nfe_numero?: string;
+  nfe_serie?: string;
+  nfe_chave_acesso?: string;
+  nfe_protocolo?: string;
+  nfe_data_emissao?: string;
+  nfe_xml?: string;
   cliente: {
     nome: string;
     email: string;
@@ -48,6 +56,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
   const [fatura, setFatura] = useState<Fatura | null>(null);
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [emitindoNFe, setEmitindoNFe] = useState(false);
 
   useEffect(() => {
     if (faturaId && open) {
@@ -74,6 +83,13 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
           forma_pagamento,
           observacoes,
           created_at,
+          nfe_status,
+          nfe_numero,
+          nfe_serie,
+          nfe_chave_acesso,
+          nfe_protocolo,
+          nfe_data_emissao,
+          nfe_xml,
           clientes:cliente_id (
             nome,
             email,
@@ -125,6 +141,40 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
     } finally {
       setSendingEmail(false);
     }
+  };
+
+  const handleEmitirNFe = async () => {
+    if (!faturaId) return;
+
+    setEmitindoNFe(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('emitir-nfe', {
+        body: { faturaId },
+      });
+
+      if (error) throw error;
+
+      toast.success('NF-e emitida com sucesso!');
+      await loadFatura();
+    } catch (error: any) {
+      console.error('Erro ao emitir NF-e:', error);
+      toast.error(error.message || 'Erro ao emitir NF-e');
+    } finally {
+      setEmitindoNFe(false);
+    }
+  };
+
+  const getNFeStatusBadge = (status: string) => {
+    const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      'nao_emitida': { label: 'Não Emitida', variant: 'outline' },
+      'processando': { label: 'Processando', variant: 'secondary' },
+      'emitida': { label: 'Emitida', variant: 'default' },
+      'cancelada': { label: 'Cancelada', variant: 'destructive' },
+      'erro': { label: 'Erro', variant: 'destructive' },
+    };
+
+    const config = statusMap[status] || statusMap['nao_emitida'];
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   const getStatusColor = (status: string) => {
@@ -251,6 +301,86 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
               <p className="text-sm whitespace-pre-wrap">{fatura.observacoes}</p>
             </div>
           )}
+
+          {/* Seção NF-e */}
+          <div className="border-t pt-6 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  Nota Fiscal Eletrônica
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Emita a NF-e referente a esta fatura
+                </p>
+              </div>
+              {fatura.nfe_status && getNFeStatusBadge(fatura.nfe_status)}
+            </div>
+
+            {fatura.nfe_status === 'emitida' && (
+              <div className="bg-muted rounded-lg p-4 mb-4 space-y-2">
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium">NF-e Emitida com Sucesso</p>
+                    <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                      <p><strong>Número:</strong> {fatura.nfe_numero} / <strong>Série:</strong> {fatura.nfe_serie}</p>
+                      <p className="break-all"><strong>Chave de Acesso:</strong> {fatura.nfe_chave_acesso}</p>
+                      <p><strong>Protocolo:</strong> {fatura.nfe_protocolo}</p>
+                      <p><strong>Data de Emissão:</strong> {fatura.nfe_data_emissao && new Date(fatura.nfe_data_emissao).toLocaleString('pt-BR')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {fatura.nfe_status === 'erro' && (
+              <div className="bg-destructive/10 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                  <div>
+                    <p className="font-medium text-destructive">Erro ao Emitir NF-e</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Verifique os dados da fatura e suas configurações fiscais.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2 flex-wrap">
+              {(!fatura.nfe_status || fatura.nfe_status === 'nao_emitida' || fatura.nfe_status === 'erro') && (
+                <Button 
+                  onClick={handleEmitirNFe} 
+                  disabled={emitindoNFe}
+                  variant="default"
+                >
+                  <Receipt className="mr-2 h-4 w-4" />
+                  {emitindoNFe ? 'Emitindo...' : 'Emitir NF-e'}
+                </Button>
+              )}
+              
+              {fatura.nfe_status === 'emitida' && fatura.nfe_xml && (
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    const blob = new Blob([fatura.nfe_xml!], { type: 'application/xml' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `NFe_${fatura.nfe_chave_acesso}.xml`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                  }}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Baixar XML
+                </Button>
+              )}
+            </div>
+          </div>
 
           {/* Ações */}
           <div className="flex gap-3 justify-end pt-4 border-t">

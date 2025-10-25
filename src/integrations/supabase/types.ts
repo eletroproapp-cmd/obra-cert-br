@@ -106,12 +106,18 @@ export type Database = {
       }
       empresas: {
         Row: {
+          ambiente_nfe: string | null
           cep: string | null
+          certificado_digital_arquivo: string | null
+          certificado_digital_tipo: string | null
+          certificado_digital_validade: string | null
           cidade: string | null
           cnpj: string | null
           cor_primaria: string | null
           cor_secundaria: string | null
           created_at: string
+          csc_id: string | null
+          csc_token: string | null
           email: string | null
           endereco: string | null
           estado: string | null
@@ -121,8 +127,10 @@ export type Database = {
           logo_url: string | null
           nome_fantasia: string
           observacoes_padrao: string | null
+          proximo_numero_nfe: number | null
           razao_social: string | null
           regime_tributario: string | null
+          serie_nfe: string | null
           telefone: string | null
           termos_condicoes: string | null
           updated_at: string
@@ -130,12 +138,18 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          ambiente_nfe?: string | null
           cep?: string | null
+          certificado_digital_arquivo?: string | null
+          certificado_digital_tipo?: string | null
+          certificado_digital_validade?: string | null
           cidade?: string | null
           cnpj?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
           created_at?: string
+          csc_id?: string | null
+          csc_token?: string | null
           email?: string | null
           endereco?: string | null
           estado?: string | null
@@ -145,8 +159,10 @@ export type Database = {
           logo_url?: string | null
           nome_fantasia: string
           observacoes_padrao?: string | null
+          proximo_numero_nfe?: number | null
           razao_social?: string | null
           regime_tributario?: string | null
+          serie_nfe?: string | null
           telefone?: string | null
           termos_condicoes?: string | null
           updated_at?: string
@@ -154,12 +170,18 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          ambiente_nfe?: string | null
           cep?: string | null
+          certificado_digital_arquivo?: string | null
+          certificado_digital_tipo?: string | null
+          certificado_digital_validade?: string | null
           cidade?: string | null
           cnpj?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
           created_at?: string
+          csc_id?: string | null
+          csc_token?: string | null
           email?: string | null
           endereco?: string | null
           estado?: string | null
@@ -169,8 +191,10 @@ export type Database = {
           logo_url?: string | null
           nome_fantasia?: string
           observacoes_padrao?: string | null
+          proximo_numero_nfe?: number | null
           razao_social?: string | null
           regime_tributario?: string | null
+          serie_nfe?: string | null
           telefone?: string | null
           termos_condicoes?: string | null
           updated_at?: string
@@ -232,6 +256,13 @@ export type Database = {
           descricao: string | null
           forma_pagamento: string | null
           id: string
+          nfe_chave_acesso: string | null
+          nfe_data_emissao: string | null
+          nfe_numero: string | null
+          nfe_protocolo: string | null
+          nfe_serie: string | null
+          nfe_status: string | null
+          nfe_xml: string | null
           numero: string
           observacoes: string | null
           status: string
@@ -248,6 +279,13 @@ export type Database = {
           descricao?: string | null
           forma_pagamento?: string | null
           id?: string
+          nfe_chave_acesso?: string | null
+          nfe_data_emissao?: string | null
+          nfe_numero?: string | null
+          nfe_protocolo?: string | null
+          nfe_serie?: string | null
+          nfe_status?: string | null
+          nfe_xml?: string | null
           numero: string
           observacoes?: string | null
           status?: string
@@ -264,6 +302,13 @@ export type Database = {
           descricao?: string | null
           forma_pagamento?: string | null
           id?: string
+          nfe_chave_acesso?: string | null
+          nfe_data_emissao?: string | null
+          nfe_numero?: string | null
+          nfe_protocolo?: string | null
+          nfe_serie?: string | null
+          nfe_status?: string | null
+          nfe_xml?: string | null
           numero?: string
           observacoes?: string | null
           status?: string
