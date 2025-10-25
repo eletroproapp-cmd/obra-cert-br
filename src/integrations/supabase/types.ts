@@ -317,6 +317,150 @@ export type Database = {
         }
         Relationships: []
       }
+      nbr5410_checklists: {
+        Row: {
+          alertas: Json | null
+          area_total: number | null
+          checklist_data: Json | null
+          created_at: string
+          fatura_id: string | null
+          id: string
+          num_comodos: number | null
+          observacoes: string | null
+          orcamento_id: string | null
+          premissas_tecnicas: string | null
+          status: string | null
+          tem_aquecedor: boolean | null
+          tem_ar_condicionado: boolean | null
+          tem_chuveiro: boolean | null
+          tem_forno_eletrico: boolean | null
+          tem_piscina: boolean | null
+          tipo_imovel: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alertas?: Json | null
+          area_total?: number | null
+          checklist_data?: Json | null
+          created_at?: string
+          fatura_id?: string | null
+          id?: string
+          num_comodos?: number | null
+          observacoes?: string | null
+          orcamento_id?: string | null
+          premissas_tecnicas?: string | null
+          status?: string | null
+          tem_aquecedor?: boolean | null
+          tem_ar_condicionado?: boolean | null
+          tem_chuveiro?: boolean | null
+          tem_forno_eletrico?: boolean | null
+          tem_piscina?: boolean | null
+          tipo_imovel: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alertas?: Json | null
+          area_total?: number | null
+          checklist_data?: Json | null
+          created_at?: string
+          fatura_id?: string | null
+          id?: string
+          num_comodos?: number | null
+          observacoes?: string | null
+          orcamento_id?: string | null
+          premissas_tecnicas?: string | null
+          status?: string | null
+          tem_aquecedor?: boolean | null
+          tem_ar_condicionado?: boolean | null
+          tem_chuveiro?: boolean | null
+          tem_forno_eletrico?: boolean | null
+          tem_piscina?: boolean | null
+          tipo_imovel?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nbr5410_checklists_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nbr5410_checklists_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nbr5410_sugestoes: {
+        Row: {
+          adicionado_orcamento: boolean | null
+          checklist_id: string
+          created_at: string
+          descricao: string
+          id: string
+          justificativa: string | null
+          material_id: string | null
+          norma_referencia: string | null
+          quantidade: number
+          tipo: string
+          unidade: string | null
+          valor_total: number | null
+          valor_unitario: number | null
+        }
+        Insert: {
+          adicionado_orcamento?: boolean | null
+          checklist_id: string
+          created_at?: string
+          descricao: string
+          id?: string
+          justificativa?: string | null
+          material_id?: string | null
+          norma_referencia?: string | null
+          quantidade?: number
+          tipo: string
+          unidade?: string | null
+          valor_total?: number | null
+          valor_unitario?: number | null
+        }
+        Update: {
+          adicionado_orcamento?: boolean | null
+          checklist_id?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          justificativa?: string | null
+          material_id?: string | null
+          norma_referencia?: string | null
+          quantidade?: number
+          tipo?: string
+          unidade?: string | null
+          valor_total?: number | null
+          valor_unitario?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nbr5410_sugestoes_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "nbr5410_checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nbr5410_sugestoes_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamento_items: {
         Row: {
           created_at: string
