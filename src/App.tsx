@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./components/DashboardLayout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -28,15 +29,15 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           
-          {/* Dashboard Routes with Sidebar */}
-          <Route path="/dashboard" element={<DashboardLayout><Dashboard /></DashboardLayout>} />
-          <Route path="/planejamento" element={<DashboardLayout><Planejamento /></DashboardLayout>} />
-          <Route path="/orcamentos" element={<DashboardLayout><Orcamentos /></DashboardLayout>} />
-          <Route path="/faturas" element={<DashboardLayout><Faturas /></DashboardLayout>} />
-          <Route path="/clientes" element={<DashboardLayout><Clientes /></DashboardLayout>} />
-          <Route path="/catalogo" element={<DashboardLayout><Catalogo /></DashboardLayout>} />
-          <Route path="/instalacoes" element={<DashboardLayout><Instalacoes /></DashboardLayout>} />
-          <Route path="/fornecedores" element={<DashboardLayout><Fornecedores /></DashboardLayout>} />
+          {/* Dashboard Routes with Sidebar - Protected */}
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout><Dashboard /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/planejamento" element={<ProtectedRoute><DashboardLayout><Planejamento /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/orcamentos" element={<ProtectedRoute><DashboardLayout><Orcamentos /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/faturas" element={<ProtectedRoute><DashboardLayout><Faturas /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/clientes" element={<ProtectedRoute><DashboardLayout><Clientes /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/catalogo" element={<ProtectedRoute><DashboardLayout><Catalogo /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/instalacoes" element={<ProtectedRoute><DashboardLayout><Instalacoes /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/fornecedores" element={<ProtectedRoute><DashboardLayout><Fornecedores /></DashboardLayout></ProtectedRoute>} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

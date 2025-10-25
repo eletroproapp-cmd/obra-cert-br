@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,35 +6,45 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import logo from "@/assets/logo-eletropro.png";
+import { useAuth } from "@/hooks/useAuth";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signIn, signUp, user } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulação de login - substituir com autenticação real
-    setTimeout(() => {
-      toast.success("Login realizado com sucesso!");
-      setIsLoading(false);
-      navigate("/dashboard");
-    }, 1500);
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    await signIn(email, password);
+    setIsLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulação de cadastro - substituir com autenticação real
-    setTimeout(() => {
-      toast.success("Conta criada com sucesso!");
-      setIsLoading(false);
-      navigate("/dashboard");
-    }, 1500);
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const name = formData.get('name') as string;
+    const company = formData.get('company') as string;
+
+    await signUp(email, password, { full_name: name, company });
+    setIsLoading(false);
   };
 
   return (
@@ -76,6 +86,7 @@ const Auth = () => {
                     <Label htmlFor="login-email">Email</Label>
                     <Input
                       id="login-email"
+                      name="email"
                       type="email"
                       placeholder="seu@email.com"
                       required
@@ -85,8 +96,10 @@ const Auth = () => {
                     <Label htmlFor="login-password">Senha</Label>
                     <Input
                       id="login-password"
+                      name="password"
                       type="password"
                       placeholder="••••••••"
+                      minLength={6}
                       required
                     />
                   </div>
@@ -112,6 +125,7 @@ const Auth = () => {
                     <Label htmlFor="signup-name">Nome Completo</Label>
                     <Input
                       id="signup-name"
+                      name="name"
                       type="text"
                       placeholder="Seu nome"
                       required
@@ -121,6 +135,7 @@ const Auth = () => {
                     <Label htmlFor="signup-company">Empresa</Label>
                     <Input
                       id="signup-company"
+                      name="company"
                       type="text"
                       placeholder="Nome da sua empresa"
                       required
@@ -130,6 +145,7 @@ const Auth = () => {
                     <Label htmlFor="signup-email">Email</Label>
                     <Input
                       id="signup-email"
+                      name="email"
                       type="email"
                       placeholder="seu@email.com"
                       required
@@ -139,8 +155,10 @@ const Auth = () => {
                     <Label htmlFor="signup-password">Senha</Label>
                     <Input
                       id="signup-password"
+                      name="password"
                       type="password"
                       placeholder="••••••••"
+                      minLength={6}
                       required
                     />
                   </div>

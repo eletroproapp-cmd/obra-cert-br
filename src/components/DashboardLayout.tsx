@@ -2,13 +2,15 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Button } from "./ui/button";
 import { Settings, LogOut, Menu } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const { signOut } = useAuth();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-subtle">
@@ -29,12 +31,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Button variant="ghost" size="icon">
                   <Settings className="h-5 w-5" />
                 </Button>
-                <Link to="/">
-                  <Button variant="ghost" size="sm">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
-                  </Button>
-                </Link>
+                <Button variant="ghost" size="sm" onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </Button>
               </div>
             </div>
           </header>
