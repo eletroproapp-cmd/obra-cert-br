@@ -603,6 +603,51 @@ export type Database = {
           },
         ]
       }
+      servicos: {
+        Row: {
+          categoria: string
+          codigo: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          preco_hora: number
+          tempo_estimado: number | null
+          unidade: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          categoria: string
+          codigo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          preco_hora?: number
+          tempo_estimado?: number | null
+          unidade?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          categoria?: string
+          codigo?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          preco_hora?: number
+          tempo_estimado?: number | null
+          unidade?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tarefas: {
         Row: {
           created_at: string

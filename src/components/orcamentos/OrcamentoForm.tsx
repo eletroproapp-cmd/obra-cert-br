@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 import { Plus, Trash2, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -52,6 +53,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
   const [items, setItems] = useState<OrcamentoItem[]>([
     { descricao: '', quantidade: 1, unidade: 'un', valor_unitario: 0, valor_total: 0 }
   ]);
+  const [catalogoOptions, setCatalogoOptions] = useState<ComboboxOption[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
@@ -67,6 +69,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
 
   useEffect(() => {
     loadClientes();
+    loadCatalogo();
   }, []);
 
   const loadClientes = async () => {
@@ -81,6 +84,41 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
     }
 
     setClientes(data || []);
+  };
+
+  const loadCatalogo = async () => {
+    try {
+      const [materiaisRes, servicosRes] = await Promise.all([
+        supabase.from('materiais').select('id, nome, preco_venda, unidade').order('nome'),
+        supabase.from('servicos').select('id, nome, preco_hora, unidade').order('nome')
+      ]);
+
+      const options: ComboboxOption[] = [];
+
+      if (materiaisRes.data) {
+        materiaisRes.data.forEach(m => {
+          options.push({
+            value: `material-${m.id}`,
+            label: `${m.nome} - R$ ${m.preco_venda.toFixed(2)}/${m.unidade}`,
+            metadata: { tipo: 'material', preco: m.preco_venda, unidade: m.unidade, nome: m.nome }
+          });
+        });
+      }
+
+      if (servicosRes.data) {
+        servicosRes.data.forEach(s => {
+          options.push({
+            value: `servico-${s.id}`,
+            label: `${s.nome} - R$ ${s.preco_hora.toFixed(2)}/${s.unidade}`,
+            metadata: { tipo: 'servico', preco: s.preco_hora, unidade: s.unidade, nome: s.nome }
+          });
+        });
+      }
+
+      setCatalogoOptions(options);
+    } catch (error: any) {
+      toast.error('Erro ao carregar catálogo');
+    }
   };
 
   const calcularValorTotal = () => {
@@ -264,11 +302,17 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             <div className="grid md:grid-cols-12 gap-3">
               <div className="md:col-span-5">
                 <Label className="text-xs">Descrição *</Label>
-                <Input
+                <Combobox
+                  options={catalogoOptions}
                   value={item.descricao}
-                  onChange={(e) => updateItem(index, 'descricao', e.target.value)}
-                  placeholder="Ex: Tomada 2P+T 10A"
-                  required
+                  onSelect={(option) => {
+                    updateItem(index, 'descricao', option.metadata.nome);
+                    updateItem(index, 'unidade', option.metadata.unidade);
+                    updateItem(index, 'valor_unitario', option.metadata.preco);
+                  }}
+                  placeholder="Buscar no catálogo ou digite..."
+                  searchPlaceholder="Buscar material ou serviço..."
+                  emptyMessage="Nenhum item encontrado no catálogo"
                 />
               </div>
               <div className="md:col-span-2">
