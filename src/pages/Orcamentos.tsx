@@ -1,27 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
-import logo from "@/assets/logo-eletropro.png";
+import { Plus } from "lucide-react";
 
 const Orcamentos = () => {
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-3">
-            <img src={logo} alt="EletroPro" className="h-10" />
-          </Link>
-          <Link to="/dashboard">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar ao Dashboard
-            </Button>
-          </Link>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Orçamentos</h1>
@@ -62,7 +45,6 @@ const Orcamentos = () => {
           ))}
         </div>
       </div>
-    </div>
   );
 };
 

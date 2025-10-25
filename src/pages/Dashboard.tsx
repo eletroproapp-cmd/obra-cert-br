@@ -5,45 +5,14 @@ import {
   DollarSign,
   TrendingUp,
   Plus,
-  Menu,
-  LogOut,
-  Home,
-  ClipboardList,
-  Package,
-  Settings,
   Zap,
   Cable,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import logo from "@/assets/logo-eletropro.png";
 
 const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
-            <Link to="/" className="flex items-center gap-3">
-              <img src={logo} alt="EletroPro" className="h-10" />
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
-            </Button>
-            <Link to="/">
-              <Button variant="ghost" size="sm">
-                <LogOut className="mr-2 h-4 w-4" />
-                Sair
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
 
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
