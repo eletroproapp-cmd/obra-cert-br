@@ -16,6 +16,7 @@ import {
   UserPlus,
   HelpCircle,
   CheckSquare,
+  BarChart3,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import logo from "@/assets/logo-eletropro.png";
@@ -70,6 +71,7 @@ const menuItems = [
 ];
 
 const bottomItems = [
+  { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
   { title: "Indicações", url: "/indicacoes", icon: UserPlus },
   { title: "Ajuda", url: "/ajuda", icon: HelpCircle },

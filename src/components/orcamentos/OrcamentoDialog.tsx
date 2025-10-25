@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { FileText, Send, Loader2, Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface OrcamentoDialogProps {
   orcamentoId: string | null;
@@ -43,9 +44,11 @@ interface Orcamento {
 }
 
 export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: OrcamentoDialogProps) => {
+  const navigate = useNavigate();
   const [orcamento, setOrcamento] = useState<Orcamento | null>(null);
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [convertendo, setConvertendo] = useState(false);
 
   useEffect(() => {
     if (orcamentoId && open) {
@@ -120,6 +123,72 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
       toast.error('Erro ao enviar email: ' + error.message);
     } finally {
       setSendingEmail(false);
+    }
+  };
+
+  const handleConvertToFatura = async () => {
+    if (!orcamento) return;
+
+    setConvertendo(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Gerar número da fatura
+      const { data: numeroData, error: numeroError } = await supabase
+        .rpc('generate_fatura_numero');
+      
+      if (numeroError) throw numeroError;
+
+      // Criar fatura
+      const { data: novaFatura, error: faturaError } = await supabase
+        .from('faturas')
+        .insert([{
+          user_id: user.id,
+          cliente_id: orcamento.id,
+          numero: numeroData,
+          titulo: orcamento.titulo,
+          descricao: orcamento.descricao,
+          valor_total: orcamento.valor_total,
+          status: 'Pendente',
+          data_vencimento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          observacoes: orcamento.observacoes,
+        }])
+        .select()
+        .single();
+
+      if (faturaError) throw faturaError;
+
+      // Copiar itens do orçamento para a fatura
+      const faturaItems = orcamento.items.map((item, index) => ({
+        fatura_id: novaFatura.id,
+        descricao: item.descricao,
+        quantidade: item.quantidade,
+        unidade: item.unidade,
+        valor_unitario: item.valor_unitario,
+        valor_total: item.valor_total,
+        ordem: index,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('fatura_items')
+        .insert(faturaItems);
+
+      if (itemsError) throw itemsError;
+
+      // Atualizar status do orçamento
+      await supabase
+        .from('orcamentos')
+        .update({ status: 'Aprovado' })
+        .eq('id', orcamento.id);
+
+      toast.success('Fatura criada com sucesso!');
+      onOpenChange(false);
+      navigate('/faturas');
+    } catch (error: any) {
+      toast.error('Erro ao converter para fatura: ' + error.message);
+    } finally {
+      setConvertendo(false);
     }
   };
 
@@ -225,7 +294,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
           )}
 
           {/* Ações */}
-          <div className="flex gap-3 justify-end pt-4 border-t">
+          <div className="flex flex-wrap gap-3 justify-end pt-4 border-t">
             {onEdit && (
               <Button variant="outline" onClick={() => {
                 onEdit();
@@ -239,9 +308,17 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
-            <Button onClick={handleSendEmail} disabled={sendingEmail} variant="hero">
+            <Button variant="outline" onClick={handleSendEmail} disabled={sendingEmail}>
               <Send className="h-4 w-4 mr-2" />
-              {sendingEmail ? 'Enviando...' : 'Enviar por Email'}
+              {sendingEmail ? 'Enviando...' : 'Enviar Email'}
+            </Button>
+            <Button 
+              onClick={handleConvertToFatura}
+              disabled={convertendo || orcamento.status === 'Aprovado'}
+              className="bg-gradient-primary"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              {convertendo ? 'Convertendo...' : 'Converter em Fatura'}
             </Button>
           </div>
         </div>

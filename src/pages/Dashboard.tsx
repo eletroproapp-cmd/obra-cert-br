@@ -1,201 +1,234 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  FileText,
-  DollarSign,
-  TrendingUp,
-  Plus,
-  Zap,
-  Cable,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowUpRight, DollarSign, FileText, Users, Wrench, TrendingUp, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
+interface DashboardMetrics {
+  totalReceitas: number;
+  totalDespesas: number;
+  totalOrcamentos: number;
+  orcamentosPendentes: number;
+  totalFaturas: number;
+  faturasPendentes: number;
+  instalacoes: number;
+  materiaisBaixoEstoque: number;
+}
+
 const Dashboard = () => {
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalReceitas: 0,
+    totalDespesas: 0,
+    totalOrcamentos: 0,
+    orcamentosPendentes: 0,
+    totalFaturas: 0,
+    faturasPendentes: 0,
+    instalacoes: 0,
+    materiaisBaixoEstoque: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadMetrics();
+  }, []);
+
+  const loadMetrics = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Carregar orçamentos
+      const { data: orcamentos } = await supabase
+        .from('orcamentos')
+        .select('valor_total, status')
+        .eq('user_id', user.id);
+
+      // Carregar faturas
+      const { data: faturas } = await supabase
+        .from('faturas')
+        .select('valor_total, status')
+        .eq('user_id', user.id);
+
+      // Carregar instalações
+      const { data: instalacoes } = await supabase
+        .from('instalacoes')
+        .select('id, status')
+        .eq('user_id', user.id);
+
+      // Carregar materiais com estoque baixo
+      const { data: materiais } = await supabase
+        .from('materiais')
+        .select('estoque_atual, estoque_minimo')
+        .eq('user_id', user.id);
+
+      const totalReceitas = faturas?.filter(f => f.status === 'Paga').reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
+      const totalDespesas = 0; // Será implementado quando houver módulo de despesas
+      const totalOrcamentos = orcamentos?.length || 0;
+      const orcamentosPendentes = orcamentos?.filter(o => o.status === 'Pendente').length || 0;
+      const totalFaturas = faturas?.length || 0;
+      const faturasPendentes = faturas?.filter(f => f.status === 'Pendente').length || 0;
+      const materiaisBaixoEstoque = materiais?.filter(m => Number(m.estoque_atual) <= Number(m.estoque_minimo)).length || 0;
+
+      setMetrics({
+        totalReceitas,
+        totalDespesas,
+        totalOrcamentos,
+        orcamentosPendentes,
+        totalFaturas,
+        faturasPendentes,
+        instalacoes: instalacoes?.length || 0,
+        materiaisBaixoEstoque,
+      });
+    } catch (error: any) {
+      toast.error('Erro ao carregar métricas: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-
+    <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Bem-vindo de volta! 👋</h1>
-          <p className="text-muted-foreground">
-            Aqui está um resumo das suas atividades recentes
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+        <p className="text-muted-foreground mb-8">Visão geral do seu negócio</p>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Link to="/orcamentos" className="w-full">
-            <Button variant="hero" size="lg" className="h-auto py-6 flex-col gap-2 w-full">
-              <Plus className="h-6 w-6" />
-              <span>Novo Orçamento</span>
-            </Button>
-          </Link>
-          <Link to="/faturas" className="w-full">
-            <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2 w-full">
-              <FileText className="h-6 w-6" />
-              <span>Nova Fatura</span>
-            </Button>
-          </Link>
-          <Link to="/catalogo" className="w-full">
-            <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2 w-full">
-              <Cable className="h-6 w-6" />
-              <span>Adicionar Material</span>
-            </Button>
-          </Link>
-          <Link to="/instalacoes" className="w-full">
-            <Button variant="outline" size="lg" className="h-auto py-6 flex-col gap-2 w-full">
-              <Zap className="h-6 w-6" />
-              <span>Nova Instalação</span>
-            </Button>
-          </Link>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-border shadow-soft hover:shadow-medium transition-all">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Orçamentos Ativos
-              </CardTitle>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-l-4 border-l-success">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Receitas</CardTitle>
+              <DollarSign className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-3xl font-bold text-foreground">12</div>
-                <div className="flex items-center gap-1 text-success text-sm">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>+23%</span>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">+3 este mês</p>
+              <div className="text-2xl font-bold text-success">R$ {metrics.totalReceitas.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">
+                Faturas pagas
+              </p>
             </CardContent>
           </Card>
-
-          <Card className="border-border shadow-soft hover:shadow-medium transition-all">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Faturas Pendentes
-              </CardTitle>
+          
+          <Card className="border-l-4 border-l-primary">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Orçamentos</CardTitle>
+              <FileText className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-3xl font-bold text-foreground">8</div>
-                <div className="flex items-center gap-1 text-accent text-sm">
-                  <DollarSign className="h-4 w-4" />
-                  <span>R$ 45.2k</span>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Total a receber</p>
+              <div className="text-2xl font-bold">{metrics.totalOrcamentos}</div>
+              <p className="text-xs text-muted-foreground">
+                {metrics.orcamentosPendentes} pendentes
+              </p>
             </CardContent>
           </Card>
-
-          <Card className="border-border shadow-soft hover:shadow-medium transition-all">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Instalações em Andamento
-              </CardTitle>
+          
+          <Card className="border-l-4 border-l-accent">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Faturas</CardTitle>
+              <TrendingUp className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-3xl font-bold text-foreground">6</div>
-                <div className="flex items-center gap-1 text-primary text-sm">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>+2</span>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">4 no prazo</p>
+              <div className="text-2xl font-bold">{metrics.totalFaturas}</div>
+              <p className="text-xs text-muted-foreground">
+                {metrics.faturasPendentes} pendentes
+              </p>
             </CardContent>
           </Card>
-
-          <Card className="border-border shadow-soft hover:shadow-medium transition-all">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Receita do Mês
-              </CardTitle>
+          
+          <Card className="border-l-4 border-l-secondary">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Instalações</CardTitle>
+              <Wrench className="h-4 w-4 text-secondary" />
             </CardHeader>
             <CardContent>
-              <div className="flex items-baseline justify-between">
-                <div className="text-3xl font-bold text-foreground">R$ 82k</div>
-                <div className="flex items-center gap-1 text-success text-sm">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>+15%</span>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">vs. mês anterior</p>
+              <div className="text-2xl font-bold">{metrics.instalacoes}</div>
+              <p className="text-xs text-muted-foreground">
+                Obras em andamento
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          <Card className="border-border shadow-medium">
+        {metrics.materiaisBaixoEstoque > 0 && (
+          <Card className="mt-6 border-l-4 border-l-destructive">
             <CardHeader>
-              <CardTitle>Orçamentos Recentes</CardTitle>
-              <CardDescription>Últimos orçamentos criados</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+                Atenção: Estoque Baixo
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {[
-                  { id: "ORC-2024-001", client: "Residencial Jardins", value: "R$ 8.400", status: "Aprovado" },
-                  { id: "ORC-2024-002", client: "Comércio Silva", value: "R$ 12.200", status: "Pendente" },
-                  { id: "ORC-2024-003", client: "Indústria Premium", value: "R$ 28.100", status: "Em Análise" },
-                ].map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-                  >
-                    <div>
-                      <p className="font-medium">{item.id}</p>
-                      <p className="text-sm text-muted-foreground">{item.client}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-primary">{item.value}</p>
-                      <p className="text-xs text-muted-foreground">{item.status}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button variant="outline" className="w-full mt-4">
-                Ver Todos os Orçamentos
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                Você tem {metrics.materiaisBaixoEstoque} {metrics.materiaisBaixoEstoque === 1 ? 'material' : 'materiais'} com estoque abaixo do mínimo.
+                <Link to="/catalogo" className="ml-2 text-primary hover:underline">
+                  Verificar catálogo
+                </Link>
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid lg:grid-cols-2 gap-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ações Rápidas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Link to="/orcamentos" className="block p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Novo Orçamento</span>
+                  <ArrowUpRight className="h-4 w-4" />
+                </div>
+              </Link>
+              <Link to="/faturas" className="block p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Nova Fatura</span>
+                  <ArrowUpRight className="h-4 w-4" />
+                </div>
+              </Link>
+              <Link to="/relatorios" className="block p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Ver Relatórios</span>
+                  <ArrowUpRight className="h-4 w-4" />
+                </div>
+              </Link>
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-medium">
+          <Card>
             <CardHeader>
-              <CardTitle>Faturas a Vencer</CardTitle>
-              <CardDescription>Próximos vencimentos</CardDescription>
+              <CardTitle>Resumo Financeiro</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { id: "FAT-2024-015", client: "Instalação Residencial XYZ", value: "R$ 7.300", due: "15/01" },
-                  { id: "FAT-2024-016", client: "Quadro Comercial Nova", value: "R$ 15.800", due: "18/01" },
-                  { id: "FAT-2024-017", client: "Manutenção Industrial", value: "R$ 22.500", due: "22/01" },
-                ].map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-                  >
-                    <div>
-                      <p className="font-medium">{item.id}</p>
-                      <p className="text-sm text-muted-foreground">{item.client}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-accent">{item.value}</p>
-                      <p className="text-xs text-muted-foreground">Vence: {item.due}</p>
-                    </div>
-                  </div>
-                ))}
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Receitas</span>
+                <span className="font-bold text-success">R$ {metrics.totalReceitas.toFixed(2)}</span>
               </div>
-              <Button variant="outline" className="w-full mt-4">
-                Ver Todas as Faturas
-              </Button>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Despesas</span>
+                <span className="font-bold text-destructive">R$ {metrics.totalDespesas.toFixed(2)}</span>
+              </div>
+              <div className="h-px bg-border my-2" />
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Lucro</span>
+                <span className="font-bold text-primary">
+                  R$ {(metrics.totalReceitas - metrics.totalDespesas).toFixed(2)}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

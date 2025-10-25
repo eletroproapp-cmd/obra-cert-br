@@ -104,6 +104,81 @@ export type Database = {
         }
         Relationships: []
       }
+      empresas: {
+        Row: {
+          cep: string | null
+          cidade: string | null
+          cnpj: string | null
+          cor_primaria: string | null
+          cor_secundaria: string | null
+          created_at: string
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          id: string
+          inscricao_estadual: string | null
+          inscricao_municipal: string | null
+          logo_url: string | null
+          nome_fantasia: string
+          observacoes_padrao: string | null
+          razao_social: string | null
+          regime_tributario: string | null
+          telefone: string | null
+          termos_condicoes: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          cor_primaria?: string | null
+          cor_secundaria?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
+          logo_url?: string | null
+          nome_fantasia: string
+          observacoes_padrao?: string | null
+          razao_social?: string | null
+          regime_tributario?: string | null
+          telefone?: string | null
+          termos_condicoes?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          cor_primaria?: string | null
+          cor_secundaria?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
+          logo_url?: string | null
+          nome_fantasia?: string
+          observacoes_padrao?: string | null
+          razao_social?: string | null
+          regime_tributario?: string | null
+          telefone?: string | null
+          termos_condicoes?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       fatura_items: {
         Row: {
           created_at: string
@@ -361,6 +436,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      movimentacoes_estoque: {
+        Row: {
+          created_at: string
+          id: string
+          material_id: string
+          motivo: string | null
+          quantidade: number
+          referencia_id: string | null
+          referencia_tipo: string | null
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          material_id: string
+          motivo?: string | null
+          quantidade: number
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          material_id?: string
+          motivo?: string | null
+          quantidade?: number
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimentacoes_estoque_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       nbr5410_checklists: {
         Row: {
