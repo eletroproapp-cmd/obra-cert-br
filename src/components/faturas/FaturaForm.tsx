@@ -116,13 +116,11 @@ export const FaturaForm = ({ onSuccess }: FaturaFormProps) => {
 
       const valorTotal = calcularValorTotal();
 
-      // Gerar número da fatura
       const { data: numeroData, error: numeroError } = await supabase
         .rpc('generate_fatura_numero');
 
       if (numeroError) throw numeroError;
 
-      // Criar fatura
       const { data: fatura, error: faturaError } = await supabase
         .from('faturas')
         .insert({
@@ -142,7 +140,6 @@ export const FaturaForm = ({ onSuccess }: FaturaFormProps) => {
 
       if (faturaError) throw faturaError;
 
-      // Criar itens
       const itemsToInsert = items.map((item, index) => ({
         fatura_id: fatura.id,
         descricao: item.descricao,
@@ -161,8 +158,10 @@ export const FaturaForm = ({ onSuccess }: FaturaFormProps) => {
 
       toast.success('Fatura criada com sucesso!');
       onSuccess?.();
+      return fatura;
     } catch (error: any) {
       toast.error('Erro ao criar fatura: ' + error.message);
+      return null;
     } finally {
       setIsSubmitting(false);
     }
@@ -177,26 +176,22 @@ export const FaturaForm = ({ onSuccess }: FaturaFormProps) => {
     setIsSendingEmail(true);
 
     try {
-      await onSubmit(data);
+      const created = await onSubmit(data);
 
       const cliente = clientes.find(c => c.id === selectedClienteId);
-      
       if (!cliente?.email) {
         toast.error('Cliente sem email cadastrado');
+        return;
+      }
+      if (!created?.id) {
+        toast.error('Não foi possível criar a fatura');
         return;
       }
 
       const { error } = await supabase.functions.invoke('enviar-fatura', {
         body: {
           clienteEmail: cliente.email,
-          clienteNome: cliente.nome,
-          fatura: {
-            titulo: data.titulo,
-            items: items,
-            valorTotal: calcularValorTotal(),
-            dataVencimento: data.data_vencimento,
-            observacoes: data.observacoes,
-          }
+          faturaId: created.id,
         }
       });
 

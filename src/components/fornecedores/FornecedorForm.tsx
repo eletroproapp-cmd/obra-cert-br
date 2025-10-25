@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
 
 const fornecedorSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -35,12 +36,14 @@ export const FornecedorForm = ({ onSuccess }: FornecedorFormProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      const payload = {
+        ...data,
+        user_id: user.id,
+      } as unknown as Database['public']['Tables']['fornecedores']['Insert'];
+
       const { error } = await supabase
         .from('fornecedores')
-        .insert({
-          ...data,
-          user_id: user.id,
-        });
+        .insert([payload]);
 
       if (error) throw error;
 

@@ -117,13 +117,11 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
 
       const valorTotal = calcularValorTotal();
 
-      // Gerar número do orçamento
       const { data: numeroData, error: numeroError } = await supabase
         .rpc('generate_orcamento_numero');
 
       if (numeroError) throw numeroError;
 
-      // Criar orçamento
       const { data: orcamento, error: orcamentoError } = await supabase
         .from('orcamentos')
         .insert({
@@ -142,7 +140,6 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
 
       if (orcamentoError) throw orcamentoError;
 
-      // Criar itens
       const itemsToInsert = items.map((item, index) => ({
         orcamento_id: orcamento.id,
         descricao: item.descricao,
@@ -161,8 +158,10 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
 
       toast.success('Orçamento criado com sucesso!');
       onSuccess?.();
+      return orcamento;
     } catch (error: any) {
       toast.error('Erro ao criar orçamento: ' + error.message);
+      return null;
     } finally {
       setIsSubmitting(false);
     }
@@ -177,28 +176,22 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
     setIsSendingEmail(true);
 
     try {
-      // Primeiro salva o orçamento se ainda não foi salvo
-      await onSubmit(data);
+      const created = await onSubmit(data);
 
-      // Depois envia o email
       const cliente = clientes.find(c => c.id === selectedClienteId);
-      
       if (!cliente?.email) {
         toast.error('Cliente sem email cadastrado');
+        return;
+      }
+      if (!created?.id) {
+        toast.error('Não foi possível criar o orçamento');
         return;
       }
 
       const { error } = await supabase.functions.invoke('enviar-orcamento', {
         body: {
           clienteEmail: cliente.email,
-          clienteNome: cliente.nome,
-          orcamento: {
-            titulo: data.titulo,
-            items: items,
-            valorTotal: calcularValorTotal(),
-            validade: data.validade_dias,
-            observacoes: data.observacoes,
-          }
+          orcamentoId: created.id,
         }
       });
 

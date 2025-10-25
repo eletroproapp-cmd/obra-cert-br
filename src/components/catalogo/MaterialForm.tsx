@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
+import type { Database } from '@/integrations/supabase/types';
 
 const materialSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -48,12 +50,14 @@ export const MaterialForm = ({ onSuccess }: MaterialFormProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      const payload = {
+        ...data,
+        user_id: user.id,
+      } as unknown as Database['public']['Tables']['materiais']['Insert'];
+
       const { error } = await supabase
         .from('materiais')
-        .insert({
-          ...data,
-          user_id: user.id,
-        });
+        .insert([payload]);
 
       if (error) throw error;
 
