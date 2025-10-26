@@ -17,6 +17,8 @@ import Planejamento from "./pages/Planejamento";
 import NBR5410 from "./pages/NBR5410";
 import Configuracoes from "./pages/Configuracoes";
 import Relatorios from "./pages/Relatorios";
+import Funcionarios from "./pages/Funcionarios";
+import Timesheets from "./pages/Timesheets";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -40,6 +42,8 @@ const App = () => (
         <Route path="/nbr5410" element={<ProtectedRoute><DashboardLayout><NBR5410 /></DashboardLayout></ProtectedRoute>} />
         <Route path="/configuracoes" element={<ProtectedRoute><DashboardLayout><Configuracoes /></DashboardLayout></ProtectedRoute>} />
         <Route path="/relatorios" element={<ProtectedRoute><DashboardLayout><Relatorios /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/funcionarios" element={<ProtectedRoute><DashboardLayout><Funcionarios /></DashboardLayout></ProtectedRoute>} />
+        <Route path="/timesheets" element={<ProtectedRoute><DashboardLayout><Timesheets /></DashboardLayout></ProtectedRoute>} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

@@ -375,6 +375,48 @@ export type Database = {
         }
         Relationships: []
       }
+      funcionarios: {
+        Row: {
+          ativo: boolean
+          cargo: string | null
+          created_at: string
+          data_admissao: string | null
+          email: string | null
+          id: string
+          nome: string
+          salario_hora: number | null
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          cargo?: string | null
+          created_at?: string
+          data_admissao?: string | null
+          email?: string | null
+          id?: string
+          nome: string
+          salario_hora?: number | null
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          cargo?: string | null
+          created_at?: string
+          data_admissao?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          salario_hora?: number | null
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       instalacoes: {
         Row: {
           cliente_id: string | null
@@ -855,6 +897,69 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "tarefas_instalacao_id_fkey"
+            columns: ["instalacao_id"]
+            isOneToOne: false
+            referencedRelation: "instalacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      timesheet_registros: {
+        Row: {
+          aprovado: boolean | null
+          created_at: string
+          data: string
+          descricao: string | null
+          funcionario_id: string
+          hora_fim: string
+          hora_inicio: string
+          horas_totais: number | null
+          id: string
+          instalacao_id: string | null
+          tipo_trabalho: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aprovado?: boolean | null
+          created_at?: string
+          data: string
+          descricao?: string | null
+          funcionario_id: string
+          hora_fim: string
+          hora_inicio: string
+          horas_totais?: number | null
+          id?: string
+          instalacao_id?: string | null
+          tipo_trabalho: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aprovado?: boolean | null
+          created_at?: string
+          data?: string
+          descricao?: string | null
+          funcionario_id?: string
+          hora_fim?: string
+          hora_inicio?: string
+          horas_totais?: number | null
+          id?: string
+          instalacao_id?: string | null
+          tipo_trabalho?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheet_registros_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timesheet_registros_instalacao_id_fkey"
             columns: ["instalacao_id"]
             isOneToOne: false
             referencedRelation: "instalacoes"

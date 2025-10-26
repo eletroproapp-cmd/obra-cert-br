@@ -17,6 +17,7 @@ import {
   HelpCircle,
   CheckSquare,
   BarChart3,
+  UserCog,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import logo from "@/assets/logo-eletropro.png";
@@ -39,7 +40,8 @@ const menuItems = [
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "Planejamento", url: "/planejamento", icon: Calendar },
-      { title: "Registro de Horas", url: "/horas", icon: Clock },
+      { title: "Funcionários", url: "/funcionarios", icon: UserCog },
+      { title: "Folhas de Ponto", url: "/timesheets", icon: Clock },
       { title: "Instalações", url: "/instalacoes", icon: Zap },
       { title: "Manutenções", url: "/manutencoes", icon: Wrench },
     ],
