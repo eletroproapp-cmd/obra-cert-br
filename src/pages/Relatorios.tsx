@@ -60,8 +60,8 @@ const Relatorios = () => {
       const orcamentosEmitidos = orcamentos?.length || 0;
       const orcamentosAprovados = orcamentos?.filter(o => o.status === 'Aprovado').length || 0;
       const faturasEmitidas = faturas?.length || 0;
-      const faturasPagas = faturas?.filter(f => f.status === 'Paga').length || 0;
-      const receitas = faturas?.filter(f => f.status === 'Paga').reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
+      const faturasPagas = faturas?.filter(f => f.status === 'Pago').length || 0;
+      const receitas = faturas?.filter(f => f.status === 'Pago').reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
       const despesas = 0; // Será implementado quando houver módulo de despesas
       const lucro = receitas - despesas;
       const taxaConversao = orcamentosEmitidos > 0 ? (orcamentosAprovados / orcamentosEmitidos) * 100 : 0;

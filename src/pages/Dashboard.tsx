@@ -63,7 +63,7 @@ const Dashboard = () => {
         .select('estoque_atual, estoque_minimo')
         .eq('user_id', user.id);
 
-      const totalReceitas = faturas?.filter(f => f.status === 'Paga').reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
+      const totalReceitas = faturas?.filter(f => f.status === 'Pago').reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
       const totalDespesas = 0; // Será implementado quando houver módulo de despesas
       const totalOrcamentos = orcamentos?.length || 0;
       const orcamentosPendentes = orcamentos?.filter(o => o.status === 'Pendente').length || 0;
