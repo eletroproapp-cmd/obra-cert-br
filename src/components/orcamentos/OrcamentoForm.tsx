@@ -242,17 +242,11 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
         return { id: orcamentoId };
       } else {
         // Criar novo orçamento
-        const { data: numeroData, error: numeroError } = await supabase
-          .rpc('generate_orcamento_numero');
-
-        if (numeroError) throw numeroError;
-
         const { data: orcamento, error: orcamentoError } = await supabase
           .from('orcamentos')
           .insert({
             user_id: user.id,
             cliente_id: data.cliente_id,
-            numero: numeroData,
             titulo: data.titulo,
             descricao: data.descricao,
             status: data.status,

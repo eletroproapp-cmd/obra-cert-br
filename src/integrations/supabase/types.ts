@@ -734,7 +734,7 @@ export type Database = {
           created_at?: string
           descricao?: string | null
           id?: string
-          numero: string
+          numero?: string
           observacoes?: string | null
           status?: string
           titulo: string
