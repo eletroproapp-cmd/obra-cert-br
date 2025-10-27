@@ -145,16 +145,20 @@ export type Database = {
           email: string | null
           endereco: string | null
           estado: string | null
+          estilo_borda: string | null
+          fonte_documento: string | null
           id: string
           inscricao_estadual: string | null
           inscricao_municipal: string | null
           logo_url: string | null
+          mostrar_logo: boolean | null
           nome_fantasia: string
           observacoes_padrao: string | null
           proximo_numero_nfe: number | null
           razao_social: string | null
           regime_tributario: string | null
           serie_nfe: string | null
+          tamanho_fonte: number | null
           telefone: string | null
           template_fatura: string | null
           template_orcamento: string | null
@@ -179,16 +183,20 @@ export type Database = {
           email?: string | null
           endereco?: string | null
           estado?: string | null
+          estilo_borda?: string | null
+          fonte_documento?: string | null
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
           logo_url?: string | null
+          mostrar_logo?: boolean | null
           nome_fantasia: string
           observacoes_padrao?: string | null
           proximo_numero_nfe?: number | null
           razao_social?: string | null
           regime_tributario?: string | null
           serie_nfe?: string | null
+          tamanho_fonte?: number | null
           telefone?: string | null
           template_fatura?: string | null
           template_orcamento?: string | null
@@ -213,16 +221,20 @@ export type Database = {
           email?: string | null
           endereco?: string | null
           estado?: string | null
+          estilo_borda?: string | null
+          fonte_documento?: string | null
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
           logo_url?: string | null
+          mostrar_logo?: boolean | null
           nome_fantasia?: string
           observacoes_padrao?: string | null
           proximo_numero_nfe?: number | null
           razao_social?: string | null
           regime_tributario?: string | null
           serie_nfe?: string | null
+          tamanho_fonte?: number | null
           telefone?: string | null
           template_fatura?: string | null
           template_orcamento?: string | null

@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown } from "lucide-react";
+import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown, Palette } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
@@ -40,6 +42,10 @@ interface EmpresaData {
   proximo_numero_nfe: number;
   template_orcamento: string;
   template_fatura: string;
+  fonte_documento: string;
+  tamanho_fonte: number;
+  estilo_borda: string;
+  mostrar_logo: boolean;
 }
 
 const Configuracoes = () => {
@@ -380,6 +386,96 @@ const Configuracoes = () => {
             </TabsContent>
 
             <TabsContent value="documentos" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Aparência dos Documentos
+                  </CardTitle>
+                  <CardDescription>
+                    Personalize cores, fontes e estilo visual dos orçamentos e faturas em PDF
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fonte_documento">Fonte do Documento</Label>
+                      <Select 
+                        defaultValue="Arial" 
+                        onValueChange={(value) => setValue('fonte_documento', value)}
+                      >
+                        <SelectTrigger id="fonte_documento">
+                          <SelectValue placeholder="Selecione a fonte" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Arial">Arial</SelectItem>
+                          <SelectItem value="Helvetica">Helvetica</SelectItem>
+                          <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                          <SelectItem value="Courier">Courier</SelectItem>
+                          <SelectItem value="Verdana">Verdana</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="tamanho_fonte">Tamanho da Fonte</Label>
+                      <Select 
+                        defaultValue="12" 
+                        onValueChange={(value) => setValue('tamanho_fonte', parseInt(value))}
+                      >
+                        <SelectTrigger id="tamanho_fonte">
+                          <SelectValue placeholder="Selecione o tamanho" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10pt</SelectItem>
+                          <SelectItem value="11">11pt</SelectItem>
+                          <SelectItem value="12">12pt (Padrão)</SelectItem>
+                          <SelectItem value="14">14pt</SelectItem>
+                          <SelectItem value="16">16pt</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="estilo_borda">Estilo de Borda</Label>
+                      <Select 
+                        defaultValue="simples" 
+                        onValueChange={(value) => setValue('estilo_borda', value)}
+                      >
+                        <SelectTrigger id="estilo_borda">
+                          <SelectValue placeholder="Selecione o estilo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="simples">Simples</SelectItem>
+                          <SelectItem value="dupla">Dupla</SelectItem>
+                          <SelectItem value="arredondada">Arredondada</SelectItem>
+                          <SelectItem value="sem_borda">Sem Borda</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="mostrar_logo">Logotipo EletroPro</Label>
+                      <div className="flex items-center space-x-2 pt-2">
+                        <Switch
+                          id="mostrar_logo"
+                          defaultChecked={true}
+                          onCheckedChange={(checked) => setValue('mostrar_logo', checked)}
+                        />
+                        <Label htmlFor="mostrar_logo" className="font-normal cursor-pointer">
+                          Mostrar logo nos documentos
+                        </Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        ⭐ Remover o logo está disponível apenas em planos pagos
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Separator />
+
               <Card>
                 <CardHeader>
                   <CardTitle>Template de Orçamento</CardTitle>
