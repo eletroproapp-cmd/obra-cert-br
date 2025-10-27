@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, CheckCircle, FileText, Zap, BarChart3, Smartphone, Shield, Cable } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, CheckCircle, FileText, Zap, BarChart3, Smartphone, Shield, Cable, Crown, Sparkles, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-construction.jpg";
 import iconEstimates from "@/assets/icon-estimates.png";
@@ -23,6 +24,9 @@ const Index = () => {
             </a>
             <a href="#beneficios" className="text-foreground hover:text-primary transition-colors">
               Benefícios
+            </a>
+            <a href="#precos" className="text-foreground hover:text-primary transition-colors">
+              Preços
             </a>
             <Link to="/auth">
               <Button variant="outline">Entrar</Button>
@@ -289,6 +293,226 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="precos" className="py-20 px-4 bg-card">
+        <div className="container mx-auto">
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-4xl font-bold text-foreground">
+              Planos que crescem com seu negócio
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Escolha o plano ideal para o seu tamanho de operação. Sem pegadinhas, sem taxas ocultas.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Free Plan */}
+            <Card className="border-border hover:shadow-large transition-all duration-300">
+              <CardHeader className="text-center pb-8 pt-6">
+                <CardTitle className="text-2xl">Gratuito</CardTitle>
+                <CardDescription>Ideal para começar</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold text-primary">R$ 0</span>
+                  <span className="text-muted-foreground">/mês</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">5 clientes</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">10 orçamentos por mês</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">5 faturas por mês</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">2 instalações ativas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">50 materiais no catálogo</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">Suporte por email</span>
+                  </li>
+                </ul>
+                <Link to="/auth">
+                  <Button variant="outline" className="w-full">
+                    Começar Grátis
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Basic Plan - Highlighted */}
+            <Card className="border-primary shadow-large relative">
+              <div className="absolute -top-4 left-0 right-0 flex justify-center">
+                <Badge className="shadow-sm">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  Recomendado
+                </Badge>
+              </div>
+              <CardHeader className="text-center pb-8 pt-6">
+                <CardTitle className="text-2xl">Básico</CardTitle>
+                <CardDescription>Para pequenos negócios</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold text-primary">R$ 9,90</span>
+                  <span className="text-muted-foreground">/mês</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">50 clientes</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">100 orçamentos por mês</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">50 faturas por mês</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">10 instalações ativas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">500 materiais no catálogo</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">5 funcionários</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm font-semibold">Suporte prioritário</span>
+                  </li>
+                </ul>
+                <Link to="/auth">
+                  <Button variant="default" className="w-full">
+                    <Crown className="mr-2 h-4 w-4" />
+                    Assinar Agora
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Professional Plan */}
+            <Card className="border-border hover:shadow-large transition-all duration-300">
+              <CardHeader className="text-center pb-8 pt-6">
+                <CardTitle className="text-2xl">Profissional</CardTitle>
+                <CardDescription>Para empresas em crescimento</CardDescription>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold text-primary">R$ 29,90</span>
+                  <span className="text-muted-foreground">/mês</span>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm font-semibold">Clientes ilimitados</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm font-semibold">Orçamentos ilimitados</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm font-semibold">Faturas ilimitadas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm font-semibold">Instalações ilimitadas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm font-semibold">Funcionários ilimitados</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm font-semibold">Suporte premium 24/7</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">API de integração</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
+                    <span className="text-sm">Relatórios avançados</span>
+                  </li>
+                </ul>
+                <Link to="/auth">
+                  <Button variant="default" className="w-full">
+                    <Crown className="mr-2 h-4 w-4" />
+                    Assinar Agora
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* FAQ Quick Section */}
+          <div className="mt-16 max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-foreground mb-2">Perguntas Frequentes</h3>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle className="text-lg">Posso mudar de plano?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Sim! Você pode fazer upgrade para um plano superior a qualquer momento. O valor é ajustado proporcionalmente.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle className="text-lg">Como funciona o pagamento?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Pagamento mensal via cartão de crédito. Você pode cancelar a qualquer momento sem multa ou taxas adicionais.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle className="text-lg">Há período de teste?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    O plano gratuito não tem limite de tempo! Use gratuitamente e faça upgrade quando precisar de mais recursos.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-border">
+                <CardHeader>
+                  <CardTitle className="text-lg">Meus dados são seguros?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Sim! Usamos criptografia de ponta a ponta e seguimos todas as normas da LGPD para proteção de dados.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-card border-t border-border py-12 px-4">
         <div className="container mx-auto">
@@ -304,7 +528,7 @@ const Index = () => {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#recursos" className="hover:text-primary transition-colors">Recursos</a></li>
                 <li><a href="#beneficios" className="hover:text-primary transition-colors">Benefícios</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Preços</a></li>
+                <li><a href="#precos" className="hover:text-primary transition-colors">Preços</a></li>
               </ul>
             </div>
             <div>
