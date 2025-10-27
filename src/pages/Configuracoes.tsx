@@ -290,126 +290,125 @@ const Configuracoes = () => {
                 </Button>
               </div>
             </TabsContent>
-          </form>
 
-          <TabsContent value="financeiro" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Nota Fiscal Eletrônica (NF-e)</CardTitle>
-                <CardDescription>Configure a emissão de NF-e</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="certificado_digital_tipo">Certificado Digital</Label>
-                    <Select 
-                      defaultValue="nenhum" 
-                      onValueChange={(value) => setValue('certificado_digital_tipo', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="nenhum">Nenhum</SelectItem>
-                        <SelectItem value="A1">A1 (arquivo digital)</SelectItem>
-                        <SelectItem value="A3">A3 (token/cartão)</SelectItem>
-                      </SelectContent>
-                    </Select>
+            <TabsContent value="financeiro" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Nota Fiscal Eletrônica (NF-e)</CardTitle>
+                  <CardDescription>Configure a emissão de NF-e</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="certificado_digital_tipo">Certificado Digital</Label>
+                      <Select 
+                        defaultValue="nenhum" 
+                        onValueChange={(value) => setValue('certificado_digital_tipo', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="nenhum">Nenhum</SelectItem>
+                          <SelectItem value="A1">A1 (arquivo digital)</SelectItem>
+                          <SelectItem value="A3">A3 (token/cartão)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="certificado_digital_validade">Validade do Certificado</Label>
+                      <Input 
+                        id="certificado_digital_validade" 
+                        type="date" 
+                        {...register('certificado_digital_validade')} 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ambiente_nfe">Ambiente NF-e</Label>
+                      <Select 
+                        defaultValue="homologacao" 
+                        onValueChange={(value) => setValue('ambiente_nfe', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o ambiente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="homologacao">Homologação (Testes)</SelectItem>
+                          <SelectItem value="producao">Produção</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="serie_nfe">Série NF-e</Label>
+                      <Input 
+                        id="serie_nfe" 
+                        {...register('serie_nfe')} 
+                        defaultValue="1" 
+                        placeholder="1" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="proximo_numero_nfe">Próximo Número NF-e</Label>
+                      <Input 
+                        id="proximo_numero_nfe" 
+                        type="number" 
+                        {...register('proximo_numero_nfe')} 
+                        defaultValue={1}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="certificado_digital_validade">Validade do Certificado</Label>
-                    <Input 
-                      id="certificado_digital_validade" 
-                      type="date" 
-                      {...register('certificado_digital_validade')} 
-                    />
+                  <div className="rounded-lg bg-muted p-4 mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Atenção:</strong> Para emitir NF-e em produção, você precisa de um certificado digital válido (A1 ou A3) 
+                      emitido por uma Autoridade Certificadora credenciada pela ICP-Brasil. Use o ambiente de homologação para testes.
+                    </p>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="ambiente_nfe">Ambiente NF-e</Label>
-                    <Select 
-                      defaultValue="homologacao" 
-                      onValueChange={(value) => setValue('ambiente_nfe', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o ambiente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="homologacao">Homologação (Testes)</SelectItem>
-                        <SelectItem value="producao">Produção</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="serie_nfe">Série NF-e</Label>
-                    <Input 
-                      id="serie_nfe" 
-                      {...register('serie_nfe')} 
-                      defaultValue="1" 
-                      placeholder="1" 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="proximo_numero_nfe">Próximo Número NF-e</Label>
-                    <Input 
-                      id="proximo_numero_nfe" 
-                      type="number" 
-                      {...register('proximo_numero_nfe')} 
-                      defaultValue={1}
-                    />
-                  </div>
-                </div>
-                <div className="rounded-lg bg-muted p-4 mt-4">
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Impostos e Taxas</CardTitle>
+                  <CardDescription>Configure as alíquotas de impostos</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    <strong>Atenção:</strong> Para emitir NF-e em produção, você precisa de um certificado digital válido (A1 ou A3) 
-                    emitido por uma Autoridade Certificadora credenciada pela ICP-Brasil. Use o ambiente de homologação para testes.
+                    Funcionalidade em desenvolvimento. Em breve você poderá configurar ICMS, ISS, PIS e COFINS.
                   </p>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Impostos e Taxas</CardTitle>
-                <CardDescription>Configure as alíquotas de impostos</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Funcionalidade em desenvolvimento. Em breve você poderá configurar ICMS, ISS, PIS e COFINS.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <form onSubmit={handleSubmit(onSubmit)}>
             <TabsContent value="documentos" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Template de Orçamento</CardTitle>
-                  <CardDescription>Personalize o layout do PDF de orçamentos</CardDescription>
+                  <CardDescription>
+                    Personalize o template de PDF para orçamentos. Use as variáveis entre chaves para dados dinâmicos.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="template_orcamento">Conteúdo do Template</Label>
-                    <Textarea 
-                      id="template_orcamento" 
+                    <Label htmlFor="template_orcamento">Template de Orçamento</Label>
+                    <Textarea
+                      id="template_orcamento"
                       {...register('template_orcamento')}
-                      placeholder="Use as variáveis disponíveis para personalizar"
-                      rows={15}
+                      rows={12}
                       className="font-mono text-sm"
                     />
                   </div>
                   <div className="rounded-lg bg-muted p-4">
                     <p className="text-sm font-semibold mb-2">Variáveis disponíveis:</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground font-mono">
-                      <div>{"{numero}"} - Número do orçamento</div>
-                      <div>{"{data}"} - Data de criação</div>
-                      <div>{"{validade}"} - Validade (dias)</div>
-                      <div>{"{cliente_nome}"} - Nome do cliente</div>
-                      <div>{"{cliente_endereco}"} - Endereço do cliente</div>
-                      <div>{"{cliente_contato}"} - Contato do cliente</div>
-                      <div>{"{itens}"} - Lista de itens</div>
-                      <div>{"{observacoes}"} - Observações</div>
-                      <div>{"{valor_total}"} - Valor total</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <code>{'{numero}'}</code> <span>- Número do orçamento</span>
+                      <code>{'{data}'}</code> <span>- Data de emissão</span>
+                      <code>{'{validade}'}</code> <span>- Validade em dias</span>
+                      <code>{'{cliente_nome}'}</code> <span>- Nome do cliente</span>
+                      <code>{'{cliente_endereco}'}</code> <span>- Endereço do cliente</span>
+                      <code>{'{cliente_contato}'}</code> <span>- Contato do cliente</span>
+                      <code>{'{itens}'}</code> <span>- Lista de itens</span>
+                      <code>{'{observacoes}'}</code> <span>- Observações</span>
+                      <code>{'{valor_total}'}</code> <span>- Valor total</span>
                     </div>
                   </div>
                 </CardContent>
@@ -418,32 +417,33 @@ const Configuracoes = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Template de Fatura</CardTitle>
-                  <CardDescription>Personalize o layout do PDF de faturas</CardDescription>
+                  <CardDescription>
+                    Personalize o template de PDF para faturas. Use as variáveis entre chaves para dados dinâmicos.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="template_fatura">Conteúdo do Template</Label>
-                    <Textarea 
-                      id="template_fatura" 
+                    <Label htmlFor="template_fatura">Template de Fatura</Label>
+                    <Textarea
+                      id="template_fatura"
                       {...register('template_fatura')}
-                      placeholder="Use as variáveis disponíveis para personalizar"
-                      rows={15}
+                      rows={12}
                       className="font-mono text-sm"
                     />
                   </div>
                   <div className="rounded-lg bg-muted p-4">
                     <p className="text-sm font-semibold mb-2">Variáveis disponíveis:</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground font-mono">
-                      <div>{"{numero}"} - Número da fatura</div>
-                      <div>{"{data_emissao}"} - Data de emissão</div>
-                      <div>{"{data_vencimento}"} - Data de vencimento</div>
-                      <div>{"{cliente_nome}"} - Nome do cliente</div>
-                      <div>{"{cliente_endereco}"} - Endereço do cliente</div>
-                      <div>{"{cliente_contato}"} - Contato do cliente</div>
-                      <div>{"{itens}"} - Lista de itens</div>
-                      <div>{"{observacoes}"} - Observações</div>
-                      <div>{"{valor_total}"} - Valor total</div>
-                      <div>{"{forma_pagamento}"} - Forma de pagamento</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                      <code>{'{numero}'}</code> <span>- Número da fatura</span>
+                      <code>{'{data_emissao}'}</code> <span>- Data de emissão</span>
+                      <code>{'{data_vencimento}'}</code> <span>- Data de vencimento</span>
+                      <code>{'{cliente_nome}'}</code> <span>- Nome do cliente</span>
+                      <code>{'{cliente_endereco}'}</code> <span>- Endereço do cliente</span>
+                      <code>{'{cliente_contato}'}</code> <span>- Contato do cliente</span>
+                      <code>{'{itens}'}</code> <span>- Lista de itens</span>
+                      <code>{'{observacoes}'}</code> <span>- Observações</span>
+                      <code>{'{valor_total}'}</code> <span>- Valor total</span>
+                      <code>{'{forma_pagamento}'}</code> <span>- Forma de pagamento</span>
                     </div>
                   </div>
                 </CardContent>
