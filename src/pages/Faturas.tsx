@@ -8,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FaturaForm } from "@/components/faturas/FaturaForm";
 import { FaturaDialog } from "@/components/faturas/FaturaDialog";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
+import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
 
 interface Fatura {
   id: string;
@@ -28,6 +31,8 @@ const Faturas = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedFatura, setSelectedFatura] = useState<string | null>(null);
   const [editingFaturaId, setEditingFaturaId] = useState<string | undefined>();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const { checkLimit, plan, refetch } = useSubscription();
 
   useEffect(() => {
     loadFaturas();
@@ -59,10 +64,22 @@ const Faturas = () => {
     }
   };
 
+  const handleNewFatura = () => {
+    const limitCheck = checkLimit('faturas');
+    
+    if (!limitCheck.allowed) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    
+    setShowForm(true);
+  };
+
   const handleSuccess = () => {
     setShowForm(false);
     setEditingFaturaId(undefined);
     loadFaturas();
+    refetch();
   };
 
   const handleEdit = () => {
@@ -101,16 +118,25 @@ const Faturas = () => {
           <h1 className="text-3xl font-bold mb-2">Faturas</h1>
           <p className="text-muted-foreground">Gerencie suas faturas e pagamentos</p>
         </div>
-        <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
+        <Button variant="hero" size="lg" onClick={handleNewFatura}>
           <Plus className="mr-2 h-5 w-5" />
           Nova Fatura
         </Button>
       </div>
 
+      {/* Usage Limit Alert */}
+      {plan && (
+        <UsageLimitAlert
+          resourceName="faturas este mês"
+          current={checkLimit('faturas').current}
+          limit={checkLimit('faturas').limit}
+        />
+      )}
+
       {faturas.length === 0 ? (
         <Card className="text-center p-12">
           <p className="text-muted-foreground mb-4">Nenhuma fatura criada ainda</p>
-          <Button variant="hero" onClick={() => setShowForm(true)}>
+          <Button variant="hero" onClick={handleNewFatura}>
             <Plus className="mr-2 h-4 w-4" />
             Criar Primeira Fatura
           </Button>
@@ -172,6 +198,13 @@ const Faturas = () => {
         open={!!selectedFatura}
         onOpenChange={(open) => !open && setSelectedFatura(null)}
         onEdit={handleEdit}
+      />
+
+      <PlanUpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        currentPlan={plan?.plan_type || 'free'}
+        blockedFeature="faturas"
       />
     </div>
     </DashboardLayout>

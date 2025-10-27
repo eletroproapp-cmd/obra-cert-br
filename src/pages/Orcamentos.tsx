@@ -8,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { OrcamentoForm } from "@/components/orcamentos/OrcamentoForm";
 import { OrcamentoDialog } from "@/components/orcamentos/OrcamentoDialog";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
+import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
 
 interface Orcamento {
   id: string;
@@ -27,6 +30,8 @@ const Orcamentos = () => {
   const [showForm, setShowForm] = useState(false);
   const [selectedOrcamento, setSelectedOrcamento] = useState<string | null>(null);
   const [editingOrcamentoId, setEditingOrcamentoId] = useState<string | undefined>();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const { checkLimit, plan, refetch, getUsagePercentage } = useSubscription();
 
   useEffect(() => {
     loadOrcamentos();
@@ -57,10 +62,22 @@ const Orcamentos = () => {
     }
   };
 
+  const handleNewOrcamento = () => {
+    const limitCheck = checkLimit('orcamentos');
+    
+    if (!limitCheck.allowed) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    
+    setShowForm(true);
+  };
+
   const handleSuccess = () => {
     setShowForm(false);
     setEditingOrcamentoId(undefined);
     loadOrcamentos();
+    refetch();
   };
 
   const handleEdit = () => {
@@ -99,16 +116,25 @@ const Orcamentos = () => {
           <h1 className="text-3xl font-bold mb-2">Orçamentos</h1>
           <p className="text-muted-foreground">Gerencie seus orçamentos elétricos</p>
         </div>
-        <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
+        <Button variant="hero" size="lg" onClick={handleNewOrcamento}>
           <Plus className="mr-2 h-5 w-5" />
           Novo Orçamento
         </Button>
       </div>
 
+      {/* Usage Limit Alert */}
+      {plan && (
+        <UsageLimitAlert
+          resourceName="orçamentos este mês"
+          current={checkLimit('orcamentos').current}
+          limit={checkLimit('orcamentos').limit}
+        />
+      )}
+
       {orcamentos.length === 0 ? (
         <Card className="text-center p-12">
           <p className="text-muted-foreground mb-4">Nenhum orçamento criado ainda</p>
-          <Button variant="hero" onClick={() => setShowForm(true)}>
+          <Button variant="hero" onClick={handleNewOrcamento}>
             <Plus className="mr-2 h-4 w-4" />
             Criar Primeiro Orçamento
           </Button>
@@ -168,6 +194,13 @@ const Orcamentos = () => {
         open={!!selectedOrcamento}
         onOpenChange={(open) => !open && setSelectedOrcamento(null)}
         onEdit={handleEdit}
+      />
+
+      <PlanUpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        currentPlan={plan?.plan_type || 'free'}
+        blockedFeature="orçamentos"
       />
     </div>
     </DashboardLayout>

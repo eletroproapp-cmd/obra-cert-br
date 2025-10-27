@@ -7,6 +7,9 @@ import { Plus, UserCog } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FuncionarioForm } from "@/components/funcionarios/FuncionarioForm";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
+import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
 
 interface Funcionario {
   id: string;
@@ -24,6 +27,8 @@ const Funcionarios = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | undefined>();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const { checkLimit, plan, refetch } = useSubscription();
 
   useEffect(() => {
     loadFuncionarios();
@@ -45,10 +50,22 @@ const Funcionarios = () => {
     }
   };
 
+  const handleNewFuncionario = () => {
+    const limitCheck = checkLimit('funcionarios');
+    
+    if (!limitCheck.allowed) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    
+    setShowForm(true);
+  };
+
   const handleSuccess = () => {
     setShowForm(false);
     setEditingId(undefined);
     loadFuncionarios();
+    refetch();
   };
 
   const handleEdit = (id: string) => {
@@ -74,17 +91,26 @@ const Funcionarios = () => {
           <h1 className="text-3xl font-bold mb-2">Funcionários</h1>
           <p className="text-muted-foreground">Gerencie sua equipe</p>
         </div>
-        <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
+        <Button variant="hero" size="lg" onClick={handleNewFuncionario}>
           <Plus className="mr-2 h-5 w-5" />
           Novo Funcionário
         </Button>
       </div>
 
+      {/* Usage Limit Alert */}
+      {plan && (
+        <UsageLimitAlert
+          resourceName="funcionários"
+          current={funcionarios.length}
+          limit={checkLimit('funcionarios').limit}
+        />
+      )}
+
       {funcionarios.length === 0 ? (
         <Card className="text-center p-12">
           <UserCog className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
           <p className="text-muted-foreground mb-4">Nenhum funcionário cadastrado</p>
-          <Button variant="hero" onClick={() => setShowForm(true)}>
+          <Button variant="hero" onClick={handleNewFuncionario}>
             <Plus className="mr-2 h-4 w-4" />
             Cadastrar Primeiro Funcionário
           </Button>
@@ -137,6 +163,13 @@ const Funcionarios = () => {
           <FuncionarioForm onSuccess={handleSuccess} funcionarioId={editingId} />
         </DialogContent>
       </Dialog>
+
+      <PlanUpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        currentPlan={plan?.plan_type || 'free'}
+        blockedFeature="funcionários"
+      />
     </div>
     </DashboardLayout>
   );

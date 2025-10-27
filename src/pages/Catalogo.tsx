@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MaterialForm } from "@/components/catalogo/MaterialForm";
 import { ServicoForm } from "@/components/catalogo/ServicoForm";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
+import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
 
 interface Material {
   id: string;
@@ -37,6 +40,8 @@ const Catalogo = () => {
   const [showServicoForm, setShowServicoForm] = useState(false);
   const [editingMaterialId, setEditingMaterialId] = useState<string | undefined>();
   const [editingServicoId, setEditingServicoId] = useState<string | undefined>();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const { checkLimit, plan, refetch } = useSubscription();
 
   useEffect(() => {
     loadMateriais();
@@ -75,10 +80,22 @@ const Catalogo = () => {
     }
   };
 
+  const handleNewMaterial = () => {
+    const limitCheck = checkLimit('materiais');
+    
+    if (!limitCheck.allowed) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    
+    setShowMaterialForm(true);
+  };
+
   const handleMaterialSuccess = () => {
     setShowMaterialForm(false);
     setEditingMaterialId(undefined);
     loadMateriais();
+    refetch();
   };
 
   const handleServicoSuccess = () => {
@@ -128,16 +145,25 @@ const Catalogo = () => {
         <TabsContent value="materiais" className="mt-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold">Materiais Elétricos</h2>
-            <Button variant="hero" onClick={() => setShowMaterialForm(true)}>
+            <Button variant="hero" onClick={handleNewMaterial}>
               <Plus className="mr-2 h-4 w-4" />
               Adicionar Material
             </Button>
           </div>
 
+          {/* Usage Limit Alert */}
+          {plan && (
+            <UsageLimitAlert
+              resourceName="materiais no catálogo"
+              current={materiais.length}
+              limit={checkLimit('materiais').limit}
+            />
+          )}
+
           {materiais.length === 0 ? (
             <Card className="text-center p-12">
               <p className="text-muted-foreground mb-4">Nenhum material cadastrado ainda</p>
-              <Button variant="hero" onClick={() => setShowMaterialForm(true)}>
+              <Button variant="hero" onClick={handleNewMaterial}>
                 <Plus className="mr-2 h-4 w-4" />
                 Cadastrar Primeiro Material
               </Button>
@@ -277,6 +303,13 @@ const Catalogo = () => {
           <ServicoForm onSuccess={handleServicoSuccess} servicoId={editingServicoId} />
         </DialogContent>
       </Dialog>
+
+      <PlanUpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        currentPlan={plan?.plan_type || 'free'}
+        blockedFeature="materiais"
+      />
     </div>
     </DashboardLayout>
   );
