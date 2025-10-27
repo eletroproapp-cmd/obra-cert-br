@@ -5,13 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useState } from 'react';
 import type { Database } from '@/integrations/supabase/types';
 import { validarCPFouCNPJ, formatarCPFouCNPJ } from '@/utils/validators';
 import { getUserFriendlyError } from '@/utils/errors';
 
 const clienteSchema = z.object({
+  tipo_pessoa: z.enum(['fisica', 'juridica']),
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
   telefone: z.string().optional(),
@@ -32,8 +35,12 @@ interface ClienteFormProps {
 }
 
 export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ClienteFormData>({
+  const [tipoPessoa, setTipoPessoa] = useState<'fisica' | 'juridica'>('juridica');
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<ClienteFormData>({
     resolver: zodResolver(clienteSchema),
+    defaultValues: {
+      tipo_pessoa: 'juridica'
+    }
   });
 
   const onSubmit = async (data: ClienteFormData) => {
@@ -62,13 +69,34 @@ export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="tipo_pessoa">Tipo de Pessoa *</Label>
+        <Select 
+          defaultValue="juridica"
+          onValueChange={(value: 'fisica' | 'juridica') => {
+            setTipoPessoa(value);
+            setValue('tipo_pessoa', value);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione o tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="fisica">Pessoa Física (CPF)</SelectItem>
+            <SelectItem value="juridica">Pessoa Jurídica (CNPJ)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="nome">Nome / Razão Social *</Label>
+          <Label htmlFor="nome">
+            {tipoPessoa === 'fisica' ? 'Nome Completo *' : 'Razão Social / Nome Fantasia *'}
+          </Label>
           <Input
             id="nome"
             {...register('nome')}
-            placeholder="Nome completo ou empresa"
+            placeholder={tipoPessoa === 'fisica' ? 'Nome completo' : 'Nome da empresa'}
           />
           {errors.nome && (
             <p className="text-sm text-destructive">{errors.nome.message}</p>
@@ -100,11 +128,13 @@ export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="cpf_cnpj">CPF / CNPJ</Label>
+          <Label htmlFor="cpf_cnpj">
+            {tipoPessoa === 'fisica' ? 'CPF' : 'CNPJ'}
+          </Label>
           <Input
             id="cpf_cnpj"
             {...register('cpf_cnpj')}
-            placeholder="000.000.000-00 ou 00.000.000/0000-00"
+            placeholder={tipoPessoa === 'fisica' ? '000.000.000-00' : '00.000.000/0000-00'}
             onChange={(e) => {
               const formatted = formatarCPFouCNPJ(e.target.value);
               e.target.value = formatted;
