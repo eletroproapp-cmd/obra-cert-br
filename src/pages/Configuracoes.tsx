@@ -498,15 +498,15 @@ const Configuracoes = () => {
                             <p className="text-sm"><strong>Razão Social:</strong> {formData.razao_social}</p>
                           )}
                           {formData.mostrar_cnpj !== false && formData.cnpj && (
-                            <p className="text-sm"><strong>CNPJ:</strong> {formData.cnpj}</p>
+                            <p className="text-sm"><strong>{formData.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'}:</strong> {formData.cnpj}</p>
                           )}
-                          {formData.mostrar_regime_tributario !== false && formData.regime_tributario && (
+                          {formData.tipo_pessoa === 'juridica' && formData.mostrar_regime_tributario !== false && formData.regime_tributario && (
                             <p className="text-sm"><strong>Regime:</strong> {formData.regime_tributario}</p>
                           )}
-                          {formData.mostrar_inscricao_estadual !== false && formData.inscricao_estadual && (
+                          {formData.tipo_pessoa === 'juridica' && formData.mostrar_inscricao_estadual !== false && formData.inscricao_estadual && (
                             <p className="text-sm"><strong>IE:</strong> {formData.inscricao_estadual}</p>
                           )}
-                          {formData.mostrar_inscricao_municipal !== false && formData.inscricao_municipal && (
+                          {formData.tipo_pessoa === 'juridica' && formData.mostrar_inscricao_municipal !== false && formData.inscricao_municipal && (
                             <p className="text-sm"><strong>IM:</strong> {formData.inscricao_municipal}</p>
                           )}
                         </div>
