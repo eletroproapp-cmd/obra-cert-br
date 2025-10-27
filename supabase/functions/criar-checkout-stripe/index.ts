@@ -25,8 +25,8 @@ serve(async (req) => {
     
     // Mapear planType para price_id do Stripe
     const priceMap: Record<string, string> = {
-      'basic': 'price_1SMqfFLKBkplmgbyMDfrFqrI',
-      'professional': 'price_1SMqfFLKBkplmgbym4KUNmyR',
+      'basic': 'price_1SMsgpLKBkplmgbyiuy90LqO',
+      'professional': 'price_1SMsj2LKBkplmgbyRB6qgZQX',
     };
 
     const priceId = priceMap[planType];
