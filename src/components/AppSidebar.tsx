@@ -90,8 +90,8 @@ export function AppSidebar() {
     }`;
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+      <SidebarContent className="bg-sidebar text-sidebar-foreground">
         {/* Logo/Header */}
         <div className="p-5 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
