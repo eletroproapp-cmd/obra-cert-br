@@ -66,6 +66,8 @@ interface EmpresaInfo {
   logo_position?: string;
   cor_primaria?: string;
   cor_secundaria?: string;
+  cor_borda_secoes?: string;
+  cor_borda_linhas?: string;
 }
 
 export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: OrcamentoDialogProps) => {
@@ -268,7 +270,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
               empresaInfo?.logo_url && empresaInfo?.logo_position === 'right' ? 'flex items-start gap-6 flex-row-reverse' :
               ''
             }`}
-            style={{ borderColor: empresaInfo?.cor_primaria || '#6366F1' }}
+            style={{ borderColor: empresaInfo?.cor_borda_secoes || empresaInfo?.cor_primaria || '#6366F1' }}
           >
             {/* Logo */}
             {empresaInfo?.logo_url && (
@@ -377,7 +379,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
 
           {/* Seção do Cliente */}
           <div className="rounded-lg p-4" style={{ 
-            border: `1px solid ${empresaInfo?.cor_secundaria || '#E5E7EB'}`,
+            border: `1px solid ${empresaInfo?.cor_borda_secoes || '#E5E7EB'}`,
             backgroundColor: `${empresaInfo?.cor_secundaria || '#E5E7EB'}20`
           }}>
             <h3 className="text-sm font-semibold text-muted-foreground mb-2 uppercase">Cliente</h3>
@@ -406,7 +408,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
 
           {/* Tabela de Itens */}
           <div>
-            <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${empresaInfo?.cor_secundaria || '#E5E7EB'}` }}>
+            <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${empresaInfo?.cor_borda_linhas || '#E5E7EB'}` }}>
               <table className="w-full">
                 <thead>
                   <tr style={{ backgroundColor: empresaInfo?.cor_primaria || '#6366F1', color: 'white' }}>
@@ -421,7 +423,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                   {orcamento.items.map((item, index) => (
                     <tr key={index} style={{ 
                       backgroundColor: index % 2 === 0 ? `${empresaInfo?.cor_secundaria || '#E5E7EB'}10` : 'transparent',
-                      borderBottom: `1px solid ${empresaInfo?.cor_secundaria || '#E5E7EB'}`
+                      borderBottom: `1px solid ${empresaInfo?.cor_borda_linhas || '#E5E7EB'}`
                     }}>
                       <td className="p-3 text-sm">{item.descricao}</td>
                       <td className="text-center p-3 text-sm">{item.quantidade}</td>

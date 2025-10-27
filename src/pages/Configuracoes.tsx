@@ -37,6 +37,8 @@ interface EmpresaData {
   slogan: string;
   cor_primaria: string;
   cor_secundaria: string;
+  cor_borda_secoes: string;
+  cor_borda_linhas: string;
   observacoes_padrao: string;
   termos_condicoes: string;
   certificado_digital_tipo: string;
@@ -710,7 +712,7 @@ const Configuracoes = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="cor_secundaria">Cor Secundária (Bordas/Linhas)</Label>
+                          <Label htmlFor="cor_secundaria">Cor Secundária (Fundos Alternados)</Label>
                           <div className="flex gap-2">
                             <Input 
                               id="cor_secundaria" 
@@ -728,7 +730,53 @@ const Configuracoes = () => {
                             />
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            Usada em bordas, linhas divisórias e fundos
+                            Usada em fundos alternados de tabelas
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="cor_borda_secoes">Cor de Bordas de Seções</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              id="cor_borda_secoes" 
+                              type="color" 
+                              {...register('cor_borda_secoes')} 
+                              defaultValue={formData.cor_borda_secoes || '#E5E7EB'}
+                              className="w-20 h-10"
+                            />
+                            <Input 
+                              type="text" 
+                              value={formData.cor_borda_secoes || '#E5E7EB'}
+                              onChange={(e) => setValue('cor_borda_secoes', e.target.value)}
+                              placeholder="#E5E7EB"
+                              className="flex-1"
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Usada em bordas principais e divisórias de seções
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="cor_borda_linhas">Cor de Bordas de Linhas</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              id="cor_borda_linhas" 
+                              type="color" 
+                              {...register('cor_borda_linhas')} 
+                              defaultValue={formData.cor_borda_linhas || '#E5E7EB'}
+                              className="w-20 h-10"
+                            />
+                            <Input 
+                              type="text" 
+                              value={formData.cor_borda_linhas || '#E5E7EB'}
+                              onChange={(e) => setValue('cor_borda_linhas', e.target.value)}
+                              placeholder="#E5E7EB"
+                              className="flex-1"
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Usada em bordas de linhas de tabelas
                           </p>
                         </div>
 
@@ -766,7 +814,7 @@ const Configuracoes = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="bg-white rounded-lg p-6 space-y-4 min-h-[600px]" style={{ border: `2px solid ${formData.cor_primaria || '#6366F1'}` }}>
+                      <div className="bg-white rounded-lg p-6 space-y-4 min-h-[600px]" style={{ border: `2px solid ${formData.cor_borda_secoes || formData.cor_primaria || '#6366F1'}` }}>
                         {/* Logo e Nome da Empresa - Layout baseado na posição */}
                         {formData.logo_url && formData.mostrar_logo !== false ? (
                           <div 
@@ -775,7 +823,7 @@ const Configuracoes = () => {
                               formData.logo_position === 'right' ? 'flex items-start gap-4 flex-row-reverse' :
                               'flex flex-col items-center'
                             }`}
-                            style={{ borderBottom: `2px solid ${formData.cor_secundaria || '#E5E7EB'}` }}
+                            style={{ borderBottom: `2px solid ${formData.cor_borda_secoes || '#E5E7EB'}` }}
                           >
                             <img 
                               src={formData.logo_url} 
@@ -814,7 +862,7 @@ const Configuracoes = () => {
                         ) : (
                           /* Apenas nome da empresa quando não tem logo */
                           formData.mostrar_nome_fantasia !== false && formData.nome_fantasia && (
-                            <div className="pb-4" style={{ borderBottom: `2px solid ${formData.cor_secundaria || '#E5E7EB'}` }}>
+                            <div className="pb-4" style={{ borderBottom: `2px solid ${formData.cor_borda_secoes || '#E5E7EB'}` }}>
                               <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#6366F1' }}>
                                 {formData.nome_fantasia}
                               </h2>
@@ -872,23 +920,28 @@ const Configuracoes = () => {
                           <p className="text-sm text-muted-foreground">Data: {new Date().toLocaleDateString('pt-BR')}</p>
                           
                           <div className="p-3 rounded" style={{ 
-                            border: `1px solid ${formData.cor_secundaria || '#E5E7EB'}`,
+                            border: `1px solid ${formData.cor_borda_secoes || '#E5E7EB'}`,
                             backgroundColor: `${formData.cor_secundaria || '#E5E7EB'}20`
                           }}>
                             <p className="text-sm font-semibold mb-2">Cliente: João Silva</p>
                             <p className="text-xs text-muted-foreground">exemplo@cliente.com.br</p>
                           </div>
 
-                          <div className="rounded overflow-hidden" style={{ border: `1px solid ${formData.cor_secundaria || '#E5E7EB'}` }}>
+                          <div className="rounded overflow-hidden" style={{ border: `1px solid ${formData.cor_borda_linhas || '#E5E7EB'}` }}>
                             <div className="p-2 text-xs font-semibold text-white" style={{ backgroundColor: formData.cor_primaria || '#6366F1' }}>
                               ITENS DO ORÇAMENTO
                             </div>
                             <div className="space-y-1 text-xs p-2">
-                              <div className="flex justify-between p-1" style={{ backgroundColor: `${formData.cor_secundaria || '#E5E7EB'}10` }}>
+                              <div className="flex justify-between p-1" style={{ 
+                                backgroundColor: `${formData.cor_secundaria || '#E5E7EB'}10`,
+                                borderBottom: `1px solid ${formData.cor_borda_linhas || '#E5E7EB'}`
+                              }}>
                                 <span>1. Instalação elétrica completa</span>
                                 <span>R$ 5.000,00</span>
                               </div>
-                              <div className="flex justify-between p-1">
+                              <div className="flex justify-between p-1" style={{ 
+                                borderBottom: `1px solid ${formData.cor_borda_linhas || '#E5E7EB'}`
+                              }}>
                                 <span>2. Material elétrico</span>
                                 <span>R$ 2.500,00</span>
                               </div>

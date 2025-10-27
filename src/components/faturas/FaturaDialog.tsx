@@ -34,6 +34,8 @@ interface EmpresaInfo {
   logo_position: string;
   cor_primaria: string;
   cor_secundaria: string;
+  cor_borda_secoes: string;
+  cor_borda_linhas: string;
 }
 
 interface Fatura {
@@ -251,7 +253,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
               empresaInfo?.logo_url && empresaInfo?.logo_position === 'right' ? 'flex items-start gap-6 flex-row-reverse' :
               ''
             }`}
-            style={{ borderColor: empresaInfo?.cor_primaria || '#6366F1' }}
+            style={{ borderColor: empresaInfo?.cor_borda_secoes || empresaInfo?.cor_primaria || '#6366F1' }}
           >
             {/* Logo */}
             {empresaInfo?.logo_url && (
@@ -348,11 +350,11 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
           )}
 
           {/* Cliente */}
-          <div
+          <div 
             className="p-4 rounded-lg"
             style={{ 
               backgroundColor: empresaInfo?.cor_secundaria || '#E5E7EB',
-              borderLeft: `4px solid ${empresaInfo?.cor_primaria || '#6366F1'}`
+              borderLeft: `4px solid ${empresaInfo?.cor_borda_secoes || empresaInfo?.cor_primaria || '#6366F1'}`
             }}
           >
             <h3 className="font-semibold mb-2">Cliente</h3>
@@ -397,7 +399,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
           {/* Itens */}
           <div>
             <h3 className="font-semibold mb-3">Itens</h3>
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border rounded-lg overflow-hidden" style={{ borderColor: empresaInfo?.cor_borda_linhas || '#E5E7EB' }}>
               <table className="w-full">
                 <thead style={{ backgroundColor: empresaInfo?.cor_primaria || '#6366F1' }}>
                   <tr>
@@ -411,10 +413,10 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
                 <tbody>
                   {fatura.items.map((item, index) => (
                     <tr 
-                      key={index} 
-                      className="border-t"
+                      key={index}
                       style={{ 
-                        backgroundColor: index % 2 === 0 ? 'white' : (empresaInfo?.cor_secundaria || '#E5E7EB')
+                        backgroundColor: index % 2 === 0 ? 'white' : (empresaInfo?.cor_secundaria || '#E5E7EB'),
+                        borderTop: `1px solid ${empresaInfo?.cor_borda_linhas || '#E5E7EB'}`
                       }}
                     >
                       <td className="p-3">{item.descricao}</td>
@@ -447,7 +449,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
               className="p-4 rounded-lg"
               style={{ 
                 backgroundColor: empresaInfo?.cor_secundaria || '#E5E7EB',
-                borderLeft: `4px solid ${empresaInfo?.cor_primaria || '#6366F1'}`
+                borderLeft: `4px solid ${empresaInfo?.cor_borda_secoes || empresaInfo?.cor_primaria || '#6366F1'}`
               }}
             >
               <h3 className="font-semibold mb-2">Observações</h3>

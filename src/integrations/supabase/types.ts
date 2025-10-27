@@ -149,6 +149,8 @@ export type Database = {
           certificado_digital_validade: string | null
           cidade: string | null
           cnpj: string | null
+          cor_borda_linhas: string | null
+          cor_borda_secoes: string | null
           cor_primaria: string | null
           cor_secundaria: string | null
           created_at: string
@@ -202,6 +204,8 @@ export type Database = {
           certificado_digital_validade?: string | null
           cidade?: string | null
           cnpj?: string | null
+          cor_borda_linhas?: string | null
+          cor_borda_secoes?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
           created_at?: string
@@ -255,6 +259,8 @@ export type Database = {
           certificado_digital_validade?: string | null
           cidade?: string | null
           cnpj?: string | null
+          cor_borda_linhas?: string | null
+          cor_borda_secoes?: string | null
           cor_primaria?: string | null
           cor_secundaria?: string | null
           created_at?: string
