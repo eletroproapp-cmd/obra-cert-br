@@ -49,6 +49,23 @@ serve(async (req) => {
       );
     }
 
+    // Check rate limit: 20 requests per day (stricter for NF-e due to legal implications)
+    const { data: rateLimitOk, error: rateLimitError } = await supabase
+      .rpc('check_rate_limit', {
+        _user_id: user.id,
+        _function_name: 'emitir-nfe',
+        _max_requests: 20,
+        _window_minutes: 1440 // 24 hours
+      });
+
+    if (rateLimitError || !rateLimitOk) {
+      console.log("Rate limit exceeded for user:", user.id);
+      return new Response(
+        JSON.stringify({ error: "Limite de requisições excedido. Tente novamente amanhã." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const { faturaId }: EmitirNFeRequest = await req.json();
 
     console.log('Iniciando emissão de NF-e para fatura:', faturaId);

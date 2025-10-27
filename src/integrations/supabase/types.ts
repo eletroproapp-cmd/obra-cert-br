@@ -104,6 +104,30 @@ export type Database = {
         }
         Relationships: []
       }
+      edge_function_rate_limits: {
+        Row: {
+          function_name: string
+          id: string
+          request_count: number | null
+          user_id: string
+          window_start: string | null
+        }
+        Insert: {
+          function_name: string
+          id?: string
+          request_count?: number | null
+          user_id: string
+          window_start?: string | null
+        }
+        Update: {
+          function_name?: string
+          id?: string
+          request_count?: number | null
+          user_id?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       empresas: {
         Row: {
           ambiente_nfe: string | null
@@ -993,6 +1017,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          _function_name: string
+          _max_requests: number
+          _user_id: string
+          _window_minutes: number
+        }
+        Returns: boolean
+      }
       generate_fatura_numero: { Args: never; Returns: string }
       generate_material_codigo: { Args: never; Returns: string }
       generate_orcamento_numero: { Args: never; Returns: string }

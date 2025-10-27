@@ -50,6 +50,23 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Check rate limit: 10 requests per hour
+    const { data: rateLimitOk, error: rateLimitError } = await supabaseClient
+      .rpc('check_rate_limit', {
+        _user_id: user.id,
+        _function_name: 'enviar-orcamento',
+        _max_requests: 10,
+        _window_minutes: 60
+      });
+
+    if (rateLimitError || !rateLimitOk) {
+      console.log("Rate limit exceeded for user:", user.id);
+      return new Response(
+        JSON.stringify({ error: "Limite de requisições excedido. Tente novamente mais tarde." }),
+        { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const { orcamentoId, clienteEmail }: OrcamentoEmailRequest = await req.json();
 
     if (!orcamentoId || typeof orcamentoId !== 'string' || orcamentoId.length !== 36) {
