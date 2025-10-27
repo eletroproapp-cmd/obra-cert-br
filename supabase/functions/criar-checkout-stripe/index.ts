@@ -25,8 +25,8 @@ serve(async (req) => {
     
     // Mapear planType para price_id do Stripe
     const priceMap: Record<string, string> = {
-      'basic': 'price_basic_monthly', // Substitua pelo seu Price ID real do Stripe
-      'professional': 'price_professional_monthly', // Substitua pelo seu Price ID real do Stripe
+      'basic': 'price_1SMqfFLKBkplmgbyMDfrFqrI',
+      'professional': 'price_1SMqfFLKBkplmgbym4KUNmyR',
     };
 
     const priceId = priceMap[planType];
