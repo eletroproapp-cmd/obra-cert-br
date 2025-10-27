@@ -65,6 +65,7 @@ const plans = [
 export const PlansTab = () => {
   const { subscription, plan, loading, refetch } = useSubscription();
   const [upgrading, setUpgrading] = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
@@ -131,6 +132,31 @@ export const PlansTab = () => {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    if (!confirm('Tem certeza que deseja cancelar sua assinatura? Ela permanecerá ativa até o final do período pago.')) {
+      return;
+    }
+
+    setCanceling(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('cancelar-assinatura');
+
+      if (error) throw error;
+
+      toast.success("Assinatura cancelada", {
+        description: "Sua assinatura permanecerá ativa até o final do período pago.",
+      });
+      
+      refetch();
+    } catch (error) {
+      console.error('Erro ao cancelar assinatura:', error);
+      toast.error('Erro ao cancelar assinatura. Tente novamente.');
+    } finally {
+      setCanceling(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -181,10 +207,19 @@ export const PlansTab = () => {
                 </p>
               )}
             </div>
-            {subscription?.cancel_at_period_end && (
+            {subscription?.cancel_at_period_end ? (
               <Badge variant="destructive">
                 Cancelamento agendado para {new Date(subscription.current_period_end!).toLocaleDateString('pt-BR')}
               </Badge>
+            ) : currentPlanId !== 'free' && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleCancelSubscription}
+                disabled={canceling}
+              >
+                {canceling ? 'Cancelando...' : 'Cancelar Assinatura'}
+              </Button>
             )}
           </div>
         </CardContent>
