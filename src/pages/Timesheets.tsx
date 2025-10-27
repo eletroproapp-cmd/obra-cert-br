@@ -3,7 +3,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Clock, Calendar, FileDown, FileSpreadsheet } from "lucide-react";
+import { Plus, Clock, Calendar, FileDown, FileSpreadsheet, User } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TimesheetForm } from "@/components/timesheets/TimesheetForm";
@@ -22,6 +23,7 @@ interface Timesheet {
   tipo_trabalho: string;
   descricao: string;
   aprovado: boolean;
+  funcionario_id: string;
   funcionarios: {
     nome: string;
   };
@@ -30,23 +32,46 @@ interface Timesheet {
   } | null;
 }
 
+interface Funcionario {
+  id: string;
+  nome: string;
+}
+
 const Timesheets = () => {
   const [registros, setRegistros] = useState<Timesheet[]>([]);
+  const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | undefined>();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const [selectedFuncionario, setSelectedFuncionario] = useState<string>("todos");
 
   useEffect(() => {
+    loadFuncionarios();
     loadRegistros();
-  }, [selectedMonth]);
+  }, [selectedMonth, selectedFuncionario]);
+
+  const loadFuncionarios = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('funcionarios')
+        .select('id, nome')
+        .eq('ativo', true)
+        .order('nome');
+
+      if (error) throw error;
+      setFuncionarios(data || []);
+    } catch (error: any) {
+      toast.error('Erro ao carregar funcionários: ' + error.message);
+    }
+  };
 
   const loadRegistros = async () => {
     try {
       const startOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
       const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0);
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('timesheet_registros')
         .select(`
           *,
@@ -54,8 +79,13 @@ const Timesheets = () => {
           instalacoes:instalacao_id (titulo)
         `)
         .gte('data', startOfMonth.toISOString().split('T')[0])
-        .lte('data', endOfMonth.toISOString().split('T')[0])
-        .order('data', { ascending: false });
+        .lte('data', endOfMonth.toISOString().split('T')[0]);
+
+      if (selectedFuncionario !== "todos") {
+        query = query.eq('funcionario_id', selectedFuncionario);
+      }
+
+      const { data, error } = await query.order('data', { ascending: false });
 
       if (error) throw error;
       setRegistros(data || []);
@@ -78,7 +108,20 @@ const Timesheets = () => {
   };
 
   const exportToExcel = () => {
-    const data = registros.map(r => ({
+    const funcionarioNome = selectedFuncionario === "todos" 
+      ? "Todos os Funcionários" 
+      : funcionarios.find(f => f.id === selectedFuncionario)?.nome || "";
+
+    const headerData = [
+      ['FOLHA DE PONTO'],
+      ['Funcionário:', funcionarioNome],
+      ['Período:', format(selectedMonth, 'MMMM/yyyy', { locale: ptBR })],
+      ['Total de Horas:', totalHoras.toFixed(2) + 'h'],
+      ['Horas Aprovadas:', horasAprovadas.toFixed(2) + 'h'],
+      [],
+    ];
+
+    const tableData = registros.map(r => ({
       'Data': format(new Date(r.data), 'dd/MM/yyyy'),
       'Funcionário': r.funcionarios.nome,
       'Projeto': r.instalacoes?.titulo || 'Sem projeto',
@@ -90,22 +133,33 @@ const Timesheets = () => {
       'Status': r.aprovado ? 'Aprovado' : 'Pendente'
     }));
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.aoa_to_sheet(headerData);
+    XLSX.utils.sheet_add_json(ws, tableData, { origin: -1 });
+    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Folha de Ponto');
     
-    const fileName = `folha-ponto-${format(selectedMonth, 'MM-yyyy')}.xlsx`;
+    const fileName = `folha-ponto-${selectedFuncionario === "todos" ? "geral" : funcionarioNome.replace(/\s/g, '-')}-${format(selectedMonth, 'MM-yyyy')}.xlsx`;
     XLSX.writeFile(wb, fileName);
     toast.success('Exportado para Excel com sucesso!');
   };
 
   const exportToPDF = () => {
     const doc = new jsPDF();
+    const funcionarioNome = selectedFuncionario === "todos" 
+      ? "Todos os Funcionários" 
+      : funcionarios.find(f => f.id === selectedFuncionario)?.nome || "";
     
-    doc.setFontSize(16);
-    doc.text('Folha de Ponto', 14, 15);
+    doc.setFontSize(18);
+    doc.text('FOLHA DE PONTO', 14, 15);
+    
+    doc.setFontSize(12);
+    doc.text(`Funcionário: ${funcionarioNome}`, 14, 25);
+    doc.text(`Período: ${format(selectedMonth, 'MMMM/yyyy', { locale: ptBR })}`, 14, 32);
+    
     doc.setFontSize(10);
-    doc.text(format(selectedMonth, 'MMMM yyyy', { locale: ptBR }), 14, 22);
+    doc.text(`Total de Horas: ${totalHoras.toFixed(2)}h`, 14, 39);
+    doc.text(`Horas Aprovadas: ${horasAprovadas.toFixed(2)}h`, 14, 45);
     
     const tableData = registros.map(r => [
       format(new Date(r.data), 'dd/MM/yyyy'),
@@ -118,7 +172,7 @@ const Timesheets = () => {
     ]);
 
     autoTable(doc, {
-      startY: 28,
+      startY: 52,
       head: [['Data', 'Funcionário', 'Projeto', 'Horário', 'Horas', 'Tipo', 'Status']],
       body: tableData,
       theme: 'striped',
@@ -126,7 +180,7 @@ const Timesheets = () => {
       styles: { fontSize: 8 },
     });
 
-    const fileName = `folha-ponto-${format(selectedMonth, 'MM-yyyy')}.pdf`;
+    const fileName = `folha-ponto-${selectedFuncionario === "todos" ? "geral" : funcionarioNome.replace(/\s/g, '-')}-${format(selectedMonth, 'MM-yyyy')}.pdf`;
     doc.save(fileName);
     toast.success('Exportado para PDF com sucesso!');
   };
@@ -152,7 +206,21 @@ const Timesheets = () => {
           <h1 className="text-3xl font-bold mb-2">Folhas de Ponto</h1>
           <p className="text-muted-foreground">Registro de horas trabalhadas</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <Select value={selectedFuncionario} onValueChange={setSelectedFuncionario}>
+            <SelectTrigger className="w-[200px]">
+              <User className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Funcionário" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              {funcionarios.map((func) => (
+                <SelectItem key={func.id} value={func.id}>
+                  {func.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button variant="outline" onClick={exportToExcel} disabled={registros.length === 0}>
             <FileSpreadsheet className="mr-2 h-4 w-4" />
             Excel
