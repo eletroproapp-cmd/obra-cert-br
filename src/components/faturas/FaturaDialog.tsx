@@ -11,6 +11,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Send, Loader2, Pencil, Receipt, Download, CheckCircle, AlertCircle } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import QRCode from 'qrcode';
 
 interface FaturaDialogProps {
   faturaId: string | null;
@@ -36,7 +39,9 @@ interface EmpresaInfo {
   cor_secundaria: string;
   cor_borda_secoes: string;
   cor_borda_linhas: string;
+  chave_pix?: string; // opcional
 }
+
 
 interface Fatura {
   id: string;
@@ -203,6 +208,266 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
     }
   };
 
+  // Utilidades de cor
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : { r: 99, g: 102, b: 241 };
+  };
+
+  // Funções para gerar o payload BR Code (PIX) com CRC16
+  const pad = (n: number) => (n < 10 ? '0' + n : String(n));
+  const tlv = (id: string, value: string) => id + pad(value.length) + value;
+
+  const crc16 = (payload: string) => {
+    let crc = 0xffff;
+    for (let i = 0; i < payload.length; i++) {
+      crc ^= payload.charCodeAt(i) << 8;
+      for (let j = 0; j < 8; j++) {
+        if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
+        else crc <<= 1;
+        crc &= 0xffff;
+      }
+    }
+    return (crc >>> 0).toString(16).toUpperCase().padStart(4, '0');
+  };
+
+  const buildPixPayload = ({
+    chave,
+    nome,
+    cidade,
+    valor,
+    txid,
+    descricao,
+  }: { chave: string; nome: string; cidade: string; valor?: number; txid?: string; descricao?: string }) => {
+    const gui = tlv('00', 'br.gov.bcb.pix');
+    const kvChave = tlv('01', chave);
+    const kvDesc = descricao ? tlv('02', descricao.substring(0, 50)) : '';
+    const merchantAccountInfo = tlv('26', gui + kvChave + kvDesc);
+
+    const payloadFormatIndicator = tlv('00', '01');
+    const initiationMethod = tlv('01', '11');
+    const merchantCategoryCode = tlv('52', '0000');
+    const transactionCurrency = tlv('53', '986');
+    const transactionAmount = valor ? tlv('54', valor.toFixed(2)) : '';
+    const countryCode = tlv('58', 'BR');
+    const merchantName = tlv('59', (nome || 'RECEBEDOR').substring(0, 25));
+    const merchantCity = tlv('60', (cidade || 'BRASIL').substring(0, 15));
+    const additional = tlv('62', (txid ? tlv('05', txid.substring(0, 25)) : tlv('05', '***')));
+
+    // CRC será calculado sobre todo payload + ID(63) + len(04)
+    let withoutCRC =
+      payloadFormatIndicator +
+      initiationMethod +
+      merchantAccountInfo +
+      merchantCategoryCode +
+      transactionCurrency +
+      transactionAmount +
+      countryCode +
+      merchantName +
+      merchantCity +
+      additional +
+      '6304';
+
+    const crc = crc16(withoutCRC);
+    return withoutCRC + crc;
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!fatura) return;
+    if (!empresaInfo) {
+      toast.error('Configure os dados da empresa para gerar o PDF');
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+
+      const primary = empresaInfo.cor_primaria || '#6366F1';
+      const secondary = empresaInfo.cor_secundaria || '#E5E7EB';
+      const border = empresaInfo.cor_borda_secoes || primary;
+      const rgbPrimary = hexToRgb(primary);
+      const rgbBorder = hexToRgb(border);
+      const rgbSecondary = hexToRgb(secondary);
+
+      const lightSec = [
+        Math.min(255, rgbSecondary.r + (255 - rgbSecondary.r) * 0.85),
+        Math.min(255, rgbSecondary.g + (255 - rgbSecondary.g) * 0.85),
+        Math.min(255, rgbSecondary.b + (255 - rgbSecondary.b) * 0.85),
+      ];
+
+      let y = 16;
+      // Top line
+      doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+      doc.setLineWidth(1);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 6;
+
+      // Title centered
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(28);
+      doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+      doc.text('FATURA', pageWidth / 2, y + 2, { align: 'center' });
+      y += 10;
+
+      // Left column - company
+      doc.setFontSize(16);
+      doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+      doc.text(empresaInfo.nome_fantasia, margin, y);
+      doc.setFontSize(8);
+      doc.setTextColor(90, 90, 90);
+      y += 5;
+      if (empresaInfo.razao_social) { doc.text(empresaInfo.razao_social, margin, y); y += 4; }
+      doc.setFontSize(7);
+      doc.setTextColor(100, 100, 100);
+      if (empresaInfo.endereco) { doc.text(empresaInfo.endereco, margin, y); y += 3.5; }
+      let addrLine = '';
+      if (empresaInfo.cep) addrLine += empresaInfo.cep + ' ';
+      if (empresaInfo.cidade) addrLine += empresaInfo.cidade;
+      if (empresaInfo.estado) addrLine += ' - ' + empresaInfo.estado;
+      if (addrLine) { doc.text(addrLine, margin, y); y += 3.5; }
+      if (empresaInfo.telefone) { doc.text('Tel: ' + empresaInfo.telefone, margin, y); y += 3.5; }
+      if (empresaInfo.email) { doc.text('E-mail: ' + empresaInfo.email, margin, y); y += 3.5; }
+      if (empresaInfo.website) { doc.text('Site: ' + empresaInfo.website, margin, y); y += 3.5; }
+      if (empresaInfo.cnpj) { doc.text('CNPJ: ' + empresaInfo.cnpj, margin, y); }
+
+      // Right column - number and dates
+      let ry = y - 20; // align roughly
+      const rightX = pageWidth - margin;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('nº ' + fatura.numero, rightX, ry, { align: 'right' });
+      ry += 7;
+      doc.setFontSize(8);
+      doc.setTextColor(80, 80, 80);
+      doc.text('Emitida em:', rightX, ry, { align: 'right' }); ry += 3.5;
+      doc.setFont('helvetica', 'normal');
+      doc.text(new Date(fatura.created_at).toLocaleDateString('pt-BR'), rightX, ry, { align: 'right' }); ry += 4.5;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Vencimento:', rightX, ry, { align: 'right' }); ry += 3.5;
+      doc.setFont('helvetica', 'normal');
+      doc.text(new Date(fatura.data_vencimento).toLocaleDateString('pt-BR'), rightX, ry, { align: 'right' });
+
+      // Separator
+      y = Math.max(y, ry) + 8;
+      doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+      doc.setLineWidth(1);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 8;
+
+      // Cliente box
+      doc.setFillColor(lightSec[0], lightSec[1], lightSec[2]);
+      doc.setLineWidth(0.3);
+      const clientH = 22;
+      doc.roundedRect(margin, y, pageWidth - 2 * margin, clientH, 3, 3, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      doc.text(fatura.cliente.nome, margin + 4, y + 9);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(90, 90, 90);
+      doc.text(fatura.cliente.email || '', margin + 4, y + 14);
+      if (fatura.cliente.telefone) doc.text(fatura.cliente.telefone, margin + 4, y + 18);
+      y += clientH + 8;
+
+      // Itens
+      const body = fatura.items.map(i => [
+        i.descricao,
+        String(i.quantidade),
+        i.unidade,
+        'R$ ' + i.valor_unitario.toFixed(2),
+        'R$ ' + i.valor_total.toFixed(2),
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        head: [['Descrição', 'Qtd.', 'Unidade', 'Preço Un.', 'Total']],
+        body,
+        theme: 'grid',
+        headStyles: { fillColor: [rgbPrimary.r, rgbPrimary.g, rgbPrimary.b], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+        styles: { fontSize: 8.5, lineColor: [rgbBorder.r, rgbBorder.g, rgbBorder.b], lineWidth: 0.3 },
+        columnStyles: { 1: { halign: 'center', cellWidth: 18 }, 2: { halign: 'center', cellWidth: 22 }, 3: { halign: 'right', cellWidth: 30 }, 4: { halign: 'right', cellWidth: 30 } },
+        alternateRowStyles: { fillColor: [lightSec[0], lightSec[1], lightSec[2]] },
+      });
+
+      y = (doc as any).lastAutoTable.finalY + 10;
+
+      // Total box
+      const totalW = 75, totalH = 14, totalX = pageWidth - margin - totalW;
+      doc.setFillColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+      doc.roundedRect(totalX, y, totalW, totalH, 3, 3, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.text('Total a Pagar', totalX + 4, y + 6);
+      doc.setFontSize(14);
+      doc.text('R$ ' + fatura.valor_total.toFixed(2), totalX + totalW - 4, y + 10.5, { align: 'right' });
+
+      // PIX QR Code (se houver chave)
+      let pixY = y;
+      if (empresaInfo.chave_pix) {
+        const payload = buildPixPayload({
+          chave: empresaInfo.chave_pix,
+          nome: empresaInfo.nome_fantasia,
+          cidade: empresaInfo.cidade || 'BRASIL',
+          valor: fatura.valor_total,
+          txid: fatura.numero,
+          descricao: `Fatura ${fatura.numero}`,
+        });
+        const dataUrl = await QRCode.toDataURL(payload, { errorCorrectionLevel: 'M', width: 180 });
+
+        const boxW = 90, boxH = 90;
+        const boxX = margin;
+        pixY += 0;
+        doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+        doc.roundedRect(boxX, pixY, boxW, boxH, 3, 3);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Pague com PIX', boxX + 4, pixY + 6);
+        doc.addImage(dataUrl, 'PNG', boxX + 8, pixY + 10, 74, 74);
+
+        // Copia e cola
+        const copy = doc.splitTextToSize(payload, 120);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(90, 90, 90);
+        doc.text(copy, boxX + boxW + 6, pixY + 10);
+      } else {
+        // Mensagem para configurar PIX
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 110);
+        doc.text('Configure sua chave PIX em Configurações para exibir o QR Code.', margin, y + 20);
+      }
+
+      // Rodapé
+      const footerY = pageHeight - 18;
+      doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+      doc.line(margin, footerY, pageWidth - margin, footerY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(110, 110, 110);
+      doc.text(empresaInfo.nome_fantasia, pageWidth / 2, footerY + 4, { align: 'center' });
+
+      doc.save(`Fatura_${fatura.numero}.pdf`);
+      toast.success('PDF gerado com sucesso!');
+    } catch (e: any) {
+      console.error('Erro ao gerar PDF da fatura:', e);
+      toast.error('Erro ao gerar PDF: ' + e.message);
+    }
+  };
+
   const getNFeStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
       'nao_emitida': { label: 'Não Emitida', variant: 'outline' },
@@ -290,13 +555,13 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
                   )}
                   <div className="mt-2 space-y-0.5">
                     {empresaInfo.telefone && (
-                      <p className="text-xs text-muted-foreground">☎ {empresaInfo.telefone}</p>
+                      <p className="text-xs text-muted-foreground">Tel: {empresaInfo.telefone}</p>
                     )}
                     {empresaInfo.email && (
-                      <p className="text-xs text-muted-foreground">✉ {empresaInfo.email}</p>
+                      <p className="text-xs text-muted-foreground">E-mail: {empresaInfo.email}</p>
                     )}
                     {empresaInfo.website && (
-                      <p className="text-xs text-muted-foreground">🌐 {empresaInfo.website}</p>
+                      <p className="text-xs text-muted-foreground">Site: {empresaInfo.website}</p>
                     )}
                     {empresaInfo.cnpj && (
                       <p className="text-xs text-muted-foreground">CNPJ: {empresaInfo.cnpj}</p>
@@ -548,7 +813,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
                 Editar
               </Button>
             )}
-            <Button variant="outline" disabled>
+            <Button variant="outline" onClick={handleGeneratePDF}>
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
