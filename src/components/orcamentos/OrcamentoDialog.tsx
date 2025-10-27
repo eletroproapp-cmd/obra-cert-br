@@ -413,9 +413,9 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
           doc.text(addressLine, leftTextStartX, leftYPos);
           leftYPos += 3.5;
         }
-        if (empresaInfo.telefone) { doc.text('☎ ' + empresaInfo.telefone, leftTextStartX, leftYPos); leftYPos += 3.5; }
-        if (empresaInfo.email)    { doc.text('✉ ' + empresaInfo.email, leftTextStartX, leftYPos); leftYPos += 3.5; }
-        if (empresaInfo.website)  { doc.text('🌐 ' + empresaInfo.website, leftTextStartX, leftYPos); leftYPos += 3.5; }
+        if (empresaInfo.telefone) { doc.text('Tel: ' + empresaInfo.telefone, leftTextStartX, leftYPos); leftYPos += 3.5; }
+        if (empresaInfo.email)    { doc.text('E-mail: ' + empresaInfo.email, leftTextStartX, leftYPos); leftYPos += 3.5; }
+        if (empresaInfo.website)  { doc.text('Site: ' + empresaInfo.website, leftTextStartX, leftYPos); leftYPos += 3.5; }
         if (empresaInfo.cnpj)     { const label = empresaInfo.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'; doc.text(label + ': ' + empresaInfo.cnpj, leftTextStartX, leftYPos); leftYPos += 3.5; }
         if (empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.regime_tributario) { doc.text('Regime: ' + empresaInfo.regime_tributario, leftTextStartX, leftYPos); leftYPos += 3.5; }
         if (empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.inscricao_estadual) { doc.text('IE: ' + empresaInfo.inscricao_estadual, leftTextStartX, leftYPos); leftYPos += 3.5; }
@@ -798,15 +798,15 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                     </p>
                   )}
                   <div className="mt-2 space-y-0.5">
-                    {empresaInfo.telefone && (
-                      <p className="text-xs text-muted-foreground">☎ {empresaInfo.telefone}</p>
-                    )}
-                    {empresaInfo.email && (
-                      <p className="text-xs text-muted-foreground">✉ {empresaInfo.email}</p>
-                    )}
-                    {empresaInfo.website && (
-                      <p className="text-xs text-muted-foreground">🌐 {empresaInfo.website}</p>
-                    )}
+                     {empresaInfo.telefone && (
+                       <p className="text-xs text-muted-foreground">Tel: {empresaInfo.telefone}</p>
+                     )}
+                     {empresaInfo.email && (
+                       <p className="text-xs text-muted-foreground">E-mail: {empresaInfo.email}</p>
+                     )}
+                     {empresaInfo.website && (
+                       <p className="text-xs text-muted-foreground">Site: {empresaInfo.website}</p>
+                     )}
                     {empresaInfo.cnpj && (
                       <p className="text-xs text-muted-foreground">
                         {empresaInfo.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'}: {empresaInfo.cnpj}
