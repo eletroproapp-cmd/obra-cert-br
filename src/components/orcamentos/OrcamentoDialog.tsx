@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, Send, Loader2, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 interface OrcamentoDialogProps {
   orcamentoId: string | null;
@@ -263,7 +263,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
         `R$ ${item.valor_total.toFixed(2)}`
       ]);
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: yPos,
         head: [['Descrição', 'Qtd', 'Un', 'Valor Unit.', 'Total']],
         body: tableData,

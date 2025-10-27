@@ -140,6 +140,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          assunto: string
+          ativo: boolean | null
+          corpo_html: string
+          created_at: string
+          id: string
+          nome: string
+          tipo: string
+          updated_at: string
+          user_id: string
+          variaveis_disponiveis: string[] | null
+        }
+        Insert: {
+          assunto: string
+          ativo?: boolean | null
+          corpo_html: string
+          created_at?: string
+          id?: string
+          nome: string
+          tipo: string
+          updated_at?: string
+          user_id: string
+          variaveis_disponiveis?: string[] | null
+        }
+        Update: {
+          assunto?: string
+          ativo?: boolean | null
+          corpo_html?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          variaveis_disponiveis?: string[] | null
+        }
+        Relationships: []
+      }
       empresas: {
         Row: {
           ambiente_nfe: string | null

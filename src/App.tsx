@@ -20,6 +20,7 @@ import Funcionarios from "./pages/Funcionarios";
 import Timesheets from "./pages/Timesheets";
 import Projetos from "./pages/Projetos";
 import Admin from "./pages/Admin";
+import EmailTemplates from "./pages/EmailTemplates";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -36,6 +37,7 @@ const App = () => (
         <Route path="/planejamento" element={<ProtectedRoute><Planejamento /></ProtectedRoute>} />
         <Route path="/orcamentos" element={<ProtectedRoute><Orcamentos /></ProtectedRoute>} />
         <Route path="/faturas" element={<ProtectedRoute><Faturas /></ProtectedRoute>} />
+        <Route path="/email-templates" element={<ProtectedRoute><EmailTemplates /></ProtectedRoute>} />
         <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
         <Route path="/catalogo" element={<ProtectedRoute><Catalogo /></ProtectedRoute>} />
         <Route path="/instalacoes" element={<ProtectedRoute><Instalacoes /></ProtectedRoute>} />
