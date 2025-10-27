@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, DollarSign, FileText, Users, Wrench, TrendingUp, AlertTriangle } from "lucide-react";
+import { ArrowUpRight, DollarSign, FileText, Users, Wrench, TrendingUp, AlertTriangle, Calendar, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { format, isToday, isFuture, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
 
 interface DashboardMetrics {
   totalReceitas: number;
@@ -15,6 +19,15 @@ interface DashboardMetrics {
   faturasPendentes: number;
   instalacoes: number;
   materiaisBaixoEstoque: number;
+}
+
+interface Agendamento {
+  id: string;
+  titulo: string;
+  cliente: string | null;
+  data_inicio: string;
+  status: string;
+  tipo: string;
 }
 
 const Dashboard = () => {
@@ -28,6 +41,7 @@ const Dashboard = () => {
     instalacoes: 0,
     materiaisBaixoEstoque: 0,
   });
+  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -71,6 +85,15 @@ const Dashboard = () => {
       const faturasPendentes = faturas?.filter(f => f.status === 'Pendente').length || 0;
       const materiaisBaixoEstoque = materiais?.filter(m => Number(m.estoque_atual) <= Number(m.estoque_minimo)).length || 0;
 
+      // Carregar agendamentos próximos
+      const { data: agendamentosData } = await supabase
+        .from('agendamentos')
+        .select('id, titulo, cliente, data_inicio, status, tipo')
+        .eq('user_id', user.id)
+        .gte('data_inicio', new Date().toISOString())
+        .order('data_inicio', { ascending: true })
+        .limit(5);
+
       setMetrics({
         totalReceitas,
         totalDespesas,
@@ -81,6 +104,7 @@ const Dashboard = () => {
         instalacoes: instalacoes?.length || 0,
         materiaisBaixoEstoque,
       });
+      setAgendamentos(agendamentosData || []);
     } catch (error: any) {
       toast.error('Erro ao carregar métricas: ' + error.message);
     } finally {
@@ -177,7 +201,7 @@ const Dashboard = () => {
           </Card>
         )}
 
-        <div className="grid lg:grid-cols-2 gap-6 mt-6">
+        <div className="grid lg:grid-cols-3 gap-6 mt-6">
           <Card>
             <CardHeader>
               <CardTitle>Ações Rápidas</CardTitle>
@@ -204,29 +228,111 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Resumo Financeiro</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Receitas</span>
-                <span className="font-bold text-success">R$ {metrics.totalReceitas.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Despesas</span>
-                <span className="font-bold text-destructive">R$ {metrics.totalDespesas.toFixed(2)}</span>
-              </div>
-              <div className="h-px bg-border my-2" />
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Lucro</span>
-                <span className="font-bold text-primary">
-                  R$ {(metrics.totalReceitas - metrics.totalDespesas).toFixed(2)}
-                </span>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="text-center p-3 bg-success/10 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Receitas</p>
+                    <p className="font-bold text-success">R$ {metrics.totalReceitas.toFixed(2)}</p>
+                  </div>
+                  <div className="text-center p-3 bg-destructive/10 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Despesas</p>
+                    <p className="font-bold text-destructive">R$ {metrics.totalDespesas.toFixed(2)}</p>
+                  </div>
+                  <div className="text-center p-3 bg-primary/10 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-1">Lucro</p>
+                    <p className="font-bold text-primary">
+                      R$ {(metrics.totalReceitas - metrics.totalDespesas).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart
+                    data={[
+                      {
+                        name: 'Financeiro',
+                        Receitas: metrics.totalReceitas,
+                        Despesas: metrics.totalDespesas,
+                        Lucro: metrics.totalReceitas - metrics.totalDespesas,
+                      },
+                    ]}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="name" className="text-xs" />
+                    <YAxis className="text-xs" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                      formatter={(value: number) => `R$ ${value.toFixed(2)}`}
+                    />
+                    <Legend />
+                    <Bar dataKey="Receitas" fill="hsl(var(--success))" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="Despesas" fill="hsl(var(--destructive))" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="Lucro" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Próximos Agendamentos
+              </CardTitle>
+              <Link to="/planejamento">
+                <Badge variant="outline" className="cursor-pointer hover:bg-secondary">
+                  Ver todos
+                </Badge>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {agendamentos.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Nenhum agendamento próximo
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {agendamentos.map((agendamento) => (
+                  <div
+                    key={agendamento.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium text-sm">{agendamento.titulo}</p>
+                        {agendamento.cliente && (
+                          <p className="text-xs text-muted-foreground">{agendamento.cliente}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">
+                        {format(parseISO(agendamento.data_inicio), "dd/MM/yyyy", { locale: ptBR })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(parseISO(agendamento.data_inicio), "HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
