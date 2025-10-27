@@ -49,8 +49,12 @@ interface Orcamento {
 
 interface EmpresaInfo {
   nome_fantasia: string;
+  tipo_pessoa?: string;
   razao_social?: string;
   cnpj?: string;
+  regime_tributario?: string;
+  inscricao_estadual?: string;
+  inscricao_municipal?: string;
   endereco?: string;
   cidade?: string;
   estado?: string;
@@ -262,7 +266,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                   <h2 className="text-2xl font-bold text-primary mb-1">
                     {empresaInfo.nome_fantasia}
                   </h2>
-                  {empresaInfo.razao_social && (
+                  {empresaInfo.razao_social && empresaInfo.tipo_pessoa === 'juridica' && (
                     <p className="text-sm font-medium text-muted-foreground">
                       {empresaInfo.razao_social}
                     </p>
@@ -288,7 +292,18 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                       <p className="text-xs text-muted-foreground">🌐 {empresaInfo.website}</p>
                     )}
                     {empresaInfo.cnpj && (
-                      <p className="text-xs text-muted-foreground">CNPJ: {empresaInfo.cnpj}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {empresaInfo.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'}: {empresaInfo.cnpj}
+                      </p>
+                    )}
+                    {empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.regime_tributario && (
+                      <p className="text-xs text-muted-foreground">Regime: {empresaInfo.regime_tributario}</p>
+                    )}
+                    {empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.inscricao_estadual && (
+                      <p className="text-xs text-muted-foreground">IE: {empresaInfo.inscricao_estadual}</p>
+                    )}
+                    {empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.inscricao_municipal && (
+                      <p className="text-xs text-muted-foreground">IM: {empresaInfo.inscricao_municipal}</p>
                     )}
                   </div>
                 </>
