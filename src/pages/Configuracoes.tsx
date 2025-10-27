@@ -675,7 +675,7 @@ const Configuracoes = () => {
                               id="cor_primaria" 
                               type="color" 
                               {...register('cor_primaria')} 
-                              defaultValue="#6366F1"
+                              defaultValue={formData.cor_primaria || '#6366F1'}
                               className="w-20 h-10"
                             />
                             <Input 
@@ -698,7 +698,7 @@ const Configuracoes = () => {
                               id="cor_secundaria" 
                               type="color" 
                               {...register('cor_secundaria')} 
-                              defaultValue="#E5E7EB"
+                              defaultValue={formData.cor_secundaria || '#E5E7EB'}
                               className="w-20 h-10"
                             />
                             <Input 
