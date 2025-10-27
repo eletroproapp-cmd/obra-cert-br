@@ -3,12 +3,15 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Clock, Calendar } from "lucide-react";
+import { Plus, Clock, Calendar, FileDown, FileSpreadsheet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TimesheetForm } from "@/components/timesheets/TimesheetForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface Timesheet {
   id: string;
@@ -74,6 +77,60 @@ const Timesheets = () => {
     setShowForm(true);
   };
 
+  const exportToExcel = () => {
+    const data = registros.map(r => ({
+      'Data': format(new Date(r.data), 'dd/MM/yyyy'),
+      'Funcionário': r.funcionarios.nome,
+      'Projeto': r.instalacoes?.titulo || 'Sem projeto',
+      'Hora Início': r.hora_inicio,
+      'Hora Fim': r.hora_fim,
+      'Total Horas': r.horas_totais.toFixed(2),
+      'Tipo': r.tipo_trabalho,
+      'Descrição': r.descricao || '',
+      'Status': r.aprovado ? 'Aprovado' : 'Pendente'
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Folha de Ponto');
+    
+    const fileName = `folha-ponto-${format(selectedMonth, 'MM-yyyy')}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    toast.success('Exportado para Excel com sucesso!');
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(16);
+    doc.text('Folha de Ponto', 14, 15);
+    doc.setFontSize(10);
+    doc.text(format(selectedMonth, 'MMMM yyyy', { locale: ptBR }), 14, 22);
+    
+    const tableData = registros.map(r => [
+      format(new Date(r.data), 'dd/MM/yyyy'),
+      r.funcionarios.nome,
+      r.instalacoes?.titulo || 'Sem projeto',
+      `${r.hora_inicio} - ${r.hora_fim}`,
+      r.horas_totais.toFixed(2),
+      r.tipo_trabalho,
+      r.aprovado ? 'Aprovado' : 'Pendente'
+    ]);
+
+    autoTable(doc, {
+      startY: 28,
+      head: [['Data', 'Funcionário', 'Projeto', 'Horário', 'Horas', 'Tipo', 'Status']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [99, 102, 241] },
+      styles: { fontSize: 8 },
+    });
+
+    const fileName = `folha-ponto-${format(selectedMonth, 'MM-yyyy')}.pdf`;
+    doc.save(fileName);
+    toast.success('Exportado para PDF com sucesso!');
+  };
+
   const totalHoras = registros.reduce((sum, r) => sum + (r.horas_totais || 0), 0);
   const horasAprovadas = registros.filter(r => r.aprovado).reduce((sum, r) => sum + (r.horas_totais || 0), 0);
 
@@ -95,10 +152,20 @@ const Timesheets = () => {
           <h1 className="text-3xl font-bold mb-2">Folhas de Ponto</h1>
           <p className="text-muted-foreground">Registro de horas trabalhadas</p>
         </div>
-        <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
-          <Plus className="mr-2 h-5 w-5" />
-          Novo Registro
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportToExcel} disabled={registros.length === 0}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Excel
+          </Button>
+          <Button variant="outline" onClick={exportToPDF} disabled={registros.length === 0}>
+            <FileDown className="mr-2 h-4 w-4" />
+            PDF
+          </Button>
+          <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
+            <Plus className="mr-2 h-5 w-5" />
+            Novo Registro
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3 mb-8">

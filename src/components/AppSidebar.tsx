@@ -2,8 +2,6 @@ import {
   LayoutDashboard,
   Calendar,
   Clock,
-  Zap,
-  Wrench,
   FileText,
   Receipt,
   Users,
@@ -44,8 +42,6 @@ const menuItems = [
       { title: "Planejamento", url: "/planejamento", icon: Calendar },
       { title: "Funcionários", url: "/funcionarios", icon: UserCog },
       { title: "Folhas de Ponto", url: "/timesheets", icon: Clock },
-      { title: "Instalações", url: "/instalacoes", icon: Zap },
-      { title: "Manutenções", url: "/manutencoes", icon: Wrench },
     ],
   },
   {
