@@ -25,6 +25,29 @@ const signupSchema = z.object({
   company: z.string().min(2, 'Empresa deve ter no mínimo 2 caracteres').max(100).trim()
 });
 
+const sha1Hex = async (str: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+};
+
+const isPasswordPwned = async (password: string): Promise<boolean> => {
+  const hash = await sha1Hex(password);
+  const prefix = hash.slice(0, 5);
+  const suffix = hash.slice(5);
+  const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
+    headers: { 'Add-Padding': 'true' }
+  });
+  if (!res.ok) return false; // Fail-closed to allow signup if service unavailable
+  const body = await res.text();
+  return body.split('\n').some(line => {
+    const [hashSuffix, count] = line.trim().split(':');
+    return hashSuffix === suffix && parseInt(count || '0', 10) > 0;
+  });
+};
+
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -66,6 +89,18 @@ const Auth = () => {
       toast.error(result.error.errors[0].message);
       setIsLoading(false);
       return;
+    }
+
+    try {
+      const pwned = await isPasswordPwned(result.data.password);
+      if (pwned) {
+        toast.error('Sua senha aparece em vazamentos de dados. Por favor, escolha outra.');
+        setIsLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('Falha ao verificar senha vazada', err);
+      // Continuar mesmo se o serviço externo falhar
     }
 
     await signUp(result.data.email, result.data.password, { 
