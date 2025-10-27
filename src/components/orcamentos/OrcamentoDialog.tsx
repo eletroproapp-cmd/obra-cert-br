@@ -179,7 +179,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
     }
   };
 
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     console.log('Iniciando geração de PDF', { orcamento, empresaInfo });
     
     if (!orcamento) {
@@ -211,113 +211,260 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
       const lightSecondaryG = Math.min(255, rgbSecondary.g + (255 - rgbSecondary.g) * 0.85);
       const lightSecondaryB = Math.min(255, rgbSecondary.b + (255 - rgbSecondary.b) * 0.85);
       
-      let yPos = 18;
+      let yPos = 15;
+      
+      // === CARREGAR LOGO SE EXISTIR ===
+      let logoImg: HTMLImageElement | null = null;
+      const logoHeight = 20;
+      const logoPosition = empresaInfo.logo_position || 'left';
+      
+      if (empresaInfo.logo_url) {
+        try {
+          logoImg = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Erro ao carregar logo'));
+            img.src = empresaInfo.logo_url;
+          });
+        } catch (error) {
+          console.error('Erro ao carregar logo:', error);
+          logoImg = null;
+        }
+      }
 
-      // === CABEÇALHO COM LAYOUT DE 2 COLUNAS ===
+      // === CABEÇALHO COM LOGO ===
       // Linha de borda superior
       doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
       doc.setLineWidth(1.2);
-      doc.line(margin, yPos - 3, pageWidth - margin, yPos - 3);
-      
-      yPos += 5;
-      
-      // Coluna Esquerda - Informações da Empresa
-      const leftColWidth = (pageWidth - 2 * margin) * 0.55;
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
-      doc.text(empresaInfo.nome_fantasia, margin, yPos);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
       yPos += 6;
       
-      if (empresaInfo.razao_social && empresaInfo.tipo_pessoa === 'juridica') {
+      // Determinar layout baseado na posição da logo
+      const hasLogo = logoImg !== null;
+      const isCenterLogo = hasLogo && logoPosition === 'center';
+      
+      if (isCenterLogo) {
+        // LAYOUT: LOGO NO CENTRO
+        // Adicionar logo centralizada
+        if (logoImg) {
+          const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
+          const logoX = (pageWidth - logoWidth) / 2;
+          doc.addImage(logoImg, 'PNG', logoX, yPos, logoWidth, logoHeight);
+          yPos += logoHeight + 5;
+        }
+        
+        // Informações da empresa centralizadas
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+        doc.text(empresaInfo.nome_fantasia, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 5;
+        
+        if (empresaInfo.razao_social && empresaInfo.tipo_pessoa === 'juridica') {
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(90, 90, 90);
+          doc.text(empresaInfo.razao_social, pageWidth / 2, yPos, { align: 'center' });
+          yPos += 4;
+        }
+        
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        
+        const infoLines: string[] = [];
+        if (empresaInfo.endereco) infoLines.push(empresaInfo.endereco);
+        if (empresaInfo.cep || empresaInfo.cidade || empresaInfo.estado) {
+          let line = '';
+          if (empresaInfo.cep) line += empresaInfo.cep + ' ';
+          if (empresaInfo.cidade) line += empresaInfo.cidade;
+          if (empresaInfo.estado) line += ' - ' + empresaInfo.estado;
+          if (line) infoLines.push(line);
+        }
+        if (empresaInfo.telefone || empresaInfo.email) {
+          let line = '';
+          if (empresaInfo.telefone) line += empresaInfo.telefone;
+          if (empresaInfo.email) line += (line ? ' | ' : '') + empresaInfo.email;
+          if (line) infoLines.push(line);
+        }
+        if (empresaInfo.cnpj) {
+          const label = empresaInfo.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ';
+          infoLines.push(label + ': ' + empresaInfo.cnpj);
+        }
+        
+        infoLines.forEach(line => {
+          doc.text(line, pageWidth / 2, yPos, { align: 'center' });
+          yPos += 3.5;
+        });
+        
+        yPos += 3;
+        
+        // Linha separadora
+        doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+        doc.setLineWidth(0.8);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 6;
+        
+        // ORÇAMENTO centralizado
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+        doc.text('ORÇAMENTO', pageWidth / 2, yPos, { align: 'center' });
+        yPos += 8;
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('nº ' + orcamento.numero, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 7;
+        
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(90, 90, 90);
+        const dataEmissao = new Date(orcamento.created_at).toLocaleDateString('pt-BR');
+        doc.text('Em data de: ' + dataEmissao, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 3.5;
+        
+        const dataValidade = new Date(new Date(orcamento.created_at).getTime() + orcamento.validade_dias * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR');
+        doc.text('Válido até: ' + dataValidade, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 3.5;
+        
+        doc.text('Validade: ' + orcamento.validade_dias + ' dias', pageWidth / 2, yPos, { align: 'center' });
+        yPos += 8;
+        
+      } else {
+        // LAYOUT: LOGO À ESQUERDA OU DIREITA (ou sem logo)
+        const leftColStart = margin;
+        const rightColEnd = pageWidth - margin;
+        const logoWidth = hasLogo && logoImg ? (logoImg.width / logoImg.height) * logoHeight : 0;
+        
+        // Determinar posições das colunas
+        let contentLeftX = leftColStart;
+        let contentRightX = rightColEnd;
+        
+        if (hasLogo && logoPosition === 'left' && logoImg) {
+          // Logo à esquerda
+          doc.addImage(logoImg, 'PNG', leftColStart, yPos, logoWidth, logoHeight);
+          contentLeftX = leftColStart + logoWidth + 6;
+        } else if (hasLogo && logoPosition === 'right' && logoImg) {
+          // Logo à direita
+          const logoX = rightColEnd - logoWidth;
+          doc.addImage(logoImg, 'PNG', logoX, yPos, logoWidth, logoHeight);
+          contentRightX = logoX - 6;
+        }
+        
+        // Coluna Esquerda - Informações da Empresa
+        let leftYPos = yPos;
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+        doc.text(empresaInfo.nome_fantasia, contentLeftX, leftYPos);
+        leftYPos += 5;
+        
+        if (empresaInfo.razao_social && empresaInfo.tipo_pessoa === 'juridica') {
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(90, 90, 90);
+          doc.text(empresaInfo.razao_social, contentLeftX, leftYPos);
+          leftYPos += 4;
+        }
+        
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        
+        if (empresaInfo.endereco) {
+          doc.text(empresaInfo.endereco, contentLeftX, leftYPos);
+          leftYPos += 3.5;
+        }
+        if (empresaInfo.cep || empresaInfo.cidade || empresaInfo.estado) {
+          let addressLine = '';
+          if (empresaInfo.cep) addressLine += empresaInfo.cep + ' ';
+          if (empresaInfo.cidade) addressLine += empresaInfo.cidade;
+          if (empresaInfo.estado) addressLine += ' - ' + empresaInfo.estado;
+          doc.text(addressLine, contentLeftX, leftYPos);
+          leftYPos += 3.5;
+        }
+        
+        if (empresaInfo.telefone) {
+          doc.text('☎ ' + empresaInfo.telefone, contentLeftX, leftYPos);
+          leftYPos += 3.5;
+        }
+        if (empresaInfo.email) {
+          doc.text('✉ ' + empresaInfo.email, contentLeftX, leftYPos);
+          leftYPos += 3.5;
+        }
+        if (empresaInfo.website) {
+          doc.text('🌐 ' + empresaInfo.website, contentLeftX, leftYPos);
+          leftYPos += 3.5;
+        }
+        
+        if (empresaInfo.cnpj) {
+          const label = empresaInfo.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ';
+          doc.text(label + ': ' + empresaInfo.cnpj, contentLeftX, leftYPos);
+          leftYPos += 3.5;
+        }
+        if (empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.regime_tributario) {
+          doc.text('Regime: ' + empresaInfo.regime_tributario, contentLeftX, leftYPos);
+          leftYPos += 3.5;
+        }
+        if (empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.inscricao_estadual) {
+          doc.text('IE: ' + empresaInfo.inscricao_estadual, contentLeftX, leftYPos);
+          leftYPos += 3.5;
+        }
+        if (empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.inscricao_municipal) {
+          doc.text('IM: ' + empresaInfo.inscricao_municipal, contentLeftX, leftYPos);
+        }
+        
+        // Coluna Direita - Informações do Orçamento
+        let rightYPos = yPos;
+        
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+        doc.text('ORÇAMENTO', contentRightX, rightYPos, { align: 'right' });
+        rightYPos += 8;
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('nº ' + orcamento.numero, contentRightX, rightYPos, { align: 'right' });
+        rightYPos += 7;
+        
         doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(90, 90, 90);
-        doc.text(empresaInfo.razao_social, margin, yPos);
-        yPos += 4;
+        doc.setTextColor(80, 80, 80);
+        doc.text('Em data de:', contentRightX, rightYPos, { align: 'right' });
+        rightYPos += 3.5;
+        doc.setFont('helvetica', 'normal');
+        const dataEmissao2 = new Date(orcamento.created_at).toLocaleDateString('pt-BR');
+        doc.text(dataEmissao2, contentRightX, rightYPos, { align: 'right' });
+        rightYPos += 4.5;
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text('Válido até:', contentRightX, rightYPos, { align: 'right' });
+        rightYPos += 3.5;
+        doc.setFont('helvetica', 'normal');
+        const dataValidade2 = new Date(new Date(orcamento.created_at).getTime() + orcamento.validade_dias * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR');
+        doc.text(dataValidade2, contentRightX, rightYPos, { align: 'right' });
+        rightYPos += 4.5;
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text('Validade:', contentRightX, rightYPos, { align: 'right' });
+        rightYPos += 3.5;
+        doc.setFont('helvetica', 'normal');
+        doc.text(orcamento.validade_dias + ' dias', contentRightX, rightYPos, { align: 'right' });
+        
+        // Ajustar yPos para o máximo entre as duas colunas
+        yPos = Math.max(leftYPos, rightYPos) + 8;
+        
+        // Linha separadora após cabeçalho
+        doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+        doc.setLineWidth(1.2);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 8;
       }
-      
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
-      
-      if (empresaInfo.endereco) {
-        doc.text(empresaInfo.endereco, margin, yPos);
-        yPos += 3.5;
-      }
-      if (empresaInfo.cep || empresaInfo.cidade || empresaInfo.estado) {
-        let addressLine = '';
-        if (empresaInfo.cep) addressLine += empresaInfo.cep + ' ';
-        if (empresaInfo.cidade) addressLine += empresaInfo.cidade;
-        if (empresaInfo.estado) addressLine += ' - ' + empresaInfo.estado;
-        doc.text(addressLine, margin, yPos);
-        yPos += 3.5;
-      }
-      
-      if (empresaInfo.telefone) {
-        doc.text('Tel: ' + empresaInfo.telefone, margin, yPos);
-        yPos += 3.5;
-      }
-      if (empresaInfo.email) {
-        doc.text('Email: ' + empresaInfo.email, margin, yPos);
-        yPos += 3.5;
-      }
-      
-      if (empresaInfo.cnpj) {
-        const label = empresaInfo.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ';
-        doc.text(label + ': ' + empresaInfo.cnpj, margin, yPos);
-        yPos += 3.5;
-      }
-      if (empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.regime_tributario) {
-        doc.text('Regime: ' + empresaInfo.regime_tributario, margin, yPos);
-      }
-      
-      // Coluna Direita - Informações do Orçamento
-      const rightColX = pageWidth - margin;
-      let rightYPos = 23;
-      
-      doc.setFontSize(28);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
-      doc.text('ORÇAMENTO', rightColX, rightYPos, { align: 'right' });
-      rightYPos += 10;
-      
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text('nº ' + orcamento.numero, rightColX, rightYPos, { align: 'right' });
-      rightYPos += 8;
-      
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(80, 80, 80);
-      doc.text('Em data de:', rightColX, rightYPos, { align: 'right' });
-      rightYPos += 4;
-      doc.setFont('helvetica', 'normal');
-      const dataEmissao = new Date(orcamento.created_at).toLocaleDateString('pt-BR');
-      doc.text(dataEmissao, rightColX, rightYPos, { align: 'right' });
-      rightYPos += 5;
-      
-      doc.setFont('helvetica', 'bold');
-      doc.text('Válido até:', rightColX, rightYPos, { align: 'right' });
-      rightYPos += 4;
-      doc.setFont('helvetica', 'normal');
-      const dataValidade = new Date(new Date(orcamento.created_at).getTime() + orcamento.validade_dias * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR');
-      doc.text(dataValidade, rightColX, rightYPos, { align: 'right' });
-      rightYPos += 5;
-      
-      doc.setFont('helvetica', 'bold');
-      doc.text('Validade:', rightColX, rightYPos, { align: 'right' });
-      rightYPos += 4;
-      doc.setFont('helvetica', 'normal');
-      doc.text(orcamento.validade_dias + ' dias', rightColX, rightYPos, { align: 'right' });
-      
-      // Linha separadora após cabeçalho
-      yPos = Math.max(yPos, rightYPos) + 8;
-      doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
-      doc.setLineWidth(1.2);
-      doc.line(margin, yPos, pageWidth - margin, yPos);
-      yPos += 10;
       
       // === SEÇÃO DO CLIENTE ===
       const clientBoxHeight = 26;
