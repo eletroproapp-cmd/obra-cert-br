@@ -7,6 +7,9 @@ import { Plus, Users, Phone, Mail, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClienteForm } from "@/components/clientes/ClienteForm";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
+import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
 
 interface Cliente {
   id: string;
@@ -21,6 +24,8 @@ const Clientes = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const { checkLimit, plan, refetch } = useSubscription();
 
   useEffect(() => {
     loadClientes();
@@ -43,9 +48,21 @@ const Clientes = () => {
     }
   };
 
+  const handleNewClient = () => {
+    const limitCheck = checkLimit('clientes');
+    
+    if (!limitCheck.allowed) {
+      setShowUpgradeDialog(true);
+      return;
+    }
+    
+    setShowForm(true);
+  };
+
   const handleSuccess = () => {
     setShowForm(false);
     loadClientes();
+    refetch(); // Atualizar contadores de uso
   };
 
   if (loading) {
@@ -66,16 +83,25 @@ const Clientes = () => {
           <h1 className="text-3xl font-bold mb-2">Clientes</h1>
           <p className="text-muted-foreground">Gerencie seus clientes e contatos</p>
         </div>
-        <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
+        <Button variant="hero" size="lg" onClick={handleNewClient}>
           <Plus className="mr-2 h-5 w-5" />
           Novo Cliente
         </Button>
       </div>
 
+      {/* Usage Limit Alert */}
+      {plan && (
+        <UsageLimitAlert
+          resourceName="clientes"
+          current={clientes.length}
+          limit={checkLimit('clientes').limit}
+        />
+      )}
+
       {clientes.length === 0 ? (
         <Card className="text-center p-12">
           <p className="text-muted-foreground mb-4">Nenhum cliente cadastrado ainda</p>
-          <Button variant="hero" onClick={() => setShowForm(true)}>
+          <Button variant="hero" onClick={handleNewClient}>
             <Plus className="mr-2 h-4 w-4" />
             Cadastrar Primeiro Cliente
           </Button>
@@ -125,6 +151,13 @@ const Clientes = () => {
           <ClienteForm onSuccess={handleSuccess} />
         </DialogContent>
       </Dialog>
+
+      <PlanUpgradeDialog
+        open={showUpgradeDialog}
+        onOpenChange={setShowUpgradeDialog}
+        currentPlan={plan?.plan_type || 'free'}
+        blockedFeature="clientes"
+      />
     </div>
     </DashboardLayout>
   );

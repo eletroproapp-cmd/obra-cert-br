@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save } from "lucide-react";
+import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { validarCNPJ, formatarCNPJ } from "@/utils/validators";
+import { PlansTab } from "@/components/subscription/PlansTab";
+import { useSearchParams } from "react-router-dom";
 
 interface EmpresaData {
   nome_fantasia: string;
@@ -42,6 +44,8 @@ const Configuracoes = () => {
   const [loading, setLoading] = useState(false);
   const [empresaId, setEmpresaId] = useState<string | null>(null);
   const { register, handleSubmit, reset, setValue } = useForm<EmpresaData>();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') || 'empresa';
 
   useEffect(() => {
     loadEmpresa();
@@ -109,11 +113,15 @@ const Configuracoes = () => {
           <p className="text-muted-foreground">Gerencie as informações da sua empresa e preferências do sistema</p>
         </div>
 
-        <Tabs defaultValue="empresa" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
             <TabsTrigger value="empresa">
               <Building2 className="mr-2 h-4 w-4" />
               Minha Empresa
+            </TabsTrigger>
+            <TabsTrigger value="plano">
+              <Crown className="mr-2 h-4 w-4" />
+              Plano
             </TabsTrigger>
             <TabsTrigger value="financeiro">
               <DollarSign className="mr-2 h-4 w-4" />
@@ -128,6 +136,10 @@ const Configuracoes = () => {
               Sistema
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="plano">
+            <PlansTab />
+          </TabsContent>
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <TabsContent value="empresa" className="space-y-6">
