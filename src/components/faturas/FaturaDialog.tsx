@@ -578,7 +578,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
                 <p className="text-lg font-semibold">nº {fatura.numero}</p>
                 <div className="mt-4 space-y-1 text-sm">
                   <p className="text-muted-foreground">
-                    <span className="font-medium">Emitida em:</span>{' '}
+                    <span className="font-medium">Em data de:</span>{' '}
                     {new Date(fatura.created_at).toLocaleDateString('pt-BR')}
                   </p>
                   <p className="text-muted-foreground">
@@ -719,6 +719,41 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
             >
               <h3 className="font-semibold mb-2">Observações</h3>
               <p className="text-sm whitespace-pre-wrap">{fatura.observacoes}</p>
+            </div>
+          )}
+
+          {/* Seção QR Code PIX */}
+          {empresaInfo?.chave_pix && (
+            <div className="border rounded-lg p-6" style={{ borderColor: empresaInfo?.cor_borda_secoes || '#E5E7EB' }}>
+              <h3 className="text-lg font-semibold mb-4">Pague com PIX</h3>
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="flex-shrink-0">
+                  <div className="w-48 h-48 border rounded-lg flex items-center justify-center bg-white">
+                    <p className="text-sm text-center text-muted-foreground px-4">
+                      QR Code será gerado no PDF
+                    </p>
+                  </div>
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="text-sm font-medium mb-1">Chave PIX:</p>
+                    <code className="text-xs bg-muted p-2 rounded block break-all">
+                      {empresaInfo.chave_pix}
+                    </code>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Escaneie o QR Code no PDF ou copie a chave PIX acima para fazer o pagamento.
+                    </p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded">
+                    <p className="text-sm font-semibold">Valor: R$ {fatura.valor_total.toFixed(2)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Vencimento: {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
