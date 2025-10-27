@@ -326,15 +326,41 @@ export const PlansTab = () => {
       {currentPlanId !== 'free' && (
         <Card>
           <CardHeader>
-            <CardTitle>Informações de Pagamento</CardTitle>
+            <CardTitle>Gerenciar Assinatura</CardTitle>
             <CardDescription>
-              Gerencie seus métodos de pagamento e histórico de faturas
+              Controle sua assinatura e forma de pagamento
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Integração com Stripe em breve. Configure suas chaves de API para habilitar pagamentos.
-            </p>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <p className="font-medium">Forma de Pagamento</p>
+                <p className="text-sm text-muted-foreground">
+                  Gerenciado pelo Stripe
+                </p>
+              </div>
+              <Badge variant="outline">Cartão de Crédito</Badge>
+            </div>
+            
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div>
+                <p className="font-medium">Próxima Cobrança</p>
+                <p className="text-sm text-muted-foreground">
+                  {subscription?.current_period_end 
+                    ? new Date(subscription.current_period_end).toLocaleDateString('pt-BR')
+                    : 'Não disponível'}
+                </p>
+              </div>
+              <p className="font-bold text-primary">
+                R$ {plan?.price_monthly?.toFixed(2) || '0,00'}
+              </p>
+            </div>
+            
+            {!subscription?.cancel_at_period_end && (
+              <p className="text-xs text-muted-foreground">
+                💡 Sua assinatura renova automaticamente. Você pode cancelar a qualquer momento.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

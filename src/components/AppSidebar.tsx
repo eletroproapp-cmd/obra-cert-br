@@ -18,9 +18,11 @@ import {
   CheckSquare,
   BarChart3,
   UserCog,
+  Shield,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "@/assets/logo-eletropro.png";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 import {
   Sidebar,
@@ -82,8 +84,16 @@ const bottomItems = [
 export function AppSidebar() {
   const { open } = useSidebar();
   const { pathname } = useLocation();
+  const { isAdmin } = useAdminCheck();
   
   const isActivePath = (url: string) => pathname === url;
+
+  const bottomItemsWithAdmin = isAdmin 
+    ? [
+        { title: "Admin", url: "/admin", icon: Shield },
+        ...bottomItems
+      ]
+    : bottomItems;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -137,7 +147,7 @@ export function AppSidebar() {
           <SidebarGroup className="px-3 py-3">
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
-                {bottomItems.map((item) => (
+                {bottomItemsWithAdmin.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActivePath(item.url)} className="h-auto p-0">
                       <NavLink to={item.url} end>

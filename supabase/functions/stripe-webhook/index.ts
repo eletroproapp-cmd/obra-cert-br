@@ -40,7 +40,7 @@ serve(async (req) => {
         }
 
         // Atualizar subscription do usuário
-        await fetch(
+        const updateResult = await fetch(
           `${supabaseUrl}/rest/v1/user_subscriptions?user_id=eq.${userId}`,
           {
             method: 'PATCH',
@@ -59,7 +59,56 @@ serve(async (req) => {
           }
         );
 
-        console.log(`Subscription updated for user ${userId} to ${planType}`);
+        if (updateResult.ok) {
+          console.log(`Subscription updated for user ${userId} to ${planType}`);
+          
+          // Enviar email de confirmação de upgrade
+          try {
+            // Buscar email do usuário
+            const userDataResponse = await fetch(
+              `${supabaseUrl}/auth/v1/admin/users/${userId}`,
+              {
+                headers: {
+                  'apikey': supabaseServiceKey,
+                  'Authorization': `Bearer ${supabaseServiceKey}`,
+                },
+              }
+            );
+            
+            const userData = await userDataResponse.json();
+            
+            if (userData.email) {
+              const planNames: Record<string, string> = {
+                'basic': 'Básico',
+                'professional': 'Profissional'
+              };
+              
+              const planPrices: Record<string, string> = {
+                'basic': '9,90',
+                'professional': '29,90'
+              };
+
+              await fetch(`${supabaseUrl}/functions/v1/enviar-email-upgrade`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${supabaseServiceKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  email: userData.email,
+                  name: userData.user_metadata?.name || '',
+                  planName: planNames[planType] || planType,
+                  price: planPrices[planType] || '0,00'
+                }),
+              });
+              
+              console.log(`Email de upgrade enviado para ${userData.email}`);
+            }
+          } catch (emailError) {
+            console.error('Erro ao enviar email de upgrade:', emailError);
+            // Não falhar o webhook por causa do email
+          }
+        }
         break;
       }
 
