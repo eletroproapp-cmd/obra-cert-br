@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown, Palette } from "lucide-react";
+import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown, Palette, Upload, Eye, EyeOff } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +31,8 @@ interface EmpresaData {
   telefone: string;
   email: string;
   website: string;
+  logo_url: string;
+  slogan: string;
   cor_primaria: string;
   cor_secundaria: string;
   observacoes_padrao: string;
@@ -46,14 +48,28 @@ interface EmpresaData {
   tamanho_fonte: number;
   estilo_borda: string;
   mostrar_logo: boolean;
+  mostrar_nome_fantasia: boolean;
+  mostrar_razao_social: boolean;
+  mostrar_cnpj: boolean;
+  mostrar_endereco: boolean;
+  mostrar_telefone: boolean;
+  mostrar_email: boolean;
+  mostrar_website: boolean;
+  mostrar_regime_tributario: boolean;
+  mostrar_inscricao_estadual: boolean;
+  mostrar_inscricao_municipal: boolean;
 }
 
 const Configuracoes = () => {
   const [loading, setLoading] = useState(false);
   const [empresaId, setEmpresaId] = useState<string | null>(null);
-  const { register, handleSubmit, reset, setValue } = useForm<EmpresaData>();
+  const { register, handleSubmit, reset, setValue, watch } = useForm<EmpresaData>();
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'empresa';
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  // Watch form values for live preview
+  const formData = watch();
 
   useEffect(() => {
     loadEmpresa();
@@ -78,6 +94,38 @@ const Configuracoes = () => {
       }
     } catch (error: any) {
       console.error('Erro ao carregar empresa:', error);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-logo-${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('company-assets')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('company-assets')
+        .getPublicUrl(filePath);
+
+      setValue('logo_url', publicUrl);
+      toast.success('Logo enviado com sucesso!');
+    } catch (error: any) {
+      toast.error('Erro ao enviar logo: ' + error.message);
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -151,149 +199,338 @@ const Configuracoes = () => {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <TabsContent value="empresa" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Informações Gerais</CardTitle>
-                  <CardDescription>Dados básicos da sua empresa</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="nome_fantasia">Nome Fantasia *</Label>
-                      <Input id="nome_fantasia" {...register('nome_fantasia')} required />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="razao_social">Razão Social</Label>
-                      <Input id="razao_social" {...register('razao_social')} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cnpj">CNPJ</Label>
-                      <Input 
-                        id="cnpj" 
-                        {...register('cnpj')} 
-                        placeholder="00.000.000/0000-00"
-                        onChange={(e) => {
-                          const formatted = formatarCNPJ(e.target.value);
-                          e.target.value = formatted;
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="regime_tributario">Regime Tributário</Label>
-                      <Select defaultValue="Simples Nacional" onValueChange={(value) => setValue('regime_tributario', value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o regime" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
-                          <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
-                          <SelectItem value="Lucro Real">Lucro Real</SelectItem>
-                          <SelectItem value="MEI">MEI</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
-                      <Input id="inscricao_estadual" {...register('inscricao_estadual')} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
-                      <Input id="inscricao_municipal" {...register('inscricao_municipal')} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left Column - Form Fields */}
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Logo da Empresa</CardTitle>
+                      <CardDescription>Adicione o logo que aparecerá nos documentos</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        {formData.logo_url && (
+                          <div className="w-32 h-32 border rounded-lg overflow-hidden flex items-center justify-center bg-muted">
+                            <img src={formData.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+                          </div>
+                        )}
+                        <div className="flex-1 space-y-2">
+                          <Label htmlFor="logo">Carregar Logo</Label>
+                          <Input
+                            id="logo"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoUpload}
+                            disabled={uploadingLogo}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            {uploadingLogo ? 'Enviando...' : 'Formatos: PNG, JPG, WEBP (máx. 2MB)'}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Endereço e Contato</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="endereco">Endereço</Label>
-                    <Input id="endereco" {...register('endereco')} />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="cidade">Cidade</Label>
-                      <Input id="cidade" {...register('cidade')} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="estado">Estado</Label>
-                      <Input id="estado" {...register('estado')} maxLength={2} placeholder="SP" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cep">CEP</Label>
-                      <Input id="cep" {...register('cep')} placeholder="00000-000" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="telefone">Telefone</Label>
-                      <Input id="telefone" {...register('telefone')} placeholder="(00) 00000-0000" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">E-mail</Label>
-                      <Input id="email" type="email" {...register('email')} />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <Input id="website" {...register('website')} placeholder="https://..." />
-                  </div>
-                </CardContent>
-              </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Informações Gerais</CardTitle>
+                      <CardDescription>Dados básicos e controle de visibilidade</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="nome_fantasia">Nome Fantasia *</Label>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={formData.mostrar_nome_fantasia !== false}
+                                onCheckedChange={(checked) => setValue('mostrar_nome_fantasia', checked)}
+                              />
+                              {formData.mostrar_nome_fantasia !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                            </div>
+                          </div>
+                          <Input id="nome_fantasia" {...register('nome_fantasia')} required />
+                        </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Personalização</CardTitle>
-                  <CardDescription>Cores e identidade visual dos documentos</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="cor_primaria">Cor Primária</Label>
-                      <Input id="cor_primaria" type="color" {...register('cor_primaria')} defaultValue="#1EAEDB" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cor_secundaria">Cor Secundária</Label>
-                      <Input id="cor_secundaria" type="color" {...register('cor_secundaria')} defaultValue="#33C3F0" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                        <div className="space-y-2">
+                          <Label htmlFor="slogan">Slogan</Label>
+                          <Input id="slogan" {...register('slogan')} placeholder="Seu slogan aqui" />
+                        </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Termos e Observações</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="observacoes_padrao">Observações Padrão</Label>
-                    <Textarea 
-                      id="observacoes_padrao" 
-                      {...register('observacoes_padrao')}
-                      placeholder="Texto que aparecerá por padrão em orçamentos e faturas"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="termos_condicoes">Termos e Condições</Label>
-                    <Textarea 
-                      id="termos_condicoes" 
-                      {...register('termos_condicoes')}
-                      placeholder="Termos e condições gerais"
-                      rows={5}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="razao_social">Razão Social</Label>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={formData.mostrar_razao_social !== false}
+                                onCheckedChange={(checked) => setValue('mostrar_razao_social', checked)}
+                              />
+                              {formData.mostrar_razao_social !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                            </div>
+                          </div>
+                          <Input id="razao_social" {...register('razao_social')} />
+                        </div>
 
-              <div className="flex justify-end">
-                <Button type="submit" size="lg" disabled={loading}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {loading ? 'Salvando...' : 'Salvar Configurações'}
-                </Button>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="cnpj">CNPJ</Label>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={formData.mostrar_cnpj !== false}
+                                onCheckedChange={(checked) => setValue('mostrar_cnpj', checked)}
+                              />
+                              {formData.mostrar_cnpj !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                            </div>
+                          </div>
+                          <Input 
+                            id="cnpj" 
+                            {...register('cnpj')} 
+                            placeholder="00.000.000/0000-00"
+                            onChange={(e) => {
+                              const formatted = formatarCNPJ(e.target.value);
+                              e.target.value = formatted;
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="regime_tributario">Regime Tributário</Label>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={formData.mostrar_regime_tributario !== false}
+                                onCheckedChange={(checked) => setValue('mostrar_regime_tributario', checked)}
+                              />
+                              {formData.mostrar_regime_tributario !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                            </div>
+                          </div>
+                          <Select defaultValue="Simples Nacional" onValueChange={(value) => setValue('regime_tributario', value)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o regime" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
+                              <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
+                              <SelectItem value="Lucro Real">Lucro Real</SelectItem>
+                              <SelectItem value="MEI">MEI</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={formData.mostrar_inscricao_estadual !== false}
+                                  onCheckedChange={(checked) => setValue('mostrar_inscricao_estadual', checked)}
+                                />
+                              </div>
+                            </div>
+                            <Input id="inscricao_estadual" {...register('inscricao_estadual')} />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={formData.mostrar_inscricao_municipal !== false}
+                                  onCheckedChange={(checked) => setValue('mostrar_inscricao_municipal', checked)}
+                                />
+                              </div>
+                            </div>
+                            <Input id="inscricao_municipal" {...register('inscricao_municipal')} />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Endereço e Contato</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="endereco">Endereço</Label>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={formData.mostrar_endereco !== false}
+                              onCheckedChange={(checked) => setValue('mostrar_endereco', checked)}
+                            />
+                            {formData.mostrar_endereco !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </div>
+                        </div>
+                        <Input id="endereco" {...register('endereco')} />
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="cidade">Cidade</Label>
+                          <Input id="cidade" {...register('cidade')} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="estado">Estado</Label>
+                          <Input id="estado" {...register('estado')} maxLength={2} placeholder="SP" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cep">CEP</Label>
+                          <Input id="cep" {...register('cep')} placeholder="00000-000" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="telefone">Telefone</Label>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={formData.mostrar_telefone !== false}
+                              onCheckedChange={(checked) => setValue('mostrar_telefone', checked)}
+                            />
+                            {formData.mostrar_telefone !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </div>
+                        </div>
+                        <Input id="telefone" {...register('telefone')} placeholder="(00) 00000-0000" />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="email">E-mail</Label>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={formData.mostrar_email !== false}
+                              onCheckedChange={(checked) => setValue('mostrar_email', checked)}
+                            />
+                            {formData.mostrar_email !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </div>
+                        </div>
+                        <Input id="email" type="email" {...register('email')} />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="website">Website</Label>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={formData.mostrar_website !== false}
+                              onCheckedChange={(checked) => setValue('mostrar_website', checked)}
+                            />
+                            {formData.mostrar_website !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </div>
+                        </div>
+                        <Input id="website" {...register('website')} placeholder="https://..." />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="flex justify-end">
+                    <Button type="submit" size="lg" disabled={loading}>
+                      <Save className="mr-2 h-4 w-4" />
+                      {loading ? 'Salvando...' : 'Salvar Configurações'}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Right Column - Live Preview */}
+                <div className="lg:sticky lg:top-6 lg:self-start">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Visualização do Documento
+                      </CardTitle>
+                      <CardDescription>
+                        Pré-visualização em tempo real de como os dados aparecerão nos PDFs
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-white border-2 rounded-lg p-6 space-y-4 min-h-[600px]" style={{ borderColor: formData.cor_primaria || '#1EAEDB' }}>
+                        {/* Logo Preview */}
+                        {formData.logo_url && formData.mostrar_logo !== false && (
+                          <div className="flex justify-center pb-4 border-b" style={{ borderColor: formData.cor_secundaria || '#33C3F0' }}>
+                            <img src={formData.logo_url} alt="Logo Preview" className="h-16 object-contain" />
+                          </div>
+                        )}
+
+                        {/* Company Info Preview */}
+                        <div className="space-y-2">
+                          {formData.mostrar_nome_fantasia !== false && formData.nome_fantasia && (
+                            <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#1EAEDB' }}>
+                              {formData.nome_fantasia}
+                            </h2>
+                          )}
+                          {formData.slogan && (
+                            <p className="text-sm italic text-muted-foreground">{formData.slogan}</p>
+                          )}
+                          {formData.mostrar_razao_social !== false && formData.razao_social && (
+                            <p className="text-sm"><strong>Razão Social:</strong> {formData.razao_social}</p>
+                          )}
+                          {formData.mostrar_cnpj !== false && formData.cnpj && (
+                            <p className="text-sm"><strong>CNPJ:</strong> {formData.cnpj}</p>
+                          )}
+                          {formData.mostrar_regime_tributario !== false && formData.regime_tributario && (
+                            <p className="text-sm"><strong>Regime:</strong> {formData.regime_tributario}</p>
+                          )}
+                          {formData.mostrar_inscricao_estadual !== false && formData.inscricao_estadual && (
+                            <p className="text-sm"><strong>IE:</strong> {formData.inscricao_estadual}</p>
+                          )}
+                          {formData.mostrar_inscricao_municipal !== false && formData.inscricao_municipal && (
+                            <p className="text-sm"><strong>IM:</strong> {formData.inscricao_municipal}</p>
+                          )}
+                        </div>
+
+                        <Separator />
+
+                        {/* Contact Info Preview */}
+                        <div className="space-y-1 text-sm">
+                          {formData.mostrar_endereco !== false && formData.endereco && (
+                            <p>📍 {formData.endereco}{formData.cidade && `, ${formData.cidade}`}{formData.estado && ` - ${formData.estado}`}</p>
+                          )}
+                          {formData.mostrar_telefone !== false && formData.telefone && (
+                            <p>📞 {formData.telefone}</p>
+                          )}
+                          {formData.mostrar_email !== false && formData.email && (
+                            <p>✉️ {formData.email}</p>
+                          )}
+                          {formData.mostrar_website !== false && formData.website && (
+                            <p>🌐 {formData.website}</p>
+                          )}
+                        </div>
+
+                        <Separator />
+
+                        {/* Sample Document Content */}
+                        <div className="space-y-3">
+                          <h3 className="font-bold text-lg" style={{ color: formData.cor_primaria || '#1EAEDB' }}>
+                            ORÇAMENTO Nº 001/2025
+                          </h3>
+                          <p className="text-sm text-muted-foreground">Data: {new Date().toLocaleDateString('pt-BR')}</p>
+                          
+                          <div className="bg-muted p-3 rounded">
+                            <p className="text-sm font-semibold mb-2">Cliente: João Silva</p>
+                            <p className="text-xs text-muted-foreground">exemplo@cliente.com.br</p>
+                          </div>
+
+                          <div className="border rounded p-3">
+                            <p className="text-xs font-semibold mb-2">ITENS DO ORÇAMENTO</p>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span>1. Instalação elétrica completa</span>
+                                <span>R$ 5.000,00</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>2. Material elétrico</span>
+                                <span>R$ 2.500,00</span>
+                              </div>
+                            </div>
+                            <div className="border-t mt-2 pt-2 flex justify-between font-bold">
+                              <span>TOTAL:</span>
+                              <span style={{ color: formData.cor_primaria || '#1EAEDB' }}>R$ 7.500,00</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </TabsContent>
 

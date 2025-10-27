@@ -151,13 +151,24 @@ export type Database = {
           inscricao_estadual: string | null
           inscricao_municipal: string | null
           logo_url: string | null
+          mostrar_cnpj: boolean | null
+          mostrar_email: boolean | null
+          mostrar_endereco: boolean | null
+          mostrar_inscricao_estadual: boolean | null
+          mostrar_inscricao_municipal: boolean | null
           mostrar_logo: boolean | null
+          mostrar_nome_fantasia: boolean | null
+          mostrar_razao_social: boolean | null
+          mostrar_regime_tributario: boolean | null
+          mostrar_telefone: boolean | null
+          mostrar_website: boolean | null
           nome_fantasia: string
           observacoes_padrao: string | null
           proximo_numero_nfe: number | null
           razao_social: string | null
           regime_tributario: string | null
           serie_nfe: string | null
+          slogan: string | null
           tamanho_fonte: number | null
           telefone: string | null
           template_fatura: string | null
@@ -189,13 +200,24 @@ export type Database = {
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
           logo_url?: string | null
+          mostrar_cnpj?: boolean | null
+          mostrar_email?: boolean | null
+          mostrar_endereco?: boolean | null
+          mostrar_inscricao_estadual?: boolean | null
+          mostrar_inscricao_municipal?: boolean | null
           mostrar_logo?: boolean | null
+          mostrar_nome_fantasia?: boolean | null
+          mostrar_razao_social?: boolean | null
+          mostrar_regime_tributario?: boolean | null
+          mostrar_telefone?: boolean | null
+          mostrar_website?: boolean | null
           nome_fantasia: string
           observacoes_padrao?: string | null
           proximo_numero_nfe?: number | null
           razao_social?: string | null
           regime_tributario?: string | null
           serie_nfe?: string | null
+          slogan?: string | null
           tamanho_fonte?: number | null
           telefone?: string | null
           template_fatura?: string | null
@@ -227,13 +249,24 @@ export type Database = {
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
           logo_url?: string | null
+          mostrar_cnpj?: boolean | null
+          mostrar_email?: boolean | null
+          mostrar_endereco?: boolean | null
+          mostrar_inscricao_estadual?: boolean | null
+          mostrar_inscricao_municipal?: boolean | null
           mostrar_logo?: boolean | null
+          mostrar_nome_fantasia?: boolean | null
+          mostrar_razao_social?: boolean | null
+          mostrar_regime_tributario?: boolean | null
+          mostrar_telefone?: boolean | null
+          mostrar_website?: boolean | null
           nome_fantasia?: string
           observacoes_padrao?: string | null
           proximo_numero_nfe?: number | null
           razao_social?: string | null
           regime_tributario?: string | null
           serie_nfe?: string | null
+          slogan?: string | null
           tamanho_fonte?: number | null
           telefone?: string | null
           template_fatura?: string | null
