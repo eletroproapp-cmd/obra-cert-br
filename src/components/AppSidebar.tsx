@@ -17,6 +17,7 @@ import {
   BarChart3,
   UserCog,
   Shield,
+  FolderKanban,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "@/assets/logo-eletropro.png";
@@ -39,6 +40,7 @@ const menuItems = [
     section: "",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Projetos", url: "/projetos", icon: FolderKanban },
       { title: "Planejamento", url: "/planejamento", icon: Calendar },
       { title: "Funcionários", url: "/funcionarios", icon: UserCog },
       { title: "Folhas de Ponto", url: "/timesheets", icon: Clock },

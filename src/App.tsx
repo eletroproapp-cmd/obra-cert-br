@@ -18,6 +18,7 @@ import Configuracoes from "./pages/Configuracoes";
 import Relatorios from "./pages/Relatorios";
 import Funcionarios from "./pages/Funcionarios";
 import Timesheets from "./pages/Timesheets";
+import Projetos from "./pages/Projetos";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -44,6 +45,7 @@ const App = () => (
         <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
         <Route path="/funcionarios" element={<ProtectedRoute><Funcionarios /></ProtectedRoute>} />
         <Route path="/timesheets" element={<ProtectedRoute><Timesheets /></ProtectedRoute>} />
+        <Route path="/projetos" element={<ProtectedRoute><Projetos /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -914,6 +914,53 @@ export type Database = {
           },
         ]
       }
+      projetos: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          data_inicio: string | null
+          data_termino: string | null
+          endereco_obra: string | null
+          id: string
+          nome: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          data_inicio?: string | null
+          data_termino?: string | null
+          endereco_obra?: string | null
+          id?: string
+          nome: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          data_inicio?: string | null
+          data_termino?: string | null
+          endereco_obra?: string | null
+          id?: string
+          nome?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projetos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       servicos: {
         Row: {
           categoria: string
