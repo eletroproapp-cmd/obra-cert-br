@@ -1,8 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.76.1";
 import { Resend } from "https://esm.sh/resend@4.0.1";
+import DOMPurify from "https://esm.sh/isomorphic-dompurify@2.14.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const sanitize = (input: string): string => {
+  return DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: []
+  });
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,14 +28,46 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { faturaId, clienteEmail }: FaturaEmailRequest = await req.json();
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Autenticação necessária" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: fatura, error: faturaError } = await supabase
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Não autorizado" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { faturaId, clienteEmail }: FaturaEmailRequest = await req.json();
+
+    if (!faturaId || typeof faturaId !== 'string' || faturaId.length !== 36) {
+      return new Response(
+        JSON.stringify({ error: "ID de fatura inválido" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!clienteEmail || !emailRegex.test(clienteEmail)) {
+      return new Response(
+        JSON.stringify({ error: "Email inválido" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { data: fatura, error: faturaError } = await supabaseClient
       .from("faturas")
       .select(`
         *,
@@ -35,19 +75,23 @@ const handler = async (req: Request): Promise<Response> => {
         fatura_items (*)
       `)
       .eq("id", faturaId)
+      .eq("user_id", user.id)
       .single();
 
     if (faturaError || !fatura) {
-      throw new Error("Fatura não encontrada");
+      return new Response(
+        JSON.stringify({ error: "Fatura não encontrada ou acesso negado" }),
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     const items = fatura.fatura_items
       .map((item: any, index: number) => `
         <tr>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">${index + 1}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.descricao}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantidade}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.unidade || 'un'}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${sanitize(item.descricao)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${sanitize(String(item.quantidade))}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${sanitize(item.unidade || 'un')}</td>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${Number(item.valor_unitario).toFixed(2)}</td>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${Number(item.valor_total).toFixed(2)}</td>
         </tr>
@@ -57,18 +101,18 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "EletroPro <onboarding@resend.dev>",
       to: [clienteEmail],
-      subject: `Fatura ${fatura.numero} - ${fatura.titulo}`,
+      subject: `Fatura ${sanitize(fatura.numero)} - ${sanitize(fatura.titulo)}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-          <h1 style="color: #333;">Fatura ${fatura.numero}</h1>
-          <h2 style="color: #666;">${fatura.titulo}</h2>
+          <h1 style="color: #333;">Fatura ${sanitize(fatura.numero)}</h1>
+          <h2 style="color: #666;">${sanitize(fatura.titulo)}</h2>
           
           <div style="margin: 20px 0;">
-            <p><strong>Cliente:</strong> ${fatura.clientes.nome}</p>
-            <p><strong>Status:</strong> ${fatura.status}</p>
+            <p><strong>Cliente:</strong> ${sanitize(fatura.clientes.nome)}</p>
+            <p><strong>Status:</strong> ${sanitize(fatura.status)}</p>
             <p><strong>Vencimento:</strong> ${new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}</p>
-            ${fatura.forma_pagamento ? `<p><strong>Forma de Pagamento:</strong> ${fatura.forma_pagamento}</p>` : ''}
-            ${fatura.descricao ? `<p><strong>Descrição:</strong> ${fatura.descricao}</p>` : ''}
+            ${fatura.forma_pagamento ? `<p><strong>Forma de Pagamento:</strong> ${sanitize(fatura.forma_pagamento)}</p>` : ''}
+            ${fatura.descricao ? `<p><strong>Descrição:</strong> ${sanitize(fatura.descricao)}</p>` : ''}
           </div>
 
           <h3>Itens da Fatura:</h3>
@@ -95,7 +139,7 @@ const handler = async (req: Request): Promise<Response> => {
           ${fatura.observacoes ? `
             <div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #333;">
               <strong>Observações:</strong>
-              <p>${fatura.observacoes}</p>
+              <p>${sanitize(fatura.observacoes)}</p>
             </div>
           ` : ''}
 
@@ -120,7 +164,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Erro ao enviar fatura:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Não foi possível enviar a fatura" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

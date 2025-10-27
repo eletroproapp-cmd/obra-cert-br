@@ -1,8 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.76.1";
 import { Resend } from "https://esm.sh/resend@4.0.1";
+import DOMPurify from "https://esm.sh/isomorphic-dompurify@2.14.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const sanitize = (input: string): string => {
+  return DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: []
+  });
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,14 +28,46 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { orcamentoId, clienteEmail }: OrcamentoEmailRequest = await req.json();
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Autenticação necessária" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: orcamento, error: orcamentoError } = await supabase
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Não autorizado" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { orcamentoId, clienteEmail }: OrcamentoEmailRequest = await req.json();
+
+    if (!orcamentoId || typeof orcamentoId !== 'string' || orcamentoId.length !== 36) {
+      return new Response(
+        JSON.stringify({ error: "ID de orçamento inválido" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!clienteEmail || !emailRegex.test(clienteEmail)) {
+      return new Response(
+        JSON.stringify({ error: "Email inválido" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const { data: orcamento, error: orcamentoError } = await supabaseClient
       .from("orcamentos")
       .select(`
         *,
@@ -35,19 +75,23 @@ const handler = async (req: Request): Promise<Response> => {
         orcamento_items (*)
       `)
       .eq("id", orcamentoId)
+      .eq("user_id", user.id)
       .single();
 
     if (orcamentoError || !orcamento) {
-      throw new Error("Orçamento não encontrado");
+      return new Response(
+        JSON.stringify({ error: "Orçamento não encontrado ou acesso negado" }),
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     const items = orcamento.orcamento_items
       .map((item: any, index: number) => `
         <tr>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">${index + 1}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.descricao}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.quantidade}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.unidade || 'un'}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${sanitize(item.descricao)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${sanitize(String(item.quantidade))}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${sanitize(item.unidade || 'un')}</td>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${Number(item.valor_unitario).toFixed(2)}</td>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${Number(item.valor_total).toFixed(2)}</td>
         </tr>
@@ -57,17 +101,17 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "EletroPro <onboarding@resend.dev>",
       to: [clienteEmail],
-      subject: `Orçamento ${orcamento.numero} - ${orcamento.titulo}`,
+      subject: `Orçamento ${sanitize(orcamento.numero)} - ${sanitize(orcamento.titulo)}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-          <h1 style="color: #333;">Orçamento ${orcamento.numero}</h1>
-          <h2 style="color: #666;">${orcamento.titulo}</h2>
+          <h1 style="color: #333;">Orçamento ${sanitize(orcamento.numero)}</h1>
+          <h2 style="color: #666;">${sanitize(orcamento.titulo)}</h2>
           
           <div style="margin: 20px 0;">
-            <p><strong>Cliente:</strong> ${orcamento.clientes.nome}</p>
-            <p><strong>Status:</strong> ${orcamento.status}</p>
-            <p><strong>Validade:</strong> ${orcamento.validade_dias} dias</p>
-            ${orcamento.descricao ? `<p><strong>Descrição:</strong> ${orcamento.descricao}</p>` : ''}
+            <p><strong>Cliente:</strong> ${sanitize(orcamento.clientes.nome)}</p>
+            <p><strong>Status:</strong> ${sanitize(orcamento.status)}</p>
+            <p><strong>Validade:</strong> ${sanitize(String(orcamento.validade_dias))} dias</p>
+            ${orcamento.descricao ? `<p><strong>Descrição:</strong> ${sanitize(orcamento.descricao)}</p>` : ''}
           </div>
 
           <h3>Itens do Orçamento:</h3>
@@ -94,7 +138,7 @@ const handler = async (req: Request): Promise<Response> => {
           ${orcamento.observacoes ? `
             <div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #333;">
               <strong>Observações:</strong>
-              <p>${orcamento.observacoes}</p>
+              <p>${sanitize(orcamento.observacoes)}</p>
             </div>
           ` : ''}
 
@@ -114,7 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Erro ao enviar orçamento:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Não foi possível enviar o orçamento" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

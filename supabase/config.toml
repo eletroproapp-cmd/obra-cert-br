@@ -1,7 +1,7 @@
 project_id = "ovnmwhzlwgfvrrjxuplp"
 
 [functions.enviar-orcamento]
-verify_jwt = false
+verify_jwt = true
 
 [functions.enviar-fatura]
-verify_jwt = false
+verify_jwt = true
