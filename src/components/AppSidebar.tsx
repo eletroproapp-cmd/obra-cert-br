@@ -85,23 +85,23 @@ export function AppSidebar() {
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-all duration-200 ${
       isActive
-        ? "bg-primary text-white font-semibold shadow-sm"
-        : "text-foreground hover:bg-primary/10 hover:text-primary font-medium"
+        ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm"
+        : "text-sidebar-foreground hover:bg-sidebar-accent/10 hover:text-sidebar-accent font-medium"
     }`;
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border/40">
-      <SidebarContent className="bg-gradient-to-b from-card to-card/80">
+    <Sidebar collapsible="icon">
+      <SidebarContent>
         {/* Logo/Header */}
-        <div className="p-5 border-b border-border/40">
+        <div className="p-5 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 p-2 rounded-xl">
               <img src={logo} alt="EletroPro" className="h-6" />
             </div>
             {open && (
               <div className="flex-1">
-                <h2 className="font-bold text-lg text-foreground tracking-tight">EletroPro</h2>
-                <p className="text-xs text-muted-foreground font-medium">Gestão Profissional</p>
+                <h2 className="font-bold text-lg text-sidebar-foreground tracking-tight">EletroPro</h2>
+                <p className="text-xs text-sidebar-foreground/60 font-medium">Gestão Profissional</p>
               </div>
             )}
           </div>
@@ -112,7 +112,7 @@ export function AppSidebar() {
           {menuItems.map((section, idx) => (
             <SidebarGroup key={idx} className="px-3 mb-4">
               {section.section && open && (
-                <SidebarGroupLabel className="text-[11px] font-bold tracking-wider text-muted-foreground/70 px-3 py-2 mb-1 uppercase">
+                <SidebarGroupLabel className="text-[11px] font-bold tracking-wider text-sidebar-foreground/60 px-3 py-2 mb-1 uppercase">
                   {section.section}
                 </SidebarGroupLabel>
               )}
@@ -135,7 +135,7 @@ export function AppSidebar() {
         </div>
 
         {/* Bottom Items */}
-        <div className="mt-auto border-t border-border/40 bg-card/50">
+        <div className="mt-auto border-t border-sidebar-border">
           <SidebarGroup className="px-3 py-3">
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
@@ -155,10 +155,10 @@ export function AppSidebar() {
 
           {/* Version Info */}
           {open && (
-            <div className="px-5 py-3 border-t border-border/40">
+            <div className="px-5 py-3 border-t border-sidebar-border">
               <div className="flex items-center justify-center gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                <p className="text-xs text-muted-foreground font-medium">Sistema v1.0.0</p>
+                <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse"></div>
+                <p className="text-xs text-sidebar-foreground/60 font-medium">Sistema v1.0.0</p>
               </div>
             </div>
           )}
