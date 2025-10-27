@@ -19,7 +19,7 @@ import {
   BarChart3,
   UserCog,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import logo from "@/assets/logo-eletropro.png";
 
 import {
@@ -81,13 +81,9 @@ const bottomItems = [
 
 export function AppSidebar() {
   const { open } = useSidebar();
-
-  const getNavClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-all duration-200 ${
-      isActive
-        ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm"
-        : "text-sidebar-foreground hover:bg-sidebar-accent/10 hover:text-sidebar-accent font-medium"
-    }`;
+  const { pathname } = useLocation();
+  
+  const isActivePath = (url: string) => pathname === url;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -120,10 +116,12 @@ export function AppSidebar() {
                 <SidebarMenu className="space-y-1">
                   {section.items.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild className="h-auto p-0">
-                        <NavLink to={item.url} end className={getNavClass}>
-                          <item.icon className="h-5 w-5 flex-shrink-0" strokeWidth={2.5} />
-                          {open && <span className="text-sm">{item.title}</span>}
+                      <SidebarMenuButton asChild isActive={isActivePath(item.url)} className="h-auto p-0">
+                        <NavLink to={item.url} end>
+                          <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg">
+                            <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
+                            {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
+                          </div>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -141,10 +139,12 @@ export function AppSidebar() {
               <SidebarMenu className="space-y-1">
                 {bottomItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="h-auto p-0">
-                      <NavLink to={item.url} className={getNavClass}>
-                        <item.icon className="h-5 w-5 flex-shrink-0" strokeWidth={2.5} />
-                        {open && <span className="text-sm">{item.title}</span>}
+                    <SidebarMenuButton asChild isActive={isActivePath(item.url)} className="h-auto p-0">
+                      <NavLink to={item.url} end>
+                        <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg">
+                          <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
+                          {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
+                        </div>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
