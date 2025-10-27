@@ -111,7 +111,7 @@ const Configuracoes = () => {
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-logo-${Date.now()}.${fileExt}`;
-      const filePath = `logos/${fileName}`;
+      const filePath = `logos/${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('company-assets')
