@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 
 const timesheetSchema = z.object({
   funcionario_id: z.string().min(1, 'Selecione um funcionário'),
-  instalacao_id: z.string().optional(),
+  projeto_id: z.string().optional(),
   data: z.string().min(1, 'Data é obrigatória'),
   hora_inicio: z.string().min(1, 'Hora de início é obrigatória'),
   hora_fim: z.string().min(1, 'Hora de término é obrigatória'),
@@ -42,7 +42,7 @@ const tiposTrabalho = [
 export const TimesheetForm = ({ onSuccess, registroId }: TimesheetFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [funcionarios, setFuncionarios] = useState<any[]>([]);
-  const [instalacoes, setInstalacoes] = useState<any[]>([]);
+  const [projetos, setProjetos] = useState<any[]>([]);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<TimesheetFormData>({
     resolver: zodResolver(timesheetSchema),
@@ -56,7 +56,7 @@ export const TimesheetForm = ({ onSuccess, registroId }: TimesheetFormProps) => 
 
   useEffect(() => {
     loadFuncionarios();
-    loadInstalacoes();
+    loadProjetos();
     if (registroId) {
       loadRegistro();
     }
@@ -74,14 +74,14 @@ export const TimesheetForm = ({ onSuccess, registroId }: TimesheetFormProps) => 
     }
   };
 
-  const loadInstalacoes = async () => {
+  const loadProjetos = async () => {
     const { data, error } = await supabase
-      .from('instalacoes')
-      .select('id, titulo')
-      .order('titulo');
+      .from('projetos')
+      .select('id, nome')
+      .order('nome');
 
     if (!error && data) {
-      setInstalacoes(data);
+      setProjetos(data);
     }
   };
 
@@ -97,7 +97,7 @@ export const TimesheetForm = ({ onSuccess, registroId }: TimesheetFormProps) => 
 
       reset({
         funcionario_id: data.funcionario_id,
-        instalacao_id: data.instalacao_id || '',
+        projeto_id: data.projeto_id || '',
         data: data.data,
         hora_inicio: data.hora_inicio,
         hora_fim: data.hora_fim,
@@ -119,7 +119,7 @@ export const TimesheetForm = ({ onSuccess, registroId }: TimesheetFormProps) => 
 
       const payload = {
         funcionario_id: data.funcionario_id,
-        instalacao_id: data.instalacao_id || null,
+        projeto_id: data.projeto_id || null,
         data: data.data,
         hora_inicio: data.hora_inicio,
         hora_fim: data.hora_fim,
@@ -179,15 +179,15 @@ export const TimesheetForm = ({ onSuccess, registroId }: TimesheetFormProps) => 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="instalacao_id">Projeto</Label>
-          <Select onValueChange={(value) => setValue('instalacao_id', value)}>
+          <Label htmlFor="projeto_id">Projeto</Label>
+          <Select onValueChange={(value) => setValue('projeto_id', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione o projeto (opcional)" />
             </SelectTrigger>
             <SelectContent>
-              {instalacoes.map(inst => (
-                <SelectItem key={inst.id} value={inst.id}>
-                  {inst.titulo}
+              {projetos.map(proj => (
+                <SelectItem key={proj.id} value={proj.id}>
+                  {proj.nome}
                 </SelectItem>
               ))}
             </SelectContent>

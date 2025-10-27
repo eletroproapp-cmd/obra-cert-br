@@ -1104,6 +1104,7 @@ export type Database = {
           horas_totais: number | null
           id: string
           instalacao_id: string | null
+          projeto_id: string | null
           tipo_trabalho: string
           updated_at: string
           user_id: string
@@ -1119,6 +1120,7 @@ export type Database = {
           horas_totais?: number | null
           id?: string
           instalacao_id?: string | null
+          projeto_id?: string | null
           tipo_trabalho: string
           updated_at?: string
           user_id: string
@@ -1134,6 +1136,7 @@ export type Database = {
           horas_totais?: number | null
           id?: string
           instalacao_id?: string | null
+          projeto_id?: string | null
           tipo_trabalho?: string
           updated_at?: string
           user_id?: string
@@ -1151,6 +1154,13 @@ export type Database = {
             columns: ["instalacao_id"]
             isOneToOne: false
             referencedRelation: "instalacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "timesheet_registros_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
             referencedColumns: ["id"]
           },
         ]

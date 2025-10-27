@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { FileText, Send, Loader2, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface OrcamentoDialogProps {
   orcamentoId: string | null;
@@ -175,6 +177,124 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
     } finally {
       setSendingEmail(false);
     }
+  };
+
+  const handleGeneratePDF = () => {
+    if (!orcamento || !empresaInfo) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Cores
+    const primaryColor = empresaInfo.cor_primaria || '#6366F1';
+    const rgbPrimary = hexToRgb(primaryColor);
+    
+    let yPos = 20;
+
+    // Cabeçalho
+    doc.setFontSize(22);
+    doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+    doc.text(empresaInfo.nome_fantasia, pageWidth / 2, yPos, { align: 'center' });
+    
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    if (empresaInfo.endereco) {
+      doc.text(empresaInfo.endereco, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 5;
+    }
+    if (empresaInfo.telefone || empresaInfo.email) {
+      doc.text(`${empresaInfo.telefone || ''} ${empresaInfo.email || ''}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 10;
+    } else {
+      yPos += 5;
+    }
+
+    // Título do documento
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text('ORÇAMENTO', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 10;
+
+    // Informações do orçamento
+    doc.setFontSize(10);
+    doc.text(`Número: ${orcamento.numero}`, 14, yPos);
+    doc.text(`Data: ${new Date(orcamento.created_at).toLocaleDateString('pt-BR')}`, pageWidth - 14, yPos, { align: 'right' });
+    yPos += 7;
+    doc.text(`Validade: ${orcamento.validade_dias} dias`, 14, yPos);
+    yPos += 10;
+
+    // Cliente
+    doc.setFontSize(12);
+    doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+    doc.text('CLIENTE', 14, yPos);
+    yPos += 7;
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(orcamento.cliente.nome, 14, yPos);
+    yPos += 5;
+    if (orcamento.cliente.email) {
+      doc.text(`Email: ${orcamento.cliente.email}`, 14, yPos);
+      yPos += 5;
+    }
+    if (orcamento.cliente.telefone) {
+      doc.text(`Telefone: ${orcamento.cliente.telefone}`, 14, yPos);
+      yPos += 5;
+    }
+    yPos += 5;
+
+    // Tabela de itens
+    const tableData = orcamento.items.map(item => [
+      item.descricao,
+      item.quantidade.toString(),
+      item.unidade,
+      `R$ ${item.valor_unitario.toFixed(2)}`,
+      `R$ ${item.valor_total.toFixed(2)}`
+    ]);
+
+    (doc as any).autoTable({
+      startY: yPos,
+      head: [['Descrição', 'Qtd', 'Un', 'Valor Unit.', 'Total']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [rgbPrimary.r, rgbPrimary.g, rgbPrimary.b],
+        textColor: [255, 255, 255],
+        fontSize: 10,
+      },
+      styles: { fontSize: 9 },
+    });
+
+    yPos = (doc as any).lastAutoTable.finalY + 10;
+
+    // Total
+    doc.setFontSize(12);
+    doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+    doc.text(`VALOR TOTAL: R$ ${orcamento.valor_total.toFixed(2)}`, pageWidth - 14, yPos, { align: 'right' });
+
+    // Observações
+    if (orcamento.observacoes) {
+      yPos += 15;
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Observações:', 14, yPos);
+      yPos += 5;
+      doc.setFontSize(9);
+      const splitObs = doc.splitTextToSize(orcamento.observacoes, pageWidth - 28);
+      doc.text(splitObs, 14, yPos);
+    }
+
+    doc.save(`Orcamento_${orcamento.numero}.pdf`);
+    toast.success('PDF gerado com sucesso!');
+  };
+
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 99, g: 102, b: 241 };
   };
 
   const handleConvertToFatura = async () => {
@@ -493,7 +613,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                 Editar
               </Button>
             )}
-            <Button variant="outline" disabled>
+            <Button variant="outline" onClick={handleGeneratePDF}>
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
