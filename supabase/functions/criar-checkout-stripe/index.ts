@@ -114,9 +114,9 @@ serve(async (req) => {
       );
     }
 
-    // Criar checkout session
+    // Criar checkout session (usa customer se válido, senão usa customer_email)
     const session = await stripe.checkout.sessions.create({
-      customer: customerId,
+      ...(customerId ? { customer: customerId } : { customer_email: user.email }),
       line_items: [
         {
           price: priceId,
