@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Database } from '@/integrations/supabase/types';
 import { validarCPFouCNPJ, formatarCPFouCNPJ } from '@/utils/validators';
 import { getUserFriendlyError } from '@/utils/errors';
@@ -35,16 +35,57 @@ type ClienteFormData = z.infer<typeof clienteSchema>;
 
 interface ClienteFormProps {
   onSuccess?: () => void;
+  clienteId?: string | null;
 }
 
-export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
+export const ClienteForm = ({ onSuccess, clienteId }: ClienteFormProps) => {
   const [tipoPessoa, setTipoPessoa] = useState<'fisica' | 'juridica'>('juridica');
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<ClienteFormData>({
+  const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<ClienteFormData>({
     resolver: zodResolver(clienteSchema),
     defaultValues: {
       tipo_pessoa: 'juridica'
     }
   });
+
+  useEffect(() => {
+    if (clienteId) {
+      loadCliente();
+    }
+  }, [clienteId]);
+
+  const loadCliente = async () => {
+    if (!clienteId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('id', clienteId)
+        .single();
+
+      if (error) throw error;
+
+      const clienteData = {
+        tipo_pessoa: data.tipo_pessoa as 'fisica' | 'juridica',
+        nome: data.nome || '',
+        email: data.email || '',
+        telefone: data.telefone || '',
+        cpf_cnpj: data.cpf_cnpj || '',
+        regime_tributario: data.regime_tributario || '',
+        inscricao_estadual: data.inscricao_estadual || '',
+        inscricao_municipal: data.inscricao_municipal || '',
+        endereco: data.endereco || '',
+        cidade: data.cidade || '',
+        estado: data.estado || '',
+        cep: data.cep || '',
+      };
+
+      reset(clienteData);
+      setTipoPessoa(data.tipo_pessoa as 'fisica' | 'juridica' || 'juridica');
+    } catch (error: any) {
+      toast.error('Erro ao carregar cliente');
+    }
+  };
 
   const onSubmit = async (data: ClienteFormData) => {
     try {
@@ -56,16 +97,28 @@ export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
         user_id: user.id,
       } as unknown as Database['public']['Tables']['clientes']['Insert'];
 
-      const { error } = await supabase
-        .from('clientes')
-        .insert([payload]);
+      if (clienteId) {
+        // Atualizar cliente existente
+        const { error } = await supabase
+          .from('clientes')
+          .update(payload)
+          .eq('id', clienteId);
 
-      if (error) throw error;
+        if (error) throw error;
+        toast.success('Cliente atualizado com sucesso!');
+      } else {
+        // Criar novo cliente
+        const { error } = await supabase
+          .from('clientes')
+          .insert([payload]);
 
-      toast.success('Cliente cadastrado com sucesso!');
+        if (error) throw error;
+        toast.success('Cliente cadastrado com sucesso!');
+      }
+
       onSuccess?.();
     } catch (error: any) {
-      console.error('Erro ao cadastrar cliente:', error);
+      console.error('Erro ao salvar cliente:', error);
       toast.error(getUserFriendlyError(error));
     }
   };
@@ -230,7 +283,7 @@ export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting} variant="hero">
-          {isSubmitting ? 'Salvando...' : 'Salvar Cliente'}
+          {isSubmitting ? 'Salvando...' : clienteId ? 'Atualizar Cliente' : 'Salvar Cliente'}
         </Button>
       </div>
     </form>

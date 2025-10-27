@@ -24,6 +24,7 @@ const Clientes = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingCliente, setEditingCliente] = useState<string | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const { checkLimit, plan, refetch } = useSubscription();
 
@@ -61,8 +62,14 @@ const Clientes = () => {
 
   const handleSuccess = () => {
     setShowForm(false);
+    setEditingCliente(null);
     loadClientes();
     refetch(); // Atualizar contadores de uso
+  };
+
+  const handleEdit = (clienteId: string) => {
+    setEditingCliente(clienteId);
+    setShowForm(true);
   };
 
   if (loading) {
@@ -109,7 +116,8 @@ const Clientes = () => {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {clientes.map((cliente) => (
-            <Card key={cliente.id} className="border-border shadow-soft hover:shadow-medium transition-all">
+            <Card key={cliente.id} className="border-border shadow-soft hover:shadow-medium transition-all cursor-pointer"
+                  onClick={() => handleEdit(cliente.id)}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-primary" />
@@ -146,9 +154,9 @@ const Clientes = () => {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Cliente</DialogTitle>
+            <DialogTitle>{editingCliente ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
           </DialogHeader>
-          <ClienteForm onSuccess={handleSuccess} />
+          <ClienteForm onSuccess={handleSuccess} clienteId={editingCliente} />
         </DialogContent>
       </Dialog>
 
