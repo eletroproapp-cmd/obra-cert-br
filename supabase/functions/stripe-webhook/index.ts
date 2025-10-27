@@ -86,6 +86,20 @@ serve(async (req) => {
 
         const userId = users[0].user_id;
 
+        // Preparar dados de atualização
+        const updateData: any = {
+          status: subscription.status,
+          cancel_at_period_end: subscription.cancel_at_period_end,
+        };
+
+        // Adicionar datas apenas se forem válidas
+        if (subscription.current_period_start) {
+          updateData.current_period_start = new Date(subscription.current_period_start * 1000).toISOString();
+        }
+        if (subscription.current_period_end) {
+          updateData.current_period_end = new Date(subscription.current_period_end * 1000).toISOString();
+        }
+
         // Atualizar status da subscription
         await fetch(
           `${supabaseUrl}/rest/v1/user_subscriptions?user_id=eq.${userId}`,
@@ -97,12 +111,7 @@ serve(async (req) => {
               'Content-Type': 'application/json',
               'Prefer': 'return=minimal',
             },
-            body: JSON.stringify({
-              status: subscription.status,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-              cancel_at_period_end: subscription.cancel_at_period_end,
-            }),
+            body: JSON.stringify(updateData),
           }
         );
 

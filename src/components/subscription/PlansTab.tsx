@@ -6,7 +6,8 @@ import { Check, Crown, Sparkles, Zap } from "lucide-react";
 import { UsageCard } from "./UsageCard";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 const plans = [
   {
@@ -62,8 +63,33 @@ const plans = [
 ];
 
 export const PlansTab = () => {
-  const { subscription, plan, loading } = useSubscription();
+  const { subscription, plan, loading, refetch } = useSubscription();
   const [upgrading, setUpgrading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const canceled = searchParams.get('canceled');
+    
+    if (success === 'true') {
+      toast.success("Pagamento em processamento", {
+        description: "Seu plano será atualizado em alguns instantes. Aguarde...",
+      });
+      
+      // Limpar parâmetros da URL
+      setSearchParams({});
+      
+      // Recarregar dados após 3 segundos
+      setTimeout(() => {
+        refetch();
+      }, 3000);
+    } else if (canceled === 'true') {
+      toast.error("Pagamento cancelado", {
+        description: "Você cancelou o processo de upgrade.",
+      });
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams, refetch]);
 
   const handleUpgrade = async (planId: string) => {
     if (planId === 'free') {
@@ -82,16 +108,19 @@ export const PlansTab = () => {
 
       if (data?.url) {
         const url = data.url as string;
-        try {
-          if (window.top) {
-            // Quebrar o iframe do preview para evitar bloqueio do Stripe (X-Frame-Options)
-            (window.top as Window).location.href = url;
-          } else {
-            window.location.href = url;
+        toast.success("Redirecionando para pagamento...");
+        
+        setTimeout(() => {
+          try {
+            if (window.top) {
+              (window.top as Window).location.href = url;
+            } else {
+              window.location.href = url;
+            }
+          } catch {
+            window.open(url, '_blank', 'noopener,noreferrer');
           }
-        } catch {
-          window.open(url, '_blank', 'noopener,noreferrer');
-        }
+        }, 1000);
       } else {
         throw new Error('URL de checkout não recebida');
       }
@@ -115,30 +144,46 @@ export const PlansTab = () => {
   return (
     <div className="space-y-6">
       {/* Current Plan Status */}
-      <Card>
+      <Card className="border-primary/20">
         <CardHeader>
-          <CardTitle>Plano Atual</CardTitle>
-          <CardDescription>
-            Você está no plano <strong>{plan?.name || 'Gratuito'}</strong>
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Plano Atual</CardTitle>
+              <CardDescription>
+                Você está no plano <strong>{plan?.name || 'Gratuito'}</strong>
+              </CardDescription>
+            </div>
+            <Badge 
+              variant={subscription?.status === 'active' ? 'default' : 'secondary'}
+              className="text-sm px-3 py-1"
+            >
+              {subscription?.status === 'active' ? (
+                <>
+                  <Zap className="h-3 w-3 mr-1" />
+                  Ativo
+                </>
+              ) : (
+                subscription?.status || 'Inativo'
+              )}
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-primary">
-                R$ {plan?.price_monthly.toFixed(2) || '0,00'}
-                <span className="text-sm font-normal text-muted-foreground">/mês</span>
+              <p className="text-3xl font-bold">
+                R$ {plan?.price_monthly?.toFixed(2) || '0,00'}
+                <span className="text-base font-normal text-muted-foreground ml-1">/mês</span>
               </p>
-              {subscription?.status === 'active' && (
-                <Badge variant="secondary" className="mt-2">
-                  <Zap className="h-3 w-3 mr-1" />
-                  Ativo
-                </Badge>
+              {subscription?.current_period_end && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Renovação em: {new Date(subscription.current_period_end).toLocaleDateString('pt-BR')}
+                </p>
               )}
             </div>
             {subscription?.cancel_at_period_end && (
               <Badge variant="destructive">
-                Cancela em {new Date(subscription.current_period_end!).toLocaleDateString('pt-BR')}
+                Cancelamento agendado para {new Date(subscription.current_period_end!).toLocaleDateString('pt-BR')}
               </Badge>
             )}
           </div>
