@@ -1,10 +1,12 @@
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Zap } from "lucide-react";
 
 const Instalacoes = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">Instalações</h1>
@@ -62,6 +64,7 @@ const Instalacoes = () => {
           ))}
         </div>
       </div>
+    </DashboardLayout>
   );
 };
 

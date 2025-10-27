@@ -1,3 +1,4 @@
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { useState, useEffect } from "react";
@@ -174,7 +175,8 @@ const Planejamento = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">Planejamento</h1>
@@ -362,6 +364,7 @@ const Planejamento = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </DashboardLayout>
   );
 };
 

@@ -1,3 +1,4 @@
+import { DashboardLayout } from "@/components/DashboardLayout";
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,8 @@ export default function NBR5410() {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <DashboardLayout>
+      <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">NBR 5410 - Assistente Técnico</h1>
         <p className="text-muted-foreground mt-2">
@@ -177,5 +179,6 @@ export default function NBR5410() {
         </TabsContent>
       </Tabs>
     </div>
+    </DashboardLayout>
   );
 }
