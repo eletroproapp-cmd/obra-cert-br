@@ -62,6 +62,8 @@ interface EmpresaInfo {
   telefone?: string;
   email?: string;
   website?: string;
+  cor_primaria?: string;
+  cor_secundaria?: string;
 }
 
 export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: OrcamentoDialogProps) => {
@@ -258,12 +260,12 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
         
         <div className="space-y-6 p-2">
           {/* Cabeçalho estilo documento - Empresa e Orçamento */}
-          <div className="flex justify-between items-start pb-4 border-b-2 border-primary/20">
+          <div className="flex justify-between items-start pb-4 border-b-2" style={{ borderColor: empresaInfo?.cor_primaria || '#6366F1' }}>
             {/* Informações da Empresa - Lado Esquerdo */}
             <div className="flex-1">
               {empresaInfo && (
                 <>
-                  <h2 className="text-2xl font-bold text-primary mb-1">
+                  <h2 className="text-2xl font-bold mb-1" style={{ color: empresaInfo.cor_primaria || '#6366F1' }}>
                     {empresaInfo.nome_fantasia}
                   </h2>
                   {empresaInfo.razao_social && empresaInfo.tipo_pessoa === 'juridica' && (
@@ -312,7 +314,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
 
             {/* Informações do Orçamento - Lado Direito */}
             <div className="text-right">
-              <h1 className="text-4xl font-bold text-primary mb-2">ORÇAMENTO</h1>
+              <h1 className="text-4xl font-bold mb-2" style={{ color: empresaInfo?.cor_primaria || '#6366F1' }}>ORÇAMENTO</h1>
               <p className="text-lg font-semibold">nº {orcamento.numero}</p>
               <div className="mt-4 space-y-1 text-sm">
                 <p className="text-muted-foreground">
@@ -331,7 +333,10 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
           </div>
 
           {/* Seção do Cliente */}
-          <div className="border border-border rounded-lg p-4 bg-secondary/30">
+          <div className="rounded-lg p-4" style={{ 
+            border: `1px solid ${empresaInfo?.cor_secundaria || '#E5E7EB'}`,
+            backgroundColor: `${empresaInfo?.cor_secundaria || '#E5E7EB'}20`
+          }}>
             <h3 className="text-sm font-semibold text-muted-foreground mb-2 uppercase">Cliente</h3>
             <p className="text-lg font-bold">{orcamento.cliente.nome}</p>
             {orcamento.cliente.endereco && (
@@ -358,10 +363,10 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
 
           {/* Tabela de Itens */}
           <div>
-            <div className="rounded-lg overflow-hidden border border-border">
+            <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${empresaInfo?.cor_secundaria || '#E5E7EB'}` }}>
               <table className="w-full">
                 <thead>
-                  <tr className="bg-primary text-primary-foreground">
+                  <tr style={{ backgroundColor: empresaInfo?.cor_primaria || '#6366F1', color: 'white' }}>
                     <th className="text-left p-3 text-sm font-semibold">Descrição</th>
                     <th className="text-center p-3 text-sm font-semibold w-20">Qtd.</th>
                     <th className="text-center p-3 text-sm font-semibold w-24">Unidade</th>
@@ -371,7 +376,10 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                 </thead>
                 <tbody className="bg-card">
                   {orcamento.items.map((item, index) => (
-                    <tr key={index} className={index % 2 === 0 ? 'bg-secondary/20' : ''}>
+                    <tr key={index} style={{ 
+                      backgroundColor: index % 2 === 0 ? `${empresaInfo?.cor_secundaria || '#E5E7EB'}10` : 'transparent',
+                      borderBottom: `1px solid ${empresaInfo?.cor_secundaria || '#E5E7EB'}`
+                    }}>
                       <td className="p-3 text-sm">{item.descricao}</td>
                       <td className="text-center p-3 text-sm">{item.quantidade}</td>
                       <td className="text-center p-3 text-sm">{item.unidade}</td>
@@ -389,7 +397,10 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
 
             {/* Total */}
             <div className="flex justify-end mt-4">
-              <div className="bg-primary text-primary-foreground rounded-lg px-6 py-3 min-w-[280px]">
+              <div className="rounded-lg px-6 py-3 min-w-[280px]" style={{ 
+                backgroundColor: empresaInfo?.cor_primaria || '#6366F1',
+                color: 'white'
+              }}>
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total a Pagar</span>
                   <span className="text-2xl font-bold">

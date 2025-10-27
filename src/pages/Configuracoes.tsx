@@ -669,6 +669,52 @@ const Configuracoes = () => {
                         </div>
 
                         <div className="space-y-2">
+                          <Label htmlFor="cor_primaria">Cor Principal (Cabeçalhos/Destaque)</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              id="cor_primaria" 
+                              type="color" 
+                              {...register('cor_primaria')} 
+                              defaultValue="#6366F1"
+                              className="w-20 h-10"
+                            />
+                            <Input 
+                              type="text" 
+                              value={formData.cor_primaria || '#6366F1'}
+                              onChange={(e) => setValue('cor_primaria', e.target.value)}
+                              placeholder="#6366F1"
+                              className="flex-1"
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Usada em títulos, cabeçalhos de tabelas e botões
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="cor_secundaria">Cor Secundária (Bordas/Linhas)</Label>
+                          <div className="flex gap-2">
+                            <Input 
+                              id="cor_secundaria" 
+                              type="color" 
+                              {...register('cor_secundaria')} 
+                              defaultValue="#E5E7EB"
+                              className="w-20 h-10"
+                            />
+                            <Input 
+                              type="text" 
+                              value={formData.cor_secundaria || '#E5E7EB'}
+                              onChange={(e) => setValue('cor_secundaria', e.target.value)}
+                              placeholder="#E5E7EB"
+                              className="flex-1"
+                            />
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Usada em bordas, linhas divisórias e fundos
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
                           <Label htmlFor="mostrar_logo">Logotipo EletroPro</Label>
                           <div className="flex items-center space-x-2 pt-2">
                             <Switch
@@ -702,10 +748,10 @@ const Configuracoes = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="bg-white border-2 rounded-lg p-6 space-y-4 min-h-[600px]" style={{ borderColor: formData.cor_primaria || '#1EAEDB' }}>
+                      <div className="bg-white rounded-lg p-6 space-y-4 min-h-[600px]" style={{ border: `2px solid ${formData.cor_primaria || '#6366F1'}` }}>
                         {/* Logo Preview */}
                         {formData.logo_url && formData.mostrar_logo !== false && (
-                          <div className="flex justify-center pb-4 border-b" style={{ borderColor: formData.cor_secundaria || '#33C3F0' }}>
+                          <div className="flex justify-center pb-4" style={{ borderBottom: `2px solid ${formData.cor_secundaria || '#E5E7EB'}` }}>
                             <img src={formData.logo_url} alt="Logo Preview" className="h-16 object-contain" />
                           </div>
                         )}
@@ -713,7 +759,7 @@ const Configuracoes = () => {
                         {/* Company Info Preview */}
                         <div className="space-y-2">
                           {formData.mostrar_nome_fantasia !== false && formData.nome_fantasia && (
-                            <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#1EAEDB' }}>
+                            <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#6366F1' }}>
                               {formData.nome_fantasia}
                             </h2>
                           )}
@@ -759,31 +805,41 @@ const Configuracoes = () => {
 
                         {/* Sample Document Content */}
                         <div className="space-y-3">
-                          <h3 className="font-bold text-lg" style={{ color: formData.cor_primaria || '#1EAEDB' }}>
+                          <h3 className="font-bold text-lg" style={{ color: formData.cor_primaria || '#6366F1' }}>
                             ORÇAMENTO Nº ORC-2025-{String(formData.proximo_numero_orcamento || 1).padStart(3, '0')}
                           </h3>
                           <p className="text-sm text-muted-foreground">Data: {new Date().toLocaleDateString('pt-BR')}</p>
                           
-                          <div className="bg-muted p-3 rounded">
+                          <div className="p-3 rounded" style={{ 
+                            border: `1px solid ${formData.cor_secundaria || '#E5E7EB'}`,
+                            backgroundColor: `${formData.cor_secundaria || '#E5E7EB'}20`
+                          }}>
                             <p className="text-sm font-semibold mb-2">Cliente: João Silva</p>
                             <p className="text-xs text-muted-foreground">exemplo@cliente.com.br</p>
                           </div>
 
-                          <div className="border rounded p-3">
-                            <p className="text-xs font-semibold mb-2">ITENS DO ORÇAMENTO</p>
-                            <div className="space-y-1 text-xs">
-                              <div className="flex justify-between">
+                          <div className="rounded overflow-hidden" style={{ border: `1px solid ${formData.cor_secundaria || '#E5E7EB'}` }}>
+                            <div className="p-2 text-xs font-semibold text-white" style={{ backgroundColor: formData.cor_primaria || '#6366F1' }}>
+                              ITENS DO ORÇAMENTO
+                            </div>
+                            <div className="space-y-1 text-xs p-2">
+                              <div className="flex justify-between p-1" style={{ backgroundColor: `${formData.cor_secundaria || '#E5E7EB'}10` }}>
                                 <span>1. Instalação elétrica completa</span>
                                 <span>R$ 5.000,00</span>
                               </div>
-                              <div className="flex justify-between">
+                              <div className="flex justify-between p-1">
                                 <span>2. Material elétrico</span>
                                 <span>R$ 2.500,00</span>
                               </div>
                             </div>
-                            <div className="border-t mt-2 pt-2 flex justify-between font-bold">
-                              <span>TOTAL:</span>
-                              <span style={{ color: formData.cor_primaria || '#1EAEDB' }}>R$ 7.500,00</span>
+                          </div>
+
+                          <div className="flex justify-end">
+                            <div className="rounded px-4 py-2 text-white" style={{ backgroundColor: formData.cor_primaria || '#6366F1' }}>
+                              <div className="flex justify-between items-center gap-4">
+                                <span className="text-sm font-semibold">TOTAL:</span>
+                                <span className="text-lg font-bold">R$ 7.500,00</span>
+                              </div>
                             </div>
                           </div>
                         </div>
