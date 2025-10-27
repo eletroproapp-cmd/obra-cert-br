@@ -13,11 +13,12 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { validarCNPJ, formatarCNPJ } from "@/utils/validators";
+import { validarCNPJ, formatarCNPJ, formatarCPFouCNPJ } from "@/utils/validators";
 import { PlansTab } from "@/components/subscription/PlansTab";
 import { useSearchParams } from "react-router-dom";
 
 interface EmpresaData {
+  tipo_pessoa: string;
   nome_fantasia: string;
   razao_social: string;
   cnpj: string;
@@ -239,8 +240,26 @@ const Configuracoes = () => {
                     <CardContent className="space-y-4">
                       <div className="space-y-4">
                         <div className="space-y-2">
+                          <Label htmlFor="tipo_pessoa">Tipo de Pessoa *</Label>
+                          <Select 
+                            value={formData.tipo_pessoa || 'juridica'}
+                            onValueChange={(value) => setValue('tipo_pessoa', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="fisica">Pessoa Física (CPF)</SelectItem>
+                              <SelectItem value="juridica">Pessoa Jurídica (CNPJ)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="nome_fantasia">Nome Fantasia *</Label>
+                            <Label htmlFor="nome_fantasia">
+                              {formData.tipo_pessoa === 'fisica' ? 'Nome Completo *' : 'Nome Fantasia *'}
+                            </Label>
                             <div className="flex items-center gap-2">
                               <Switch
                                 checked={formData.mostrar_nome_fantasia !== false}
@@ -249,31 +268,42 @@ const Configuracoes = () => {
                               {formData.mostrar_nome_fantasia !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                             </div>
                           </div>
-                          <Input id="nome_fantasia" {...register('nome_fantasia')} required />
+                          <Input 
+                            id="nome_fantasia" 
+                            {...register('nome_fantasia')} 
+                            required 
+                            placeholder={formData.tipo_pessoa === 'fisica' ? 'Nome completo' : 'Nome fantasia da empresa'}
+                          />
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="slogan">Slogan</Label>
-                          <Input id="slogan" {...register('slogan')} placeholder="Seu slogan aqui" />
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="razao_social">Razão Social</Label>
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                checked={formData.mostrar_razao_social !== false}
-                                onCheckedChange={(checked) => setValue('mostrar_razao_social', checked)}
-                              />
-                              {formData.mostrar_razao_social !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                            </div>
+                        {formData.tipo_pessoa === 'juridica' && (
+                          <div className="space-y-2">
+                            <Label htmlFor="slogan">Slogan</Label>
+                            <Input id="slogan" {...register('slogan')} placeholder="Seu slogan aqui" />
                           </div>
-                          <Input id="razao_social" {...register('razao_social')} />
-                        </div>
+                        )}
+
+                        {formData.tipo_pessoa === 'juridica' && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="razao_social">Razão Social</Label>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={formData.mostrar_razao_social !== false}
+                                  onCheckedChange={(checked) => setValue('mostrar_razao_social', checked)}
+                                />
+                                {formData.mostrar_razao_social !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                              </div>
+                            </div>
+                            <Input id="razao_social" {...register('razao_social')} />
+                          </div>
+                        )}
 
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <Label htmlFor="cnpj">CNPJ</Label>
+                            <Label htmlFor="cnpj">
+                              {formData.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'}
+                            </Label>
                             <div className="flex items-center gap-2">
                               <Switch
                                 checked={formData.mostrar_cnpj !== false}
@@ -285,64 +315,68 @@ const Configuracoes = () => {
                           <Input 
                             id="cnpj" 
                             {...register('cnpj')} 
-                            placeholder="00.000.000/0000-00"
+                            placeholder={formData.tipo_pessoa === 'fisica' ? '000.000.000-00' : '00.000.000/0000-00'}
                             onChange={(e) => {
-                              const formatted = formatarCNPJ(e.target.value);
+                              const formatted = formatarCPFouCNPJ(e.target.value);
                               e.target.value = formatted;
                             }}
                           />
                         </div>
 
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label htmlFor="regime_tributario">Regime Tributário</Label>
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                checked={formData.mostrar_regime_tributario !== false}
-                                onCheckedChange={(checked) => setValue('mostrar_regime_tributario', checked)}
-                              />
-                              {formData.mostrar_regime_tributario !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        {formData.tipo_pessoa === 'juridica' && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="regime_tributario">Regime Tributário</Label>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={formData.mostrar_regime_tributario !== false}
+                                  onCheckedChange={(checked) => setValue('mostrar_regime_tributario', checked)}
+                                />
+                                {formData.mostrar_regime_tributario !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                              </div>
                             </div>
+                            <Select defaultValue="Simples Nacional" onValueChange={(value) => setValue('regime_tributario', value)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o regime" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
+                                <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
+                                <SelectItem value="Lucro Real">Lucro Real</SelectItem>
+                                <SelectItem value="MEI">MEI</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                          <Select defaultValue="Simples Nacional" onValueChange={(value) => setValue('regime_tributario', value)}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o regime" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
-                              <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
-                              <SelectItem value="Lucro Real">Lucro Real</SelectItem>
-                              <SelectItem value="MEI">MEI</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        )}
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={formData.mostrar_inscricao_estadual !== false}
-                                  onCheckedChange={(checked) => setValue('mostrar_inscricao_estadual', checked)}
-                                />
+                        {formData.tipo_pessoa === 'juridica' && (
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={formData.mostrar_inscricao_estadual !== false}
+                                    onCheckedChange={(checked) => setValue('mostrar_inscricao_estadual', checked)}
+                                  />
+                                </div>
                               </div>
+                              <Input id="inscricao_estadual" {...register('inscricao_estadual')} />
                             </div>
-                            <Input id="inscricao_estadual" {...register('inscricao_estadual')} />
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={formData.mostrar_inscricao_municipal !== false}
-                                  onCheckedChange={(checked) => setValue('mostrar_inscricao_municipal', checked)}
-                                />
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={formData.mostrar_inscricao_municipal !== false}
+                                    onCheckedChange={(checked) => setValue('mostrar_inscricao_municipal', checked)}
+                                  />
+                                </div>
                               </div>
+                              <Input id="inscricao_municipal" {...register('inscricao_municipal')} />
                             </div>
-                            <Input id="inscricao_municipal" {...register('inscricao_municipal')} />
                           </div>
-                        </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

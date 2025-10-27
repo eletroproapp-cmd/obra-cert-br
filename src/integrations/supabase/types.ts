@@ -186,6 +186,7 @@ export type Database = {
           template_fatura: string | null
           template_orcamento: string | null
           termos_condicoes: string | null
+          tipo_pessoa: string | null
           updated_at: string
           user_id: string
           website: string | null
@@ -235,6 +236,7 @@ export type Database = {
           template_fatura?: string | null
           template_orcamento?: string | null
           termos_condicoes?: string | null
+          tipo_pessoa?: string | null
           updated_at?: string
           user_id: string
           website?: string | null
@@ -284,6 +286,7 @@ export type Database = {
           template_fatura?: string | null
           template_orcamento?: string | null
           termos_condicoes?: string | null
+          tipo_pessoa?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
