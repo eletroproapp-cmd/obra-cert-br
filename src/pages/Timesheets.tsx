@@ -27,8 +27,8 @@ interface Timesheet {
   funcionarios: {
     nome: string;
   };
-  instalacoes: {
-    titulo: string;
+  projetos: {
+    nome: string;
   } | null;
 }
 
@@ -76,7 +76,7 @@ const Timesheets = () => {
         .select(`
           *,
           funcionarios:funcionario_id (nome),
-          instalacoes:instalacao_id (titulo)
+          projetos:projeto_id (nome)
         `)
         .gte('data', startOfMonth.toISOString().split('T')[0])
         .lte('data', endOfMonth.toISOString().split('T')[0]);
@@ -124,7 +124,7 @@ const Timesheets = () => {
     const tableData = registros.map(r => ({
       'Data': format(new Date(r.data), 'dd/MM/yyyy'),
       'Funcionário': r.funcionarios.nome,
-      'Projeto': r.instalacoes?.titulo || 'Sem projeto',
+      'Projeto': r.projetos?.nome || 'Sem projeto',
       'Hora Início': r.hora_inicio,
       'Hora Fim': r.hora_fim,
       'Total Horas': r.horas_totais.toFixed(2),
@@ -164,7 +164,7 @@ const Timesheets = () => {
     const tableData = registros.map(r => [
       format(new Date(r.data), 'dd/MM/yyyy'),
       r.funcionarios.nome,
-      r.instalacoes?.titulo || 'Sem projeto',
+      r.projetos?.nome || 'Sem projeto',
       `${r.hora_inicio} - ${r.hora_fim}`,
       r.horas_totais.toFixed(2),
       r.tipo_trabalho,
@@ -311,7 +311,7 @@ const Timesheets = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Projeto</p>
-                    <p className="font-medium">{registro.instalacoes?.titulo || 'Sem projeto'}</p>
+                    <p className="font-medium">{registro.projetos?.nome || 'Sem projeto'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Horário</p>
