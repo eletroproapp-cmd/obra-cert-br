@@ -17,21 +17,36 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     // Verificar autenticação
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('Não autorizado');
+      return new Response(
+        JSON.stringify({ error: 'Autenticação necessária' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      );
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    // Criar cliente Supabase com credenciais do usuário (respeita RLS)
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Obter usuário autenticado
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
-      throw new Error('Não autorizado');
+      return new Response(
+        JSON.stringify({ error: 'Não autorizado' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      );
     }
 
     const { faturaId }: EmitirNFeRequest = await req.json();
@@ -179,17 +194,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Erro ao emitir NF-e:', error);
     
-    // Se houver faturaId, marcar como erro
-    if (error.faturaId) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
-      
-      await supabase
-        .from('faturas')
-        .update({ nfe_status: 'erro' })
-        .eq('id', error.faturaId);
-    }
+    // Nota: Não é possível marcar fatura como erro aqui pois perdemos o contexto de autenticação
 
     return new Response(
       JSON.stringify({ error: error.message }),

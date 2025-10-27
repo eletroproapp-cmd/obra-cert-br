@@ -8,6 +8,22 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo-eletropro.png";
 import { useAuth } from "@/hooks/useAuth";
+import { z } from "zod";
+import { toast } from "sonner";
+
+const passwordSchema = z.string()
+  .min(8, 'Senha deve ter no mínimo 8 caracteres')
+  .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
+  .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minúscula')
+  .regex(/[0-9]/, 'Senha deve conter pelo menos um número')
+  .regex(/[^A-Za-z0-9]/, 'Senha deve conter pelo menos um caractere especial');
+
+const signupSchema = z.object({
+  email: z.string().email('Email inválido').max(255),
+  password: passwordSchema,
+  name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').max(100).trim(),
+  company: z.string().min(2, 'Empresa deve ter no mínimo 2 caracteres').max(100).trim()
+});
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -38,12 +54,24 @@ const Auth = () => {
     setIsLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
-    const company = formData.get('company') as string;
+    const data = {
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+      name: formData.get('name') as string,
+      company: formData.get('company') as string
+    };
 
-    await signUp(email, password, { full_name: name, company });
+    const result = signupSchema.safeParse(data);
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
+      setIsLoading(false);
+      return;
+    }
+
+    await signUp(result.data.email, result.data.password, { 
+      full_name: result.data.name, 
+      company: result.data.company 
+    });
     setIsLoading(false);
   };
 
@@ -157,10 +185,13 @@ const Auth = () => {
                       id="signup-password"
                       name="password"
                       type="password"
-                      placeholder="••••••••"
-                      minLength={6}
+                      placeholder="Mín. 8 caracteres com maiúsc., números e símbolos"
+                      minLength={8}
                       required
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Sua senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.
+                    </p>
                   </div>
                   <Button
                     type="submit"
