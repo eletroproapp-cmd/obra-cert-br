@@ -62,6 +62,8 @@ interface EmpresaInfo {
   telefone?: string;
   email?: string;
   website?: string;
+  logo_url?: string;
+  logo_position?: string;
   cor_primaria?: string;
   cor_secundaria?: string;
 }
@@ -259,9 +261,27 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
         {/* Remove o DialogHeader padrão e cria um layout customizado tipo documento */}
         
         <div className="space-y-6 p-2">
-          {/* Cabeçalho estilo documento - Empresa e Orçamento */}
-          <div className="flex justify-between items-start pb-4 border-b-2" style={{ borderColor: empresaInfo?.cor_primaria || '#6366F1' }}>
-            {/* Informações da Empresa - Lado Esquerdo */}
+          {/* Cabeçalho estilo documento - Logo e Empresa */}
+          <div 
+            className={`pb-4 border-b-2 ${
+              empresaInfo?.logo_url && empresaInfo?.logo_position === 'left' ? 'flex items-start gap-6' :
+              empresaInfo?.logo_url && empresaInfo?.logo_position === 'right' ? 'flex items-start gap-6 flex-row-reverse' :
+              ''
+            }`}
+            style={{ borderColor: empresaInfo?.cor_primaria || '#6366F1' }}
+          >
+            {/* Logo */}
+            {empresaInfo?.logo_url && (
+              <div className={`flex-shrink-0 ${empresaInfo.logo_position === 'center' ? 'w-full flex justify-center mb-4' : ''}`}>
+                <img 
+                  src={empresaInfo.logo_url} 
+                  alt="Logo" 
+                  className="h-20 object-contain"
+                />
+              </div>
+            )}
+            
+            {/* Informações da Empresa */}
             <div className="flex-1">
               {empresaInfo && (
                 <>
@@ -311,9 +331,32 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                 </>
               )}
             </div>
-
-            {/* Informações do Orçamento - Lado Direito */}
-            <div className="text-right">
+            
+            {/* Informações do Orçamento - Lado Direito (quando logo não está no centro) */}
+            {(!empresaInfo?.logo_url || empresaInfo?.logo_position !== 'center') && (
+              <div className="text-right flex-shrink-0">
+                <h1 className="text-4xl font-bold mb-2" style={{ color: empresaInfo?.cor_primaria || '#6366F1' }}>ORÇAMENTO</h1>
+                <p className="text-lg font-semibold">nº {orcamento.numero}</p>
+                <div className="mt-4 space-y-1 text-sm">
+                  <p className="text-muted-foreground">
+                    <span className="font-medium">Em data de:</span>{' '}
+                    {new Date(orcamento.created_at).toLocaleDateString('pt-BR')}
+                  </p>
+                  <p className="text-muted-foreground">
+                    <span className="font-medium">Válido até:</span>{' '}
+                    {new Date(new Date(orcamento.created_at).getTime() + orcamento.validade_dias * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')}
+                  </p>
+                  <p className="text-muted-foreground">
+                    <span className="font-medium">Validade:</span> {orcamento.validade_dias} dias
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Informações do Orçamento - Abaixo (quando logo está no centro) */}
+          {empresaInfo?.logo_url && empresaInfo?.logo_position === 'center' && (
+            <div className="text-center pb-4 border-b-2" style={{ borderColor: empresaInfo?.cor_secundaria || '#E5E7EB' }}>
               <h1 className="text-4xl font-bold mb-2" style={{ color: empresaInfo?.cor_primaria || '#6366F1' }}>ORÇAMENTO</h1>
               <p className="text-lg font-semibold">nº {orcamento.numero}</p>
               <div className="mt-4 space-y-1 text-sm">
@@ -330,7 +373,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                 </p>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Seção do Cliente */}
           <div className="rounded-lg p-4" style={{ 

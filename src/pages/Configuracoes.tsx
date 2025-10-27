@@ -33,6 +33,7 @@ interface EmpresaData {
   email: string;
   website: string;
   logo_url: string;
+  logo_position: string;
   slogan: string;
   cor_primaria: string;
   cor_secundaria: string;
@@ -228,6 +229,23 @@ const Configuracoes = () => {
                             {uploadingLogo ? 'Enviando...' : 'Formatos: PNG, JPG, WEBP (máx. 2MB)'}
                           </p>
                         </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="logo_position">Posição da Logo no Documento</Label>
+                        <Select 
+                          value={formData.logo_position || 'center'}
+                          onValueChange={(value) => setValue('logo_position', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a posição" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="left">Esquerda</SelectItem>
+                            <SelectItem value="center">Centro</SelectItem>
+                            <SelectItem value="right">Direita</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </CardContent>
                   </Card>
@@ -749,23 +767,66 @@ const Configuracoes = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="bg-white rounded-lg p-6 space-y-4 min-h-[600px]" style={{ border: `2px solid ${formData.cor_primaria || '#6366F1'}` }}>
-                        {/* Logo Preview */}
-                        {formData.logo_url && formData.mostrar_logo !== false && (
-                          <div className="flex justify-center pb-4" style={{ borderBottom: `2px solid ${formData.cor_secundaria || '#E5E7EB'}` }}>
-                            <img src={formData.logo_url} alt="Logo Preview" className="h-16 object-contain" />
+                        {/* Logo e Nome da Empresa - Layout baseado na posição */}
+                        {formData.logo_url && formData.mostrar_logo !== false ? (
+                          <div 
+                            className={`pb-4 ${
+                              formData.logo_position === 'left' ? 'flex items-start gap-4' :
+                              formData.logo_position === 'right' ? 'flex items-start gap-4 flex-row-reverse' :
+                              'flex flex-col items-center'
+                            }`}
+                            style={{ borderBottom: `2px solid ${formData.cor_secundaria || '#E5E7EB'}` }}
+                          >
+                            <img 
+                              src={formData.logo_url} 
+                              alt="Logo Preview" 
+                              className="h-16 object-contain flex-shrink-0" 
+                            />
+                            
+                            {/* Nome da empresa ao lado da logo quando não está no centro */}
+                            {(formData.logo_position === 'left' || formData.logo_position === 'right') && (
+                              <div className="flex-1">
+                                {formData.mostrar_nome_fantasia !== false && formData.nome_fantasia && (
+                                  <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#6366F1' }}>
+                                    {formData.nome_fantasia}
+                                  </h2>
+                                )}
+                                {formData.slogan && formData.tipo_pessoa === 'juridica' && (
+                                  <p className="text-sm italic text-muted-foreground">{formData.slogan}</p>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Nome da empresa abaixo quando logo está no centro */}
+                            {formData.logo_position === 'center' && (
+                              <div className="text-center">
+                                {formData.mostrar_nome_fantasia !== false && formData.nome_fantasia && (
+                                  <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#6366F1' }}>
+                                    {formData.nome_fantasia}
+                                  </h2>
+                                )}
+                                {formData.slogan && formData.tipo_pessoa === 'juridica' && (
+                                  <p className="text-sm italic text-muted-foreground">{formData.slogan}</p>
+                                )}
+                              </div>
+                            )}
                           </div>
+                        ) : (
+                          /* Apenas nome da empresa quando não tem logo */
+                          formData.mostrar_nome_fantasia !== false && formData.nome_fantasia && (
+                            <div className="pb-4" style={{ borderBottom: `2px solid ${formData.cor_secundaria || '#E5E7EB'}` }}>
+                              <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#6366F1' }}>
+                                {formData.nome_fantasia}
+                              </h2>
+                              {formData.slogan && formData.tipo_pessoa === 'juridica' && (
+                                <p className="text-sm italic text-muted-foreground">{formData.slogan}</p>
+                              )}
+                            </div>
+                          )
                         )}
 
                         {/* Company Info Preview */}
                         <div className="space-y-2">
-                          {formData.mostrar_nome_fantasia !== false && formData.nome_fantasia && (
-                            <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#6366F1' }}>
-                              {formData.nome_fantasia}
-                            </h2>
-                          )}
-                          {formData.slogan && formData.tipo_pessoa === 'juridica' && (
-                            <p className="text-sm italic text-muted-foreground">{formData.slogan}</p>
-                          )}
                           {formData.mostrar_razao_social !== false && formData.razao_social && formData.tipo_pessoa === 'juridica' && (
                             <p className="text-sm"><strong>Razão Social:</strong> {formData.razao_social}</p>
                           )}

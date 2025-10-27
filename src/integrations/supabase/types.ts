@@ -162,6 +162,7 @@ export type Database = {
           id: string
           inscricao_estadual: string | null
           inscricao_municipal: string | null
+          logo_position: string | null
           logo_url: string | null
           mostrar_cnpj: boolean | null
           mostrar_email: boolean | null
@@ -214,6 +215,7 @@ export type Database = {
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
+          logo_position?: string | null
           logo_url?: string | null
           mostrar_cnpj?: boolean | null
           mostrar_email?: boolean | null
@@ -266,6 +268,7 @@ export type Database = {
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
+          logo_position?: string | null
           logo_url?: string | null
           mostrar_cnpj?: boolean | null
           mostrar_email?: boolean | null

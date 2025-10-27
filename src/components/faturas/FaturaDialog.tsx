@@ -31,6 +31,7 @@ interface EmpresaInfo {
   email: string;
   website: string;
   logo_url: string;
+  logo_position: string;
   cor_primaria: string;
   cor_secundaria: string;
 }
