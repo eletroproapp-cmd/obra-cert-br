@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
 import { validarCPFouCNPJ, formatarCPFouCNPJ } from '@/utils/validators';
+import { getUserFriendlyError } from '@/utils/errors';
 
 const clienteSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -54,7 +55,8 @@ export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
       toast.success('Cliente cadastrado com sucesso!');
       onSuccess?.();
     } catch (error: any) {
-      toast.error('Erro ao cadastrar cliente: ' + error.message);
+      console.error('Erro ao cadastrar cliente:', error);
+      toast.error(getUserFriendlyError(error));
     }
   };
 

@@ -66,7 +66,13 @@ serve(async (req) => {
       .single();
 
     if (faturaError || !fatura) {
-      throw new Error('Fatura não encontrada');
+      return new Response(
+        JSON.stringify({ error: 'Operação não pode ser concluída' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 404 
+        }
+      );
     }
 
     // Buscar dados da empresa
@@ -77,22 +83,46 @@ serve(async (req) => {
       .single();
 
     if (empresaError || !empresa) {
-      throw new Error('Dados da empresa não encontrados');
+      return new Response(
+        JSON.stringify({ error: 'Configuração incompleta. Contate o administrador.' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
 
     // Validar se empresa tem certificado digital configurado
     if (!empresa.certificado_digital_tipo || empresa.certificado_digital_tipo === 'nenhum') {
-      throw new Error('Certificado digital não configurado. Configure nas Configurações.');
+      return new Response(
+        JSON.stringify({ error: 'Configuração incompleta. Contate o administrador.' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
 
     // Validar CNPJ
     if (!empresa.cnpj) {
-      throw new Error('CNPJ da empresa não configurado');
+      return new Response(
+        JSON.stringify({ error: 'Configuração incompleta. Contate o administrador.' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
 
     // Validar dados do cliente
     if (!fatura.clientes?.cpf_cnpj) {
-      throw new Error('CPF/CNPJ do cliente não informado');
+      return new Response(
+        JSON.stringify({ error: 'Dados incompletos. Verifique as informações e tente novamente.' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
 
     // Atualizar status da fatura para processando
@@ -193,14 +223,12 @@ serve(async (req) => {
     );
   } catch (error: any) {
     console.error('Erro ao emitir NF-e:', error);
-    
-    // Nota: Não é possível marcar fatura como erro aqui pois perdemos o contexto de autenticação
 
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Não foi possível emitir a NF-e. Tente novamente.' }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 500,
       }
     );
   }
