@@ -19,6 +19,22 @@ interface FaturaDialogProps {
   onEdit?: () => void;
 }
 
+interface EmpresaInfo {
+  nome_fantasia: string;
+  razao_social: string;
+  cnpj: string;
+  endereco: string;
+  cidade: string;
+  estado: string;
+  cep: string;
+  telefone: string;
+  email: string;
+  website: string;
+  logo_url: string;
+  cor_primaria: string;
+  cor_secundaria: string;
+}
+
 interface Fatura {
   id: string;
   numero: string;
@@ -54,6 +70,7 @@ interface Fatura {
 
 export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDialogProps) => {
   const [fatura, setFatura] = useState<Fatura | null>(null);
+  const [empresaInfo, setEmpresaInfo] = useState<EmpresaInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emitindoNFe, setEmitindoNFe] = useState(false);
@@ -61,8 +78,27 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
   useEffect(() => {
     if (faturaId && open) {
       loadFatura();
+      loadEmpresaInfo();
     }
   }, [faturaId, open]);
+
+  const loadEmpresaInfo = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('empresas')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      if (data) setEmpresaInfo(data);
+    } catch (error: any) {
+      console.error('Erro ao carregar empresa:', error);
+    }
+  };
 
   const loadFatura = async () => {
     if (!faturaId) return;
@@ -213,7 +249,13 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
 
         <div className="space-y-6">
           {/* Cliente */}
-          <div className="p-4 bg-secondary/50 rounded-lg">
+          <div 
+            className="p-4 rounded-lg"
+            style={{ 
+              backgroundColor: empresaInfo?.cor_secundaria || '#E5E7EB',
+              borderLeft: `4px solid ${empresaInfo?.cor_primaria || '#6366F1'}`
+            }}
+          >
             <h3 className="font-semibold mb-2">Cliente</h3>
             <p className="text-lg">{fatura.cliente.nome}</p>
             <p className="text-sm text-muted-foreground">{fatura.cliente.email}</p>
@@ -258,18 +300,24 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
             <h3 className="font-semibold mb-3">Itens</h3>
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full">
-                <thead className="bg-secondary">
+                <thead style={{ backgroundColor: empresaInfo?.cor_primaria || '#6366F1' }}>
                   <tr>
-                    <th className="text-left p-3 text-sm font-medium">Descrição</th>
-                    <th className="text-center p-3 text-sm font-medium">Qtd</th>
-                    <th className="text-center p-3 text-sm font-medium">Und</th>
-                    <th className="text-right p-3 text-sm font-medium">Valor Unit.</th>
-                    <th className="text-right p-3 text-sm font-medium">Total</th>
+                    <th className="text-left p-3 text-sm font-medium text-white">Descrição</th>
+                    <th className="text-center p-3 text-sm font-medium text-white">Qtd</th>
+                    <th className="text-center p-3 text-sm font-medium text-white">Und</th>
+                    <th className="text-right p-3 text-sm font-medium text-white">Valor Unit.</th>
+                    <th className="text-right p-3 text-sm font-medium text-white">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {fatura.items.map((item, index) => (
-                    <tr key={index} className="border-t">
+                    <tr 
+                      key={index} 
+                      className="border-t"
+                      style={{ 
+                        backgroundColor: index % 2 === 0 ? 'white' : (empresaInfo?.cor_secundaria || '#E5E7EB')
+                      }}
+                    >
                       <td className="p-3">{item.descricao}</td>
                       <td className="text-center p-3">{item.quantidade}</td>
                       <td className="text-center p-3">{item.unidade}</td>
@@ -280,12 +328,12 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-secondary/50">
-                  <tr>
-                    <td colSpan={4} className="text-right p-3 font-semibold">
+                <tfoot>
+                  <tr style={{ backgroundColor: empresaInfo?.cor_primaria || '#6366F1' }}>
+                    <td colSpan={4} className="text-right p-3 font-semibold text-white">
                       Valor Total:
                     </td>
-                    <td className="text-right p-3 font-bold text-accent text-lg">
+                    <td className="text-right p-3 font-bold text-white text-lg">
                       R$ {fatura.valor_total.toFixed(2)}
                     </td>
                   </tr>
@@ -296,7 +344,13 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
 
           {/* Observações */}
           {fatura.observacoes && (
-            <div className="p-4 bg-secondary/50 rounded-lg">
+            <div 
+              className="p-4 rounded-lg"
+              style={{ 
+                backgroundColor: empresaInfo?.cor_secundaria || '#E5E7EB',
+                borderLeft: `4px solid ${empresaInfo?.cor_primaria || '#6366F1'}`
+              }}
+            >
               <h3 className="font-semibold mb-2">Observações</h3>
               <p className="text-sm whitespace-pre-wrap">{fatura.observacoes}</p>
             </div>
