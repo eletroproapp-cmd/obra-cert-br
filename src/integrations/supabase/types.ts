@@ -176,7 +176,9 @@ export type Database = {
           mostrar_website: boolean | null
           nome_fantasia: string
           observacoes_padrao: string | null
+          proximo_numero_fatura: number | null
           proximo_numero_nfe: number | null
+          proximo_numero_orcamento: number | null
           razao_social: string | null
           regime_tributario: string | null
           serie_nfe: string | null
@@ -226,7 +228,9 @@ export type Database = {
           mostrar_website?: boolean | null
           nome_fantasia: string
           observacoes_padrao?: string | null
+          proximo_numero_fatura?: number | null
           proximo_numero_nfe?: number | null
+          proximo_numero_orcamento?: number | null
           razao_social?: string | null
           regime_tributario?: string | null
           serie_nfe?: string | null
@@ -276,7 +280,9 @@ export type Database = {
           mostrar_website?: boolean | null
           nome_fantasia?: string
           observacoes_padrao?: string | null
+          proximo_numero_fatura?: number | null
           proximo_numero_nfe?: number | null
+          proximo_numero_orcamento?: number | null
           razao_social?: string | null
           regime_tributario?: string | null
           serie_nfe?: string | null

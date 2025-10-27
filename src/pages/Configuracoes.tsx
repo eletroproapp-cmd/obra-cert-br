@@ -43,6 +43,8 @@ interface EmpresaData {
   ambiente_nfe: string;
   serie_nfe: string;
   proximo_numero_nfe: number;
+  proximo_numero_orcamento: number;
+  proximo_numero_fatura: number;
   template_orcamento: string;
   template_fatura: string;
   fonte_documento: string;
@@ -200,9 +202,7 @@ const Configuracoes = () => {
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <TabsContent value="empresa" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left Column - Form Fields */}
-                <div className="space-y-6">
+              <div className="space-y-6">
                   <Card>
                     <CardHeader>
                       <CardTitle>Logo da Empresa</CardTitle>
@@ -461,110 +461,6 @@ const Configuracoes = () => {
                       {loading ? 'Salvando...' : 'Salvar Configurações'}
                     </Button>
                   </div>
-                </div>
-
-                {/* Right Column - Live Preview */}
-                <div className="lg:sticky lg:top-6 lg:self-start">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
-                        Visualização do Documento
-                      </CardTitle>
-                      <CardDescription>
-                        Pré-visualização em tempo real de como os dados aparecerão nos PDFs
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-white border-2 rounded-lg p-6 space-y-4 min-h-[600px]" style={{ borderColor: formData.cor_primaria || '#1EAEDB' }}>
-                        {/* Logo Preview */}
-                        {formData.logo_url && formData.mostrar_logo !== false && (
-                          <div className="flex justify-center pb-4 border-b" style={{ borderColor: formData.cor_secundaria || '#33C3F0' }}>
-                            <img src={formData.logo_url} alt="Logo Preview" className="h-16 object-contain" />
-                          </div>
-                        )}
-
-                        {/* Company Info Preview */}
-                        <div className="space-y-2">
-                          {formData.mostrar_nome_fantasia !== false && formData.nome_fantasia && (
-                            <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#1EAEDB' }}>
-                              {formData.nome_fantasia}
-                            </h2>
-                          )}
-                          {formData.slogan && (
-                            <p className="text-sm italic text-muted-foreground">{formData.slogan}</p>
-                          )}
-                          {formData.mostrar_razao_social !== false && formData.razao_social && (
-                            <p className="text-sm"><strong>Razão Social:</strong> {formData.razao_social}</p>
-                          )}
-                          {formData.mostrar_cnpj !== false && formData.cnpj && (
-                            <p className="text-sm"><strong>{formData.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'}:</strong> {formData.cnpj}</p>
-                          )}
-                          {formData.tipo_pessoa === 'juridica' && formData.mostrar_regime_tributario !== false && formData.regime_tributario && (
-                            <p className="text-sm"><strong>Regime:</strong> {formData.regime_tributario}</p>
-                          )}
-                          {formData.tipo_pessoa === 'juridica' && formData.mostrar_inscricao_estadual !== false && formData.inscricao_estadual && (
-                            <p className="text-sm"><strong>IE:</strong> {formData.inscricao_estadual}</p>
-                          )}
-                          {formData.tipo_pessoa === 'juridica' && formData.mostrar_inscricao_municipal !== false && formData.inscricao_municipal && (
-                            <p className="text-sm"><strong>IM:</strong> {formData.inscricao_municipal}</p>
-                          )}
-                        </div>
-
-                        <Separator />
-
-                        {/* Contact Info Preview */}
-                        <div className="space-y-1 text-sm">
-                          {formData.mostrar_endereco !== false && formData.endereco && (
-                            <p>📍 {formData.endereco}{formData.cidade && `, ${formData.cidade}`}{formData.estado && ` - ${formData.estado}`}</p>
-                          )}
-                          {formData.mostrar_telefone !== false && formData.telefone && (
-                            <p>📞 {formData.telefone}</p>
-                          )}
-                          {formData.mostrar_email !== false && formData.email && (
-                            <p>✉️ {formData.email}</p>
-                          )}
-                          {formData.mostrar_website !== false && formData.website && (
-                            <p>🌐 {formData.website}</p>
-                          )}
-                        </div>
-
-                        <Separator />
-
-                        {/* Sample Document Content */}
-                        <div className="space-y-3">
-                          <h3 className="font-bold text-lg" style={{ color: formData.cor_primaria || '#1EAEDB' }}>
-                            ORÇAMENTO Nº 001/2025
-                          </h3>
-                          <p className="text-sm text-muted-foreground">Data: {new Date().toLocaleDateString('pt-BR')}</p>
-                          
-                          <div className="bg-muted p-3 rounded">
-                            <p className="text-sm font-semibold mb-2">Cliente: João Silva</p>
-                            <p className="text-xs text-muted-foreground">exemplo@cliente.com.br</p>
-                          </div>
-
-                          <div className="border rounded p-3">
-                            <p className="text-xs font-semibold mb-2">ITENS DO ORÇAMENTO</p>
-                            <div className="space-y-1 text-xs">
-                              <div className="flex justify-between">
-                                <span>1. Instalação elétrica completa</span>
-                                <span>R$ 5.000,00</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>2. Material elétrico</span>
-                                <span>R$ 2.500,00</span>
-                              </div>
-                            </div>
-                            <div className="border-t mt-2 pt-2 flex justify-between font-bold">
-                              <span>TOTAL:</span>
-                              <span style={{ color: formData.cor_primaria || '#1EAEDB' }}>R$ 7.500,00</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
               </div>
             </TabsContent>
 
@@ -657,93 +553,245 @@ const Configuracoes = () => {
             </TabsContent>
 
             <TabsContent value="documentos" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Palette className="h-5 w-5" />
-                    Aparência dos Documentos
-                  </CardTitle>
-                  <CardDescription>
-                    Personalize cores, fontes e estilo visual dos orçamentos e faturas em PDF
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="fonte_documento">Fonte do Documento</Label>
-                      <Select 
-                        defaultValue="Arial" 
-                        onValueChange={(value) => setValue('fonte_documento', value)}
-                      >
-                        <SelectTrigger id="fonte_documento">
-                          <SelectValue placeholder="Selecione a fonte" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Arial">Arial</SelectItem>
-                          <SelectItem value="Helvetica">Helvetica</SelectItem>
-                          <SelectItem value="Times New Roman">Times New Roman</SelectItem>
-                          <SelectItem value="Courier">Courier</SelectItem>
-                          <SelectItem value="Verdana">Verdana</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="tamanho_fonte">Tamanho da Fonte</Label>
-                      <Select 
-                        defaultValue="12" 
-                        onValueChange={(value) => setValue('tamanho_fonte', parseInt(value))}
-                      >
-                        <SelectTrigger id="tamanho_fonte">
-                          <SelectValue placeholder="Selecione o tamanho" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="10">10pt</SelectItem>
-                          <SelectItem value="11">11pt</SelectItem>
-                          <SelectItem value="12">12pt (Padrão)</SelectItem>
-                          <SelectItem value="14">14pt</SelectItem>
-                          <SelectItem value="16">16pt</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="estilo_borda">Estilo de Borda</Label>
-                      <Select 
-                        defaultValue="simples" 
-                        onValueChange={(value) => setValue('estilo_borda', value)}
-                      >
-                        <SelectTrigger id="estilo_borda">
-                          <SelectValue placeholder="Selecione o estilo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="simples">Simples</SelectItem>
-                          <SelectItem value="dupla">Dupla</SelectItem>
-                          <SelectItem value="arredondada">Arredondada</SelectItem>
-                          <SelectItem value="sem_borda">Sem Borda</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="mostrar_logo">Logotipo EletroPro</Label>
-                      <div className="flex items-center space-x-2 pt-2">
-                        <Switch
-                          id="mostrar_logo"
-                          defaultChecked={true}
-                          onCheckedChange={(checked) => setValue('mostrar_logo', checked)}
-                        />
-                        <Label htmlFor="mostrar_logo" className="font-normal cursor-pointer">
-                          Mostrar logo nos documentos
-                        </Label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left Column - Configurações */}
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Numeração de Documentos</CardTitle>
+                      <CardDescription>
+                        Configure o próximo número que será usado para orçamentos e faturas
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="proximo_numero_orcamento">Próximo Número - Orçamento</Label>
+                          <Input 
+                            id="proximo_numero_orcamento" 
+                            type="number" 
+                            {...register('proximo_numero_orcamento')} 
+                            defaultValue={1}
+                            min={1}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Próximo orçamento será: ORC-2025-{String(formData.proximo_numero_orcamento || 1).padStart(3, '0')}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="proximo_numero_fatura">Próximo Número - Fatura</Label>
+                          <Input 
+                            id="proximo_numero_fatura" 
+                            type="number" 
+                            {...register('proximo_numero_fatura')} 
+                            defaultValue={1}
+                            min={1}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Próxima fatura será: FAT-2025-{String(formData.proximo_numero_fatura || 1).padStart(3, '0')}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        ⭐ Remover o logo está disponível apenas em planos pagos
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                      <div className="rounded-lg bg-muted p-4 mt-4">
+                        <p className="text-sm text-muted-foreground">
+                          <strong>Atenção:</strong> Altere estes números apenas se necessário. O sistema incrementa automaticamente a cada novo documento criado.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Palette className="h-5 w-5" />
+                        Aparência dos Documentos
+                      </CardTitle>
+                      <CardDescription>
+                        Personalize cores, fontes e estilo visual dos orçamentos e faturas em PDF
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="fonte_documento">Fonte do Documento</Label>
+                          <Select 
+                            defaultValue="Arial" 
+                            onValueChange={(value) => setValue('fonte_documento', value)}
+                          >
+                            <SelectTrigger id="fonte_documento">
+                              <SelectValue placeholder="Selecione a fonte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Arial">Arial</SelectItem>
+                              <SelectItem value="Helvetica">Helvetica</SelectItem>
+                              <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                              <SelectItem value="Courier">Courier</SelectItem>
+                              <SelectItem value="Verdana">Verdana</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="tamanho_fonte">Tamanho da Fonte</Label>
+                          <Select 
+                            defaultValue="12" 
+                            onValueChange={(value) => setValue('tamanho_fonte', parseInt(value))}
+                          >
+                            <SelectTrigger id="tamanho_fonte">
+                              <SelectValue placeholder="Selecione o tamanho" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="10">10pt</SelectItem>
+                              <SelectItem value="11">11pt</SelectItem>
+                              <SelectItem value="12">12pt (Padrão)</SelectItem>
+                              <SelectItem value="14">14pt</SelectItem>
+                              <SelectItem value="16">16pt</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="estilo_borda">Estilo de Borda</Label>
+                          <Select 
+                            defaultValue="simples" 
+                            onValueChange={(value) => setValue('estilo_borda', value)}
+                          >
+                            <SelectTrigger id="estilo_borda">
+                              <SelectValue placeholder="Selecione o estilo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="simples">Simples</SelectItem>
+                              <SelectItem value="dupla">Dupla</SelectItem>
+                              <SelectItem value="arredondada">Arredondada</SelectItem>
+                              <SelectItem value="sem_borda">Sem Borda</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="mostrar_logo">Logotipo EletroPro</Label>
+                          <div className="flex items-center space-x-2 pt-2">
+                            <Switch
+                              id="mostrar_logo"
+                              defaultChecked={true}
+                              onCheckedChange={(checked) => setValue('mostrar_logo', checked)}
+                            />
+                            <Label htmlFor="mostrar_logo" className="font-normal cursor-pointer">
+                              Mostrar logo nos documentos
+                            </Label>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            ⭐ Remover o logo está disponível apenas em planos pagos
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Right Column - Visualização do Documento */}
+                <div className="lg:sticky lg:top-6 lg:self-start">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Visualização do Documento
+                      </CardTitle>
+                      <CardDescription>
+                        Pré-visualização em tempo real de como os dados aparecerão nos PDFs
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-white border-2 rounded-lg p-6 space-y-4 min-h-[600px]" style={{ borderColor: formData.cor_primaria || '#1EAEDB' }}>
+                        {/* Logo Preview */}
+                        {formData.logo_url && formData.mostrar_logo !== false && (
+                          <div className="flex justify-center pb-4 border-b" style={{ borderColor: formData.cor_secundaria || '#33C3F0' }}>
+                            <img src={formData.logo_url} alt="Logo Preview" className="h-16 object-contain" />
+                          </div>
+                        )}
+
+                        {/* Company Info Preview */}
+                        <div className="space-y-2">
+                          {formData.mostrar_nome_fantasia !== false && formData.nome_fantasia && (
+                            <h2 className="text-2xl font-bold" style={{ color: formData.cor_primaria || '#1EAEDB' }}>
+                              {formData.nome_fantasia}
+                            </h2>
+                          )}
+                          {formData.slogan && formData.tipo_pessoa === 'juridica' && (
+                            <p className="text-sm italic text-muted-foreground">{formData.slogan}</p>
+                          )}
+                          {formData.mostrar_razao_social !== false && formData.razao_social && formData.tipo_pessoa === 'juridica' && (
+                            <p className="text-sm"><strong>Razão Social:</strong> {formData.razao_social}</p>
+                          )}
+                          {formData.mostrar_cnpj !== false && formData.cnpj && (
+                            <p className="text-sm"><strong>{formData.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'}:</strong> {formData.cnpj}</p>
+                          )}
+                          {formData.tipo_pessoa === 'juridica' && formData.mostrar_regime_tributario !== false && formData.regime_tributario && (
+                            <p className="text-sm"><strong>Regime:</strong> {formData.regime_tributario}</p>
+                          )}
+                          {formData.tipo_pessoa === 'juridica' && formData.mostrar_inscricao_estadual !== false && formData.inscricao_estadual && (
+                            <p className="text-sm"><strong>IE:</strong> {formData.inscricao_estadual}</p>
+                          )}
+                          {formData.tipo_pessoa === 'juridica' && formData.mostrar_inscricao_municipal !== false && formData.inscricao_municipal && (
+                            <p className="text-sm"><strong>IM:</strong> {formData.inscricao_municipal}</p>
+                          )}
+                        </div>
+
+                        <Separator />
+
+                        {/* Contact Info Preview */}
+                        <div className="space-y-1 text-sm">
+                          {formData.mostrar_endereco !== false && formData.endereco && (
+                            <p>📍 {formData.endereco}{formData.cidade && `, ${formData.cidade}`}{formData.estado && ` - ${formData.estado}`}</p>
+                          )}
+                          {formData.mostrar_telefone !== false && formData.telefone && (
+                            <p>📞 {formData.telefone}</p>
+                          )}
+                          {formData.mostrar_email !== false && formData.email && (
+                            <p>✉️ {formData.email}</p>
+                          )}
+                          {formData.mostrar_website !== false && formData.website && (
+                            <p>🌐 {formData.website}</p>
+                          )}
+                        </div>
+
+                        <Separator />
+
+                        {/* Sample Document Content */}
+                        <div className="space-y-3">
+                          <h3 className="font-bold text-lg" style={{ color: formData.cor_primaria || '#1EAEDB' }}>
+                            ORÇAMENTO Nº ORC-2025-{String(formData.proximo_numero_orcamento || 1).padStart(3, '0')}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">Data: {new Date().toLocaleDateString('pt-BR')}</p>
+                          
+                          <div className="bg-muted p-3 rounded">
+                            <p className="text-sm font-semibold mb-2">Cliente: João Silva</p>
+                            <p className="text-xs text-muted-foreground">exemplo@cliente.com.br</p>
+                          </div>
+
+                          <div className="border rounded p-3">
+                            <p className="text-xs font-semibold mb-2">ITENS DO ORÇAMENTO</p>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span>1. Instalação elétrica completa</span>
+                                <span>R$ 5.000,00</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>2. Material elétrico</span>
+                                <span>R$ 2.500,00</span>
+                              </div>
+                            </div>
+                            <div className="border-t mt-2 pt-2 flex justify-between font-bold">
+                              <span>TOTAL:</span>
+                              <span style={{ color: formData.cor_primaria || '#1EAEDB' }}>R$ 7.500,00</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
 
               <Separator />
 
@@ -819,7 +867,7 @@ const Configuracoes = () => {
               <div className="flex justify-end">
                 <Button type="submit" size="lg" disabled={loading}>
                   <Save className="mr-2 h-4 w-4" />
-                  {loading ? 'Salvando...' : 'Salvar Templates'}
+                  {loading ? 'Salvando...' : 'Salvar Configurações'}
                 </Button>
               </div>
             </TabsContent>
