@@ -196,7 +196,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 14;
+      const margin = 15;
       
       // Cores
       const primaryColor = empresaInfo.cor_primaria || '#6366F1';
@@ -206,32 +206,44 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
       const rgbSecondary = hexToRgb(secondaryColor);
       const rgbBorder = hexToRgb(borderColor);
       
-      let yPos = 20;
+      // Calcular cor mais clara para fundos
+      const lightSecondaryR = Math.min(255, rgbSecondary.r + (255 - rgbSecondary.r) * 0.85);
+      const lightSecondaryG = Math.min(255, rgbSecondary.g + (255 - rgbSecondary.g) * 0.85);
+      const lightSecondaryB = Math.min(255, rgbSecondary.b + (255 - rgbSecondary.b) * 0.85);
+      
+      let yPos = 18;
 
-      // === CABEÇALHO ===
-      // Nome da Empresa
-      doc.setFontSize(20);
+      // === CABEÇALHO COM LAYOUT DE 2 COLUNAS ===
+      // Linha de borda superior
+      doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+      doc.setLineWidth(1.2);
+      doc.line(margin, yPos - 3, pageWidth - margin, yPos - 3);
+      
+      yPos += 5;
+      
+      // Coluna Esquerda - Informações da Empresa
+      const leftColWidth = (pageWidth - 2 * margin) * 0.55;
+      doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
       doc.text(empresaInfo.nome_fantasia, margin, yPos);
       yPos += 6;
       
-      // Razão Social
       if (empresaInfo.razao_social && empresaInfo.tipo_pessoa === 'juridica') {
-        doc.setFontSize(9);
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(100, 100, 100);
+        doc.setTextColor(90, 90, 90);
         doc.text(empresaInfo.razao_social, margin, yPos);
-        yPos += 5;
+        yPos += 4;
       }
       
-      // Endereço completo da empresa
-      doc.setFontSize(8);
+      doc.setFontSize(7.5);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
+      
       if (empresaInfo.endereco) {
         doc.text(empresaInfo.endereco, margin, yPos);
-        yPos += 4;
+        yPos += 3.5;
       }
       if (empresaInfo.cep || empresaInfo.cidade || empresaInfo.estado) {
         let addressLine = '';
@@ -239,117 +251,110 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
         if (empresaInfo.cidade) addressLine += empresaInfo.cidade;
         if (empresaInfo.estado) addressLine += ' - ' + empresaInfo.estado;
         doc.text(addressLine, margin, yPos);
-        yPos += 4;
+        yPos += 3.5;
       }
       
-      // Contatos da empresa
       if (empresaInfo.telefone) {
-        doc.text('☎ ' + empresaInfo.telefone, margin, yPos);
-        yPos += 4;
+        doc.text('Tel: ' + empresaInfo.telefone, margin, yPos);
+        yPos += 3.5;
       }
       if (empresaInfo.email) {
-        doc.text('✉ ' + empresaInfo.email, margin, yPos);
-        yPos += 4;
-      }
-      if (empresaInfo.website) {
-        doc.text('🌐 ' + empresaInfo.website, margin, yPos);
-        yPos += 4;
+        doc.text('Email: ' + empresaInfo.email, margin, yPos);
+        yPos += 3.5;
       }
       
-      // Dados fiscais da empresa
       if (empresaInfo.cnpj) {
         const label = empresaInfo.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ';
         doc.text(label + ': ' + empresaInfo.cnpj, margin, yPos);
-        yPos += 4;
+        yPos += 3.5;
       }
       if (empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.regime_tributario) {
         doc.text('Regime: ' + empresaInfo.regime_tributario, margin, yPos);
-        yPos += 4;
-      }
-      if (empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.inscricao_estadual) {
-        doc.text('IE: ' + empresaInfo.inscricao_estadual, margin, yPos);
-        yPos += 4;
-      }
-      if (empresaInfo.tipo_pessoa === 'juridica' && empresaInfo.inscricao_municipal) {
-        doc.text('IM: ' + empresaInfo.inscricao_municipal, margin, yPos);
-        yPos += 4;
       }
       
-      // ORÇAMENTO no lado direito
-      const rightXPos = pageWidth - margin;
-      let rightYPos = 20;
-      doc.setFontSize(24);
+      // Coluna Direita - Informações do Orçamento
+      const rightColX = pageWidth - margin;
+      let rightYPos = 23;
+      
+      doc.setFontSize(28);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
-      doc.text('ORÇAMENTO', rightXPos, rightYPos, { align: 'right' });
-      rightYPos += 8;
+      doc.text('ORÇAMENTO', rightColX, rightYPos, { align: 'right' });
+      rightYPos += 10;
       
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text('nº ' + orcamento.numero, rightXPos, rightYPos, { align: 'right' });
+      doc.text('nº ' + orcamento.numero, rightColX, rightYPos, { align: 'right' });
       rightYPos += 8;
       
-      doc.setFontSize(9);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(80, 80, 80);
+      doc.text('Em data de:', rightColX, rightYPos, { align: 'right' });
+      rightYPos += 4;
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
       const dataEmissao = new Date(orcamento.created_at).toLocaleDateString('pt-BR');
-      doc.text('Em data de: ' + dataEmissao, rightXPos, rightYPos, { align: 'right' });
-      rightYPos += 4;
+      doc.text(dataEmissao, rightColX, rightYPos, { align: 'right' });
+      rightYPos += 5;
       
+      doc.setFont('helvetica', 'bold');
+      doc.text('Válido até:', rightColX, rightYPos, { align: 'right' });
+      rightYPos += 4;
+      doc.setFont('helvetica', 'normal');
       const dataValidade = new Date(new Date(orcamento.created_at).getTime() + orcamento.validade_dias * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR');
-      doc.text('Válido até: ' + dataValidade, rightXPos, rightYPos, { align: 'right' });
+      doc.text(dataValidade, rightColX, rightYPos, { align: 'right' });
+      rightYPos += 5;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text('Validade:', rightColX, rightYPos, { align: 'right' });
       rightYPos += 4;
+      doc.setFont('helvetica', 'normal');
+      doc.text(orcamento.validade_dias + ' dias', rightColX, rightYPos, { align: 'right' });
       
-      doc.text('Validade: ' + orcamento.validade_dias + ' dias', rightXPos, rightYPos, { align: 'right' });
-      
-      // Linha separadora
-      yPos = Math.max(yPos, rightYPos) + 6;
+      // Linha separadora após cabeçalho
+      yPos = Math.max(yPos, rightYPos) + 8;
       doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
-      doc.setLineWidth(0.5);
+      doc.setLineWidth(1.2);
       doc.line(margin, yPos, pageWidth - margin, yPos);
-      yPos += 8;
+      yPos += 10;
       
       // === SEÇÃO DO CLIENTE ===
-      // Calcular cor mais clara (20% da cor secundária)
-      const lightSecondaryR = Math.min(255, rgbSecondary.r + (255 - rgbSecondary.r) * 0.8);
-      const lightSecondaryG = Math.min(255, rgbSecondary.g + (255 - rgbSecondary.g) * 0.8);
-      const lightSecondaryB = Math.min(255, rgbSecondary.b + (255 - rgbSecondary.b) * 0.8);
-      
+      const clientBoxHeight = 26;
       doc.setFillColor(lightSecondaryR, lightSecondaryG, lightSecondaryB);
       doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
-      doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 30, 2, 2, 'FD');
+      doc.setLineWidth(0.3);
+      doc.roundedRect(margin, yPos, pageWidth - 2 * margin, clientBoxHeight, 3, 3, 'FD');
       
-      yPos += 6;
-      doc.setFontSize(8);
+      yPos += 5;
+      doc.setFontSize(7);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(100, 100, 100);
-      doc.text('CLIENTE', margin + 3, yPos);
+      doc.setTextColor(80, 80, 80);
+      doc.text('CLIENTE', margin + 4, yPos);
       yPos += 5;
       
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text(orcamento.cliente.nome, margin + 3, yPos);
+      doc.text(orcamento.cliente.nome, margin + 4, yPos);
       yPos += 5;
       
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(100, 100, 100);
+      doc.setTextColor(90, 90, 90);
       if (orcamento.cliente.endereco) {
-        doc.text(orcamento.cliente.endereco, margin + 3, yPos);
-        yPos += 4;
+        doc.text(orcamento.cliente.endereco, margin + 4, yPos);
+        yPos += 3.5;
       }
       if (orcamento.cliente.cep || orcamento.cliente.cidade || orcamento.cliente.estado) {
         let clientAddress = '';
         if (orcamento.cliente.cep) clientAddress += orcamento.cliente.cep + ' ';
         if (orcamento.cliente.cidade) clientAddress += orcamento.cliente.cidade;
         if (orcamento.cliente.estado) clientAddress += ' - ' + orcamento.cliente.estado;
-        doc.text(clientAddress, margin + 3, yPos);
-        yPos += 4;
+        doc.text(clientAddress, margin + 4, yPos);
       }
       
-      yPos += 8;
+      yPos += clientBoxHeight - 13 + 8;
       
       // === TÍTULO E DESCRIÇÃO ===
       if (orcamento.titulo) {
@@ -360,12 +365,12 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
         yPos += 5;
         
         if (orcamento.descricao) {
-          doc.setFontSize(9);
+          doc.setFontSize(8);
           doc.setFont('helvetica', 'normal');
-          doc.setTextColor(100, 100, 100);
+          doc.setTextColor(90, 90, 90);
           const splitDesc = doc.splitTextToSize(orcamento.descricao, pageWidth - 2 * margin);
           doc.text(splitDesc, margin, yPos);
-          yPos += splitDesc.length * 4 + 5;
+          yPos += splitDesc.length * 3.5 + 5;
         } else {
           yPos += 3;
         }
@@ -384,85 +389,92 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
         startY: yPos,
         head: [['Descrição', 'Qtd.', 'Unidade', 'Preço Un.', 'Total']],
         body: tableData,
-        theme: 'striped',
+        theme: 'grid',
         headStyles: {
           fillColor: [rgbPrimary.r, rgbPrimary.g, rgbPrimary.b],
           textColor: [255, 255, 255],
           fontSize: 9,
           fontStyle: 'bold',
           halign: 'left',
+          cellPadding: { top: 3, right: 3, bottom: 3, left: 3 },
         },
         columnStyles: {
           0: { cellWidth: 'auto', halign: 'left' },
-          1: { cellWidth: 20, halign: 'center' },
-          2: { cellWidth: 25, halign: 'center' },
-          3: { cellWidth: 30, halign: 'right' },
-          4: { cellWidth: 35, halign: 'right', fontStyle: 'bold' },
+          1: { cellWidth: 18, halign: 'center' },
+          2: { cellWidth: 22, halign: 'center' },
+          3: { cellWidth: 28, halign: 'right' },
+          4: { cellWidth: 32, halign: 'right', fontStyle: 'bold' },
         },
         styles: { 
-          fontSize: 8,
-          cellPadding: 3,
+          fontSize: 8.5,
+          cellPadding: { top: 3, right: 3, bottom: 3, left: 3 },
+          lineColor: [rgbBorder.r, rgbBorder.g, rgbBorder.b],
+          lineWidth: 0.3,
         },
         alternateRowStyles: {
           fillColor: [lightSecondaryR, lightSecondaryG, lightSecondaryB],
         },
+        bodyStyles: {
+          textColor: [40, 40, 40],
+        },
       });
 
-      yPos = (doc as any).lastAutoTable.finalY + 8;
+      yPos = (doc as any).lastAutoTable.finalY + 10;
 
-      // === TOTAL ===
-      const totalBoxWidth = 70;
-      const totalBoxHeight = 12;
+      // === TOTAL COM DESTAQUE ===
+      const totalBoxWidth = 75;
+      const totalBoxHeight = 14;
       const totalBoxX = pageWidth - margin - totalBoxWidth;
       
       doc.setFillColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
-      doc.roundedRect(totalBoxX, yPos, totalBoxWidth, totalBoxHeight, 2, 2, 'F');
+      doc.roundedRect(totalBoxX, yPos, totalBoxWidth, totalBoxHeight, 3, 3, 'F');
       
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text('Total a Pagar', totalBoxX + 3, yPos + 5);
+      doc.text('Total a Pagar', totalBoxX + 4, yPos + 6);
       
-      doc.setFontSize(13);
+      doc.setFontSize(14);
       const valorTotal = 'R$ ' + orcamento.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      doc.text(valorTotal, totalBoxX + totalBoxWidth - 3, yPos + 9, { align: 'right' });
+      doc.text(valorTotal, totalBoxX + totalBoxWidth - 4, yPos + 10.5, { align: 'right' });
       
-      yPos += totalBoxHeight + 8;
+      yPos += totalBoxHeight + 10;
 
       // === OBSERVAÇÕES ===
-      if (orcamento.observacoes) {
-        doc.setDrawColor(200, 200, 200);
-        doc.setFillColor(250, 250, 250);
-        const obsHeight = 20;
+      if (orcamento.observacoes && yPos < pageHeight - 40) {
+        doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+        doc.setFillColor(252, 252, 252);
+        doc.setLineWidth(0.3);
+        const obsLines = doc.splitTextToSize(orcamento.observacoes, pageWidth - 2 * margin - 8);
+        const obsHeight = Math.min(25, Math.max(12, obsLines.length * 4 + 6));
         doc.roundedRect(margin, yPos, pageWidth - 2 * margin, obsHeight, 2, 2, 'FD');
         
         yPos += 5;
-        doc.setFontSize(8);
+        doc.setFontSize(7.5);
         doc.setFont('helvetica', 'italic');
-        doc.setTextColor(100, 100, 100);
-        const splitObs = doc.splitTextToSize(orcamento.observacoes, pageWidth - 2 * margin - 6);
-        doc.text(splitObs, margin + 3, yPos);
-        yPos += obsHeight + 5;
+        doc.setTextColor(90, 90, 90);
+        doc.text(obsLines, margin + 4, yPos);
       }
 
       // === RODAPÉ ===
-      const footerY = pageHeight - 20;
-      doc.setDrawColor(200, 200, 200);
+      const footerY = pageHeight - 18;
+      doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+      doc.setLineWidth(0.5);
       doc.line(margin, footerY, pageWidth - margin, footerY);
       
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(120, 120, 120);
+      doc.setTextColor(110, 110, 110);
       let footerYPos = footerY + 4;
       
       doc.setFont('helvetica', 'bold');
       doc.text(empresaInfo.nome_fantasia, pageWidth / 2, footerYPos, { align: 'center' });
-      footerYPos += 3;
+      footerYPos += 3.5;
       
       doc.setFont('helvetica', 'normal');
       if (empresaInfo.razao_social && empresaInfo.cnpj) {
         doc.text(empresaInfo.razao_social + ' - CNPJ: ' + empresaInfo.cnpj, pageWidth / 2, footerYPos, { align: 'center' });
-        footerYPos += 3;
+        footerYPos += 3.5;
       }
       
       if (empresaInfo.endereco) {
