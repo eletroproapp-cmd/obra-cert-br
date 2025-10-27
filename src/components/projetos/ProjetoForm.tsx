@@ -241,12 +241,11 @@ export function ProjetoForm({ onSuccess, projetoId }: ProjetoFormProps) {
 
       <div>
         <Label htmlFor="cliente_id">Cliente</Label>
-        <Select value={clienteId} onValueChange={(value) => setValue("cliente_id", value)}>
+        <Select value={clienteId || undefined} onValueChange={(value) => setValue("cliente_id", value)}>
           <SelectTrigger>
-            <SelectValue placeholder="Selecione um cliente" />
+            <SelectValue placeholder="Selecione um cliente (opcional)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Nenhum</SelectItem>
             {clientes.map((cliente) => (
               <SelectItem key={cliente.id} value={cliente.id}>
                 {cliente.nome}
