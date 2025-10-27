@@ -22,6 +22,9 @@ const clienteSchema = z.object({
     (val) => !val || validarCPFouCNPJ(val),
     'CPF/CNPJ inválido'
   ),
+  regime_tributario: z.string().optional(),
+  inscricao_estadual: z.string().optional(),
+  inscricao_municipal: z.string().optional(),
   endereco: z.string().optional(),
   cidade: z.string().optional(),
   estado: z.string().optional(),
@@ -145,6 +148,46 @@ export const ClienteForm = ({ onSuccess }: ClienteFormProps) => {
           )}
         </div>
       </div>
+
+      {/* Campos específicos para Pessoa Jurídica */}
+      {tipoPessoa === 'juridica' && (
+        <>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="regime_tributario">Regime Tributário</Label>
+              <Select onValueChange={(value) => setValue('regime_tributario', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
+                  <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
+                  <SelectItem value="Lucro Real">Lucro Real</SelectItem>
+                  <SelectItem value="MEI">MEI</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
+              <Input
+                id="inscricao_estadual"
+                {...register('inscricao_estadual')}
+                placeholder="Inscrição estadual"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
+              <Input
+                id="inscricao_municipal"
+                {...register('inscricao_municipal')}
+                placeholder="Inscrição municipal"
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="endereco">Endereço</Label>

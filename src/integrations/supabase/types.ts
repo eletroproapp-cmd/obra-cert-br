@@ -69,7 +69,10 @@ export type Database = {
           endereco: string | null
           estado: string | null
           id: string
+          inscricao_estadual: string | null
+          inscricao_municipal: string | null
           nome: string
+          regime_tributario: string | null
           telefone: string | null
           tipo_pessoa: string | null
           updated_at: string
@@ -84,7 +87,10 @@ export type Database = {
           endereco?: string | null
           estado?: string | null
           id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
           nome: string
+          regime_tributario?: string | null
           telefone?: string | null
           tipo_pessoa?: string | null
           updated_at?: string
@@ -99,7 +105,10 @@ export type Database = {
           endereco?: string | null
           estado?: string | null
           id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
           nome?: string
+          regime_tributario?: string | null
           telefone?: string | null
           tipo_pessoa?: string | null
           updated_at?: string
