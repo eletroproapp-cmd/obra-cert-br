@@ -180,7 +180,10 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
   };
 
   const handleGeneratePDF = () => {
-    if (!orcamento || !empresaInfo) return;
+    if (!orcamento || !empresaInfo) {
+      toast.error('Configure as informações da empresa em Configurações antes de gerar o PDF');
+      return;
+    }
 
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -311,12 +314,19 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
       
       if (numeroError) throw numeroError;
 
+      // Buscar o cliente_id correto do orçamento
+      const { data: orcamentoData } = await supabase
+        .from('orcamentos')
+        .select('cliente_id')
+        .eq('id', orcamento.id)
+        .single();
+
       // Criar fatura
       const { data: novaFatura, error: faturaError } = await supabase
         .from('faturas')
         .insert([{
           user_id: user.id,
-          cliente_id: orcamento.id,
+          cliente_id: orcamentoData?.cliente_id || null,
           numero: numeroData,
           titulo: orcamento.titulo,
           descricao: orcamento.descricao,
@@ -613,7 +623,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                 Editar
               </Button>
             )}
-            <Button variant="outline" onClick={handleGeneratePDF}>
+            <Button variant="outline" onClick={handleGeneratePDF} disabled={!empresaInfo}>
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
