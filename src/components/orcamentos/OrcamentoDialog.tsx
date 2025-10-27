@@ -180,7 +180,12 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
   };
 
   const handleGeneratePDF = () => {
-    if (!orcamento || !empresaInfo) {
+    if (!orcamento) {
+      toast.error('Orçamento não carregado');
+      return;
+    }
+    
+    if (!empresaInfo) {
       toast.error('Configure as informações da empresa em Configurações antes de gerar o PDF');
       return;
     }
@@ -623,7 +628,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                 Editar
               </Button>
             )}
-            <Button variant="outline" onClick={handleGeneratePDF} disabled={!empresaInfo}>
+            <Button variant="outline" onClick={handleGeneratePDF}>
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>

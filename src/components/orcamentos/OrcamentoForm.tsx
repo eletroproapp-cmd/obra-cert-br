@@ -384,18 +384,18 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             <div className="grid md:grid-cols-12 gap-3">
               <div className="md:col-span-5">
                 <Label className="text-xs">Descrição *</Label>
-                <Combobox
-                  options={catalogoOptions}
+                <Input
                   value={item.descricao}
-                  onSelect={(option) => {
-                    updateItem(index, 'descricao', option.metadata.nome);
-                    updateItem(index, 'unidade', option.metadata.unidade);
-                    updateItem(index, 'valor_unitario', option.metadata.preco);
-                  }}
-                  placeholder="Buscar no catálogo ou digite..."
-                  searchPlaceholder="Buscar material ou serviço..."
-                  emptyMessage="Nenhum item encontrado no catálogo"
+                  onChange={(e) => updateItem(index, 'descricao', e.target.value)}
+                  placeholder="Digite a descrição do item"
+                  required
+                  list={`catalog-${index}`}
                 />
+                <datalist id={`catalog-${index}`}>
+                  {catalogoOptions.map((opt) => (
+                    <option key={opt.value} value={opt.metadata.nome} />
+                  ))}
+                </datalist>
               </div>
               <div className="md:col-span-2">
                 <Label className="text-xs">Quantidade *</Label>
