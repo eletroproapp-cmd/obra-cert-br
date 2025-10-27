@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Sparkles, Zap } from "lucide-react";
 import { UsageCard } from "./UsageCard";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 const plans = [
   {
@@ -61,15 +63,34 @@ const plans = [
 
 export const PlansTab = () => {
   const { subscription, plan, loading } = useSubscription();
+  const [upgrading, setUpgrading] = useState(false);
 
-  const handleUpgrade = (planId: string) => {
+  const handleUpgrade = async (planId: string) => {
     if (planId === 'free') {
       toast.info('Você já está no plano gratuito');
       return;
     }
     
-    // TODO: Integrar com Stripe quando disponível
-    toast.info('Integração Stripe em breve! Por favor configure suas chaves de API.');
+    setUpgrading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('criar-checkout-stripe', {
+        body: { planType: planId },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Redirecionar para checkout do Stripe
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de checkout não recebida');
+      }
+    } catch (error) {
+      console.error('Erro ao criar checkout:', error);
+      toast.error('Erro ao processar pagamento. Tente novamente.');
+      setUpgrading(false);
+    }
   };
 
   if (loading) {
@@ -189,9 +210,11 @@ export const PlansTab = () => {
                     onClick={() => handleUpgrade(planItem.id)}
                     variant={isCurrent ? "outline" : planItem.highlight ? "default" : "secondary"}
                     className="w-full mt-4"
-                    disabled={isCurrent}
+                    disabled={isCurrent || upgrading || !isUpgrade}
                   >
-                    {isCurrent ? (
+                    {upgrading ? (
+                      'Processando...'
+                    ) : isCurrent ? (
                       'Plano Atual'
                     ) : isUpgrade ? (
                       <>

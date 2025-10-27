@@ -5,3 +5,9 @@ verify_jwt = true
 
 [functions.enviar-fatura]
 verify_jwt = true
+
+[functions.criar-checkout-stripe]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
