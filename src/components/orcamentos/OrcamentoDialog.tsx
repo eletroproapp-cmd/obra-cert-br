@@ -33,6 +33,10 @@ interface Orcamento {
     nome: string;
     email: string;
     telefone: string;
+    endereco?: string;
+    cidade?: string;
+    estado?: string;
+    cep?: string;
   };
   items: Array<{
     descricao: string;
@@ -43,9 +47,23 @@ interface Orcamento {
   }>;
 }
 
+interface EmpresaInfo {
+  nome_fantasia: string;
+  razao_social?: string;
+  cnpj?: string;
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  telefone?: string;
+  email?: string;
+  website?: string;
+}
+
 export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: OrcamentoDialogProps) => {
   const navigate = useNavigate();
   const [orcamento, setOrcamento] = useState<Orcamento | null>(null);
+  const [empresaInfo, setEmpresaInfo] = useState<EmpresaInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [convertendo, setConvertendo] = useState(false);
@@ -53,8 +71,27 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
   useEffect(() => {
     if (orcamentoId && open) {
       loadOrcamento();
+      loadEmpresaInfo();
     }
   }, [orcamentoId, open]);
+
+  const loadEmpresaInfo = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('empresas')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      setEmpresaInfo(data);
+    } catch (error: any) {
+      console.error('Erro ao carregar informações da empresa:', error);
+    }
+  };
 
   const loadOrcamento = async () => {
     if (!orcamentoId) return;
@@ -76,7 +113,11 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
           clientes:cliente_id (
             nome,
             email,
-            telefone
+            telefone,
+            endereco,
+            cidade,
+            estado,
+            cep
           )
         `)
         .eq('id', orcamentoId)
@@ -208,88 +249,165 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Orçamento {orcamento.numero}</DialogTitle>
-          <DialogDescription>
-            Criado em {new Date(orcamento.created_at).toLocaleDateString('pt-BR')}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        {/* Remove o DialogHeader padrão e cria um layout customizado tipo documento */}
+        
+        <div className="space-y-6 p-2">
+          {/* Cabeçalho estilo documento - Empresa e Orçamento */}
+          <div className="flex justify-between items-start pb-4 border-b-2 border-primary/20">
+            {/* Informações da Empresa - Lado Esquerdo */}
+            <div className="flex-1">
+              {empresaInfo && (
+                <>
+                  <h2 className="text-2xl font-bold text-primary mb-1">
+                    {empresaInfo.nome_fantasia}
+                  </h2>
+                  {empresaInfo.razao_social && (
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {empresaInfo.razao_social}
+                    </p>
+                  )}
+                  {empresaInfo.endereco && (
+                    <p className="text-xs text-muted-foreground mt-2">{empresaInfo.endereco}</p>
+                  )}
+                  {(empresaInfo.cidade || empresaInfo.estado || empresaInfo.cep) && (
+                    <p className="text-xs text-muted-foreground">
+                      {empresaInfo.cep && `${empresaInfo.cep} `}
+                      {empresaInfo.cidade && `${empresaInfo.cidade}`}
+                      {empresaInfo.estado && ` - ${empresaInfo.estado}`}
+                    </p>
+                  )}
+                  <div className="mt-2 space-y-0.5">
+                    {empresaInfo.telefone && (
+                      <p className="text-xs text-muted-foreground">☎ {empresaInfo.telefone}</p>
+                    )}
+                    {empresaInfo.email && (
+                      <p className="text-xs text-muted-foreground">✉ {empresaInfo.email}</p>
+                    )}
+                    {empresaInfo.website && (
+                      <p className="text-xs text-muted-foreground">🌐 {empresaInfo.website}</p>
+                    )}
+                    {empresaInfo.cnpj && (
+                      <p className="text-xs text-muted-foreground">CNPJ: {empresaInfo.cnpj}</p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
 
-        <div className="space-y-6">
-          {/* Cliente */}
-          <div className="p-4 bg-secondary/50 rounded-lg">
-            <h3 className="font-semibold mb-2">Cliente</h3>
-            <p className="text-lg">{orcamento.cliente.nome}</p>
-            <p className="text-sm text-muted-foreground">{orcamento.cliente.email}</p>
-            {orcamento.cliente.telefone && (
-              <p className="text-sm text-muted-foreground">{orcamento.cliente.telefone}</p>
-            )}
-          </div>
-
-          {/* Detalhes */}
-          <div>
-            <h3 className="font-semibold mb-2">Detalhes</h3>
-            <p className="text-lg font-medium">{orcamento.titulo}</p>
-            {orcamento.descricao && (
-              <p className="text-sm text-muted-foreground mt-1">{orcamento.descricao}</p>
-            )}
-            <div className="flex gap-4 mt-2">
-              <span className="text-sm">
-                Status: <span className="font-medium">{orcamento.status}</span>
-              </span>
-              <span className="text-sm">
-                Validade: <span className="font-medium">{orcamento.validade_dias} dias</span>
-              </span>
+            {/* Informações do Orçamento - Lado Direito */}
+            <div className="text-right">
+              <h1 className="text-4xl font-bold text-primary mb-2">ORÇAMENTO</h1>
+              <p className="text-lg font-semibold">nº {orcamento.numero}</p>
+              <div className="mt-4 space-y-1 text-sm">
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Em data de:</span>{' '}
+                  {new Date(orcamento.created_at).toLocaleDateString('pt-BR')}
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Válido até:</span>{' '}
+                  {new Date(new Date(orcamento.created_at).getTime() + orcamento.validade_dias * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')}
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Validade:</span> {orcamento.validade_dias} dias
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Itens */}
+          {/* Seção do Cliente */}
+          <div className="border border-border rounded-lg p-4 bg-secondary/30">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-2 uppercase">Cliente</h3>
+            <p className="text-lg font-bold">{orcamento.cliente.nome}</p>
+            {orcamento.cliente.endereco && (
+              <p className="text-sm text-muted-foreground mt-1">{orcamento.cliente.endereco}</p>
+            )}
+            {(orcamento.cliente.cidade || orcamento.cliente.cep) && (
+              <p className="text-sm text-muted-foreground">
+                {orcamento.cliente.cep && `${orcamento.cliente.cep} `}
+                {orcamento.cliente.cidade && `${orcamento.cliente.cidade}`}
+                {orcamento.cliente.estado && ` - ${orcamento.cliente.estado}`}
+              </p>
+            )}
+          </div>
+
+          {/* Título/Descrição do Orçamento */}
+          {orcamento.titulo && (
+            <div className="text-sm">
+              <p className="font-semibold">{orcamento.titulo}</p>
+              {orcamento.descricao && (
+                <p className="text-muted-foreground mt-1">{orcamento.descricao}</p>
+              )}
+            </div>
+          )}
+
+          {/* Tabela de Itens */}
           <div>
-            <h3 className="font-semibold mb-3">Itens</h3>
-            <div className="border rounded-lg overflow-hidden">
+            <div className="rounded-lg overflow-hidden border border-border">
               <table className="w-full">
-                <thead className="bg-secondary">
-                  <tr>
-                    <th className="text-left p-3 text-sm font-medium">Descrição</th>
-                    <th className="text-center p-3 text-sm font-medium">Qtd</th>
-                    <th className="text-center p-3 text-sm font-medium">Und</th>
-                    <th className="text-right p-3 text-sm font-medium">Valor Unit.</th>
-                    <th className="text-right p-3 text-sm font-medium">Total</th>
+                <thead>
+                  <tr className="bg-primary text-primary-foreground">
+                    <th className="text-left p-3 text-sm font-semibold">Descrição</th>
+                    <th className="text-center p-3 text-sm font-semibold w-20">Qtd.</th>
+                    <th className="text-center p-3 text-sm font-semibold w-24">Unidade</th>
+                    <th className="text-right p-3 text-sm font-semibold w-32">Preço Un.</th>
+                    <th className="text-right p-3 text-sm font-semibold w-32">Total</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="bg-card">
                   {orcamento.items.map((item, index) => (
-                    <tr key={index} className="border-t">
-                      <td className="p-3">{item.descricao}</td>
-                      <td className="text-center p-3">{item.quantidade}</td>
-                      <td className="text-center p-3">{item.unidade}</td>
-                      <td className="text-right p-3">R$ {item.valor_unitario.toFixed(2)}</td>
-                      <td className="text-right p-3 font-medium">
-                        R$ {item.valor_total.toFixed(2)}
+                    <tr key={index} className={index % 2 === 0 ? 'bg-secondary/20' : ''}>
+                      <td className="p-3 text-sm">{item.descricao}</td>
+                      <td className="text-center p-3 text-sm">{item.quantidade}</td>
+                      <td className="text-center p-3 text-sm">{item.unidade}</td>
+                      <td className="text-right p-3 text-sm">
+                        R$ {item.valor_unitario.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="text-right p-3 text-sm font-medium">
+                        R$ {item.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-secondary/50">
-                  <tr>
-                    <td colSpan={4} className="text-right p-3 font-semibold">
-                      Valor Total:
-                    </td>
-                    <td className="text-right p-3 font-bold text-primary text-lg">
-                      R$ {orcamento.valor_total.toFixed(2)}
-                    </td>
-                  </tr>
-                </tfoot>
               </table>
+            </div>
+
+            {/* Total */}
+            <div className="flex justify-end mt-4">
+              <div className="bg-primary text-primary-foreground rounded-lg px-6 py-3 min-w-[280px]">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-semibold">Total a Pagar</span>
+                  <span className="text-2xl font-bold">
+                    R$ {orcamento.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Observações */}
           {orcamento.observacoes && (
-            <div className="p-4 bg-secondary/50 rounded-lg">
-              <h3 className="font-semibold mb-2">Observações</h3>
-              <p className="text-sm whitespace-pre-wrap">{orcamento.observacoes}</p>
+            <div className="border border-border rounded-lg p-4 bg-secondary/20">
+              <p className="text-sm text-muted-foreground italic whitespace-pre-wrap">
+                {orcamento.observacoes}
+              </p>
+            </div>
+          )}
+
+          {/* Rodapé com informações da empresa */}
+          {empresaInfo && (
+            <div className="pt-4 border-t border-border text-xs text-muted-foreground text-center space-y-1">
+              <p className="font-medium">{empresaInfo.nome_fantasia}</p>
+              {empresaInfo.razao_social && empresaInfo.cnpj && (
+                <p>{empresaInfo.razao_social} - CNPJ: {empresaInfo.cnpj}</p>
+              )}
+              {empresaInfo.endereco && (
+                <p>
+                  {empresaInfo.endereco}
+                  {empresaInfo.cidade && ` - ${empresaInfo.cidade}`}
+                  {empresaInfo.estado && ` - ${empresaInfo.estado}`}
+                </p>
+              )}
             </div>
           )}
 
