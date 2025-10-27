@@ -63,17 +63,38 @@ export const useSubscription = () => {
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (subError) throw subError;
+      let subscriptionData = subData;
 
-      setSubscription(subData as any);
+      // Se não existe subscription, criar uma gratuita
+      if (!subscriptionData) {
+        const { data: newSub, error: createError } = await supabase
+          .from('user_subscriptions')
+          .insert({
+            user_id: user.id,
+            plan_type: 'free',
+            status: 'active',
+            cancel_at_period_end: false
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Erro ao criar subscription:', createError);
+          throw createError;
+        }
+
+        subscriptionData = newSub;
+      }
+
+      setSubscription(subscriptionData as any);
 
       // Buscar detalhes do plano
       const { data: planData, error: planError } = await supabase
         .from('subscription_plans')
         .select('*')
-        .eq('plan_type', subData.plan_type)
+        .eq('plan_type', subscriptionData.plan_type)
         .single();
 
       if (planError) throw planError;
