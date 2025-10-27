@@ -330,7 +330,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="cliente">Cliente *</Label>
-          <Select onValueChange={(value) => setValue('cliente_id', value)}>
+          <Select value={watch('cliente_id')} onValueChange={(value) => setValue('cliente_id', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Selecione o cliente" />
             </SelectTrigger>
@@ -384,18 +384,19 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             <div className="grid md:grid-cols-12 gap-3">
               <div className="md:col-span-5">
                 <Label className="text-xs">Descrição *</Label>
-                <Input
+                <Combobox
+                  options={catalogoOptions}
                   value={item.descricao}
-                  onChange={(e) => updateItem(index, 'descricao', e.target.value)}
-                  placeholder="Digite a descrição do item"
-                  required
-                  list={`catalog-${index}`}
+                  onInputChange={(val) => updateItem(index, 'descricao', val)}
+                  onSelect={(option) => {
+                    updateItem(index, 'descricao', option.metadata.nome);
+                    updateItem(index, 'unidade', option.metadata.unidade);
+                    updateItem(index, 'valor_unitario', option.metadata.preco);
+                  }}
+                  placeholder="Buscar no catálogo ou digite..."
+                  searchPlaceholder="Buscar material ou serviço..."
+                  emptyMessage="Nenhum item encontrado no catálogo"
                 />
-                <datalist id={`catalog-${index}`}>
-                  {catalogoOptions.map((opt) => (
-                    <option key={opt.value} value={opt.metadata.nome} />
-                  ))}
-                </datalist>
               </div>
               <div className="md:col-span-2">
                 <Label className="text-xs">Quantidade *</Label>

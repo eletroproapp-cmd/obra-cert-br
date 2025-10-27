@@ -395,8 +395,11 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        {/* Remove o DialogHeader padrão e cria um layout customizado tipo documento */}
-        
+        <DialogHeader className="sr-only">
+          <DialogTitle>Orçamento {orcamento.numero}</DialogTitle>
+          <DialogDescription>Detalhes do orçamento e ações</DialogDescription>
+        </DialogHeader>
+        {/* Layout customizado tipo documento */}
         <div className="space-y-6 p-2">
           {/* Cabeçalho estilo documento - Logo e Empresa */}
           <div 
@@ -638,7 +641,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
             </Button>
             <Button 
               onClick={handleConvertToFatura}
-              disabled={convertendo || orcamento.status === 'Aprovado'}
+              disabled={convertendo}
               className="bg-gradient-primary"
             >
               <FileText className="h-4 w-4 mr-2" />

@@ -26,6 +26,7 @@ interface ComboboxProps {
   options: ComboboxOption[];
   value?: string;
   onSelect: (option: ComboboxOption) => void;
+  onInputChange?: (value: string) => void;
   placeholder?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
@@ -35,6 +36,7 @@ export function Combobox({
   options,
   value,
   onSelect,
+  onInputChange,
   placeholder = "Selecione...",
   searchPlaceholder = "Buscar...",
   emptyMessage = "Nenhum item encontrado.",
@@ -64,7 +66,10 @@ export function Combobox({
           <CommandInput 
             placeholder={searchPlaceholder}
             value={inputValue}
-            onValueChange={setInputValue}
+            onValueChange={(val) => {
+              setInputValue(val);
+              onInputChange?.(val);
+            }}
           />
           <CommandList>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
