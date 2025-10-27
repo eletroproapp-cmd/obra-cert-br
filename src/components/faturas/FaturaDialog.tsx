@@ -240,17 +240,115 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Fatura {fatura.numero}</DialogTitle>
-          <DialogDescription>
-            Emitida em {new Date(fatura.created_at).toLocaleDateString('pt-BR')}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Cliente */}
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        {/* Layout customizado estilo documento */}
+        
+        <div className="space-y-6 p-2">
+          {/* Cabeçalho estilo documento - Logo e Empresa */}
           <div 
+            className={`pb-4 border-b-2 ${
+              empresaInfo?.logo_url && empresaInfo?.logo_position === 'left' ? 'flex items-start gap-6' :
+              empresaInfo?.logo_url && empresaInfo?.logo_position === 'right' ? 'flex items-start gap-6 flex-row-reverse' :
+              ''
+            }`}
+            style={{ borderColor: empresaInfo?.cor_primaria || '#6366F1' }}
+          >
+            {/* Logo */}
+            {empresaInfo?.logo_url && (
+              <div className={`flex-shrink-0 ${empresaInfo.logo_position === 'center' ? 'w-full flex justify-center mb-4' : ''}`}>
+                <img 
+                  src={empresaInfo.logo_url} 
+                  alt="Logo" 
+                  className="h-20 object-contain"
+                />
+              </div>
+            )}
+            
+            {/* Informações da Empresa */}
+            <div className="flex-1">
+              {empresaInfo && (
+                <>
+                  <h2 className="text-2xl font-bold mb-1" style={{ color: empresaInfo.cor_primaria || '#6366F1' }}>
+                    {empresaInfo.nome_fantasia}
+                  </h2>
+                  {empresaInfo.razao_social && (
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {empresaInfo.razao_social}
+                    </p>
+                  )}
+                  {empresaInfo.endereco && (
+                    <p className="text-xs text-muted-foreground mt-2">{empresaInfo.endereco}</p>
+                  )}
+                  {(empresaInfo.cidade || empresaInfo.estado || empresaInfo.cep) && (
+                    <p className="text-xs text-muted-foreground">
+                      {empresaInfo.cep && `${empresaInfo.cep} `}
+                      {empresaInfo.cidade && `${empresaInfo.cidade}`}
+                      {empresaInfo.estado && ` - ${empresaInfo.estado}`}
+                    </p>
+                  )}
+                  <div className="mt-2 space-y-0.5">
+                    {empresaInfo.telefone && (
+                      <p className="text-xs text-muted-foreground">☎ {empresaInfo.telefone}</p>
+                    )}
+                    {empresaInfo.email && (
+                      <p className="text-xs text-muted-foreground">✉ {empresaInfo.email}</p>
+                    )}
+                    {empresaInfo.website && (
+                      <p className="text-xs text-muted-foreground">🌐 {empresaInfo.website}</p>
+                    )}
+                    {empresaInfo.cnpj && (
+                      <p className="text-xs text-muted-foreground">CNPJ: {empresaInfo.cnpj}</p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+            
+            {/* Informações da Fatura - Lado Direito (quando logo não está no centro) */}
+            {(!empresaInfo?.logo_url || empresaInfo?.logo_position !== 'center') && (
+              <div className="text-right flex-shrink-0">
+                <h1 className="text-4xl font-bold mb-2" style={{ color: empresaInfo?.cor_primaria || '#6366F1' }}>FATURA</h1>
+                <p className="text-lg font-semibold">nº {fatura.numero}</p>
+                <div className="mt-4 space-y-1 text-sm">
+                  <p className="text-muted-foreground">
+                    <span className="font-medium">Emitida em:</span>{' '}
+                    {new Date(fatura.created_at).toLocaleDateString('pt-BR')}
+                  </p>
+                  <p className="text-muted-foreground">
+                    <span className="font-medium">Vencimento:</span>{' '}
+                    {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
+                  </p>
+                  <p className={`font-medium ${getStatusColor(fatura.status)}`}>
+                    Status: {fatura.status}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Informações da Fatura - Abaixo (quando logo está no centro) */}
+          {empresaInfo?.logo_url && empresaInfo?.logo_position === 'center' && (
+            <div className="text-center pb-4 border-b-2" style={{ borderColor: empresaInfo?.cor_secundaria || '#E5E7EB' }}>
+              <h1 className="text-4xl font-bold mb-2" style={{ color: empresaInfo?.cor_primaria || '#6366F1' }}>FATURA</h1>
+              <p className="text-lg font-semibold">nº {fatura.numero}</p>
+              <div className="mt-4 space-y-1 text-sm">
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Emitida em:</span>{' '}
+                  {new Date(fatura.created_at).toLocaleDateString('pt-BR')}
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="font-medium">Vencimento:</span>{' '}
+                  {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
+                </p>
+                <p className={`font-medium ${getStatusColor(fatura.status)}`}>
+                  Status: {fatura.status}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Cliente */}
+          <div
             className="p-4 rounded-lg"
             style={{ 
               backgroundColor: empresaInfo?.cor_secundaria || '#E5E7EB',
