@@ -21,7 +21,7 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    const { planType } = await req.json();
+    const { planType, origin } = await req.json();
     
     // Mapear planType para price_id do Stripe
     const priceMap: Record<string, string> = {
@@ -124,8 +124,8 @@ serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/configuracoes?tab=plano&success=true`,
-      cancel_url: `${req.headers.get('origin')}/configuracoes?tab=plano&canceled=true`,
+      success_url: `${origin || req.headers.get('origin')}/configuracoes?tab=plano&success=true`,
+      cancel_url: `${origin || req.headers.get('origin')}/configuracoes?tab=plano&canceled=true`,
       metadata: {
         user_id: user.id,
         plan_type: planType,

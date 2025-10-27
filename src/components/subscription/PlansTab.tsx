@@ -75,14 +75,23 @@ export const PlansTab = () => {
     
     try {
       const { data, error } = await supabase.functions.invoke('criar-checkout-stripe', {
-        body: { planType: planId },
+        body: { planType: planId, origin: window.location.origin },
       });
 
       if (error) throw error;
 
       if (data?.url) {
-        // Redirecionar para checkout do Stripe
-        window.location.href = data.url;
+        const url = data.url as string;
+        try {
+          if (window.top) {
+            // Quebrar o iframe do preview para evitar bloqueio do Stripe (X-Frame-Options)
+            (window.top as Window).location.href = url;
+          } else {
+            window.location.href = url;
+          }
+        } catch {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
       } else {
         throw new Error('URL de checkout não recebida');
       }
