@@ -38,6 +38,8 @@ interface EmpresaData {
   ambiente_nfe: string;
   serie_nfe: string;
   proximo_numero_nfe: number;
+  template_orcamento: string;
+  template_fatura: string;
 }
 
 const Configuracoes = () => {
@@ -378,19 +380,83 @@ const Configuracoes = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="documentos" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Templates de Documentos</CardTitle>
-                <CardDescription>Personalize orçamentos e faturas</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Funcionalidade em desenvolvimento. Em breve você poderá personalizar templates de PDF.
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <TabsContent value="documentos" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Template de Orçamento</CardTitle>
+                  <CardDescription>Personalize o layout do PDF de orçamentos</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="template_orcamento">Conteúdo do Template</Label>
+                    <Textarea 
+                      id="template_orcamento" 
+                      {...register('template_orcamento')}
+                      placeholder="Use as variáveis disponíveis para personalizar"
+                      rows={15}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div className="rounded-lg bg-muted p-4">
+                    <p className="text-sm font-semibold mb-2">Variáveis disponíveis:</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground font-mono">
+                      <div>{"{numero}"} - Número do orçamento</div>
+                      <div>{"{data}"} - Data de criação</div>
+                      <div>{"{validade}"} - Validade (dias)</div>
+                      <div>{"{cliente_nome}"} - Nome do cliente</div>
+                      <div>{"{cliente_endereco}"} - Endereço do cliente</div>
+                      <div>{"{cliente_contato}"} - Contato do cliente</div>
+                      <div>{"{itens}"} - Lista de itens</div>
+                      <div>{"{observacoes}"} - Observações</div>
+                      <div>{"{valor_total}"} - Valor total</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Template de Fatura</CardTitle>
+                  <CardDescription>Personalize o layout do PDF de faturas</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="template_fatura">Conteúdo do Template</Label>
+                    <Textarea 
+                      id="template_fatura" 
+                      {...register('template_fatura')}
+                      placeholder="Use as variáveis disponíveis para personalizar"
+                      rows={15}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                  <div className="rounded-lg bg-muted p-4">
+                    <p className="text-sm font-semibold mb-2">Variáveis disponíveis:</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground font-mono">
+                      <div>{"{numero}"} - Número da fatura</div>
+                      <div>{"{data_emissao}"} - Data de emissão</div>
+                      <div>{"{data_vencimento}"} - Data de vencimento</div>
+                      <div>{"{cliente_nome}"} - Nome do cliente</div>
+                      <div>{"{cliente_endereco}"} - Endereço do cliente</div>
+                      <div>{"{cliente_contato}"} - Contato do cliente</div>
+                      <div>{"{itens}"} - Lista de itens</div>
+                      <div>{"{observacoes}"} - Observações</div>
+                      <div>{"{valor_total}"} - Valor total</div>
+                      <div>{"{forma_pagamento}"} - Forma de pagamento</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end">
+                <Button type="submit" size="lg" disabled={loading}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {loading ? 'Salvando...' : 'Salvar Templates'}
+                </Button>
+              </div>
+            </TabsContent>
+          </form>
 
           <TabsContent value="sistema" className="space-y-6">
             <Card>

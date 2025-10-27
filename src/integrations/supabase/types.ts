@@ -156,6 +156,8 @@ export type Database = {
           regime_tributario: string | null
           serie_nfe: string | null
           telefone: string | null
+          template_fatura: string | null
+          template_orcamento: string | null
           termos_condicoes: string | null
           updated_at: string
           user_id: string
@@ -188,6 +190,8 @@ export type Database = {
           regime_tributario?: string | null
           serie_nfe?: string | null
           telefone?: string | null
+          template_fatura?: string | null
+          template_orcamento?: string | null
           termos_condicoes?: string | null
           updated_at?: string
           user_id: string
@@ -220,6 +224,8 @@ export type Database = {
           regime_tributario?: string | null
           serie_nfe?: string | null
           telefone?: string | null
+          template_fatura?: string | null
+          template_orcamento?: string | null
           termos_condicoes?: string | null
           updated_at?: string
           user_id?: string
