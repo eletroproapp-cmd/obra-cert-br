@@ -141,8 +141,11 @@ export const useSubscription = () => {
     const currentUsage = usage[resourceType] || 0;
     const limit = (plan.limits as any)[resourceType] || 0;
 
+    // Treat very high limits (>= 999999) as unlimited
+    const isUnlimited = limit >= 999999;
+
     return {
-      allowed: currentUsage < limit,
+      allowed: isUnlimited || currentUsage < limit,
       current: currentUsage,
       limit
     };
