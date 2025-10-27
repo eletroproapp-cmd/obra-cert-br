@@ -635,7 +635,7 @@ const Configuracoes = () => {
                         <div className="space-y-2">
                           <Label htmlFor="fonte_documento">Fonte do Documento</Label>
                           <Select 
-                            defaultValue="Arial" 
+                            value={formData.fonte_documento || 'Arial'}
                             onValueChange={(value) => setValue('fonte_documento', value)}
                           >
                             <SelectTrigger id="fonte_documento">
@@ -654,7 +654,7 @@ const Configuracoes = () => {
                         <div className="space-y-2">
                           <Label htmlFor="tamanho_fonte">Tamanho da Fonte</Label>
                           <Select 
-                            defaultValue="12" 
+                            value={String(formData.tamanho_fonte || 12)}
                             onValueChange={(value) => setValue('tamanho_fonte', parseInt(value))}
                           >
                             <SelectTrigger id="tamanho_fonte">
@@ -673,7 +673,7 @@ const Configuracoes = () => {
                         <div className="space-y-2">
                           <Label htmlFor="estilo_borda">Estilo de Borda</Label>
                           <Select 
-                            defaultValue="simples" 
+                            value={formData.estilo_borda || 'simples'}
                             onValueChange={(value) => setValue('estilo_borda', value)}
                           >
                             <SelectTrigger id="estilo_borda">
@@ -814,7 +814,15 @@ const Configuracoes = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="bg-white rounded-lg p-6 space-y-4 min-h-[600px]" style={{ border: `2px solid ${formData.cor_borda_secoes || formData.cor_primaria || '#6366F1'}` }}>
+                      <div 
+                        className="bg-white rounded-lg p-6 space-y-4 min-h-[600px]" 
+                        style={{ 
+                          border: `2px ${formData.estilo_borda === 'dupla' ? 'double' : formData.estilo_borda === 'sem_borda' ? 'none' : 'solid'} ${formData.cor_borda_secoes || formData.cor_primaria || '#6366F1'}`,
+                          borderRadius: formData.estilo_borda === 'arredondada' ? '12px' : '8px',
+                          fontFamily: formData.fonte_documento || 'Arial',
+                          fontSize: `${formData.tamanho_fonte || 12}pt`
+                        }}
+                      >
                         {/* Logo e Nome da Empresa - Layout baseado na posição */}
                         {formData.logo_url && formData.mostrar_logo !== false ? (
                           <div 
