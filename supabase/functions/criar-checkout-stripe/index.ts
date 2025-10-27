@@ -57,8 +57,7 @@ serve(async (req) => {
       throw new Error('Usuário não encontrado');
     }
 
-    // Verificar se já existe customer
-    let customerId: string;
+    let customerId: string | undefined;
     const subscriptionResponse = await fetch(
       `${supabaseUrl}/rest/v1/user_subscriptions?user_id=eq.${user.id}&select=stripe_customer_id`,
       {
@@ -72,14 +71,28 @@ serve(async (req) => {
     const subscriptions = await subscriptionResponse.json();
     
     if (subscriptions[0]?.stripe_customer_id) {
-      customerId = subscriptions[0].stripe_customer_id;
-    } else {
+      // Validar se o customer existe na conta/ambiente atual do Stripe
+      try {
+        const existing = await stripe.customers.retrieve(subscriptions[0].stripe_customer_id);
+        // Se recuperar com sucesso, usamos o ID retornado
+        // @ts-ignore - Stripe types allow both Customer & DeletedCustomer
+        if (existing && !(existing as any).deleted) {
+          // @ts-ignore
+          customerId = existing.id as string;
+        }
+      } catch (e: any) {
+        // Se o customer não existir nesta conta, iremos criar um novo
+        if (!(e && e.raw && e.raw.code === 'resource_missing')) {
+          throw e;
+        }
+      }
+    }
+
+    if (!customerId) {
       // Criar novo customer
       const customer = await stripe.customers.create({
         email: user.email,
-        metadata: {
-          supabase_user_id: user.id,
-        },
+        metadata: { supabase_user_id: user.id },
       });
       customerId = customer.id;
 

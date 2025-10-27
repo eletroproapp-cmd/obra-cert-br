@@ -151,8 +151,9 @@ export const PlansTab = () => {
         <div className="grid md:grid-cols-3 gap-6">
           {plans.map((planItem) => {
             const isCurrent = planItem.id === currentPlanId;
-            const isUpgrade = ['basic', 'professional'].indexOf(planItem.id) > 
-                             ['free', 'basic', 'professional'].indexOf(currentPlanId);
+            const order = ['free', 'basic', 'professional'] as const;
+            const isUpgrade = order.indexOf(planItem.id as typeof order[number]) > 
+                             order.indexOf(currentPlanId as typeof order[number]);
 
             return (
               <Card 
