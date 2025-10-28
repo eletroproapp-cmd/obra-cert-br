@@ -179,30 +179,10 @@ export default function EmailTemplates() {
               Modelos de Email
             </h1>
             <p className="text-muted-foreground mt-1">
-              Personalize os templates de email enviados para seus clientes
+              Personalize o template de email enviado para seus clientes
             </p>
           </div>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Selecione o Tipo de Email</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select value={selectedTipo} onValueChange={setSelectedTipo}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {tiposTemplate.map((tipo) => (
-                  <SelectItem key={tipo.value} value={tipo.value}>
-                    {tipo.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
 
         {!loading && (
           <Card>
