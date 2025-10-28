@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { AlertCircle, CheckCircle2, ArrowRight, ArrowLeft, Plus, Trash2 } from "lucide-react";
 
 const checklistSchema = z.object({
+  orcamento_id: z.string().optional(),
   tipo_imovel: z.string().min(1, "Tipo de imóvel é obrigatório"),
   cargas_especiais_customizadas: z.array(z.object({
     nome: z.string(),
@@ -78,10 +79,34 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
   const [cargasCustomizadas, setCargasCustomizadas] = useState<Array<{ nome: string; potencia: number }>>([]);
   const [showCargaDialog, setShowCargaDialog] = useState(false);
   const [novaCarga, setNovaCarga] = useState({ nome: "", potencia: "" });
+  const [orcamentos, setOrcamentos] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadOrcamentos = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("orcamentos")
+        .select("id, numero, titulo")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erro ao carregar orçamentos:", error);
+        return;
+      }
+
+      setOrcamentos(data || []);
+    };
+
+    loadOrcamentos();
+  }, []);
 
   const form = useForm<ChecklistFormData>({
     resolver: zodResolver(checklistSchema),
     defaultValues: {
+      orcamento_id: "",
       tipo_imovel: "",
       cargas_especiais_customizadas: [],
       tem_chuveiro: false,
@@ -210,6 +235,7 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
         .from("nbr5410_checklists")
         .insert({
           user_id: user.id,
+          orcamento_id: data.orcamento_id || null,
           tipo_imovel: data.tipo_imovel,
           area_total: data.area_total,
           num_comodos: data.num_comodos,
@@ -262,6 +288,32 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
             {/* Step 1: Dados do Projeto */}
             {step === 1 && (
               <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="orcamento_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Orçamento (Opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Vincular a um orçamento" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">Nenhum</SelectItem>
+                          {orcamentos.map((orc) => (
+                            <SelectItem key={orc.id} value={orc.id}>
+                              {orc.numero} - {orc.titulo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="tipo_imovel"

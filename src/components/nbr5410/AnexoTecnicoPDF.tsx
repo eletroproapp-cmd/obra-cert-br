@@ -89,14 +89,13 @@ export function AnexoTecnicoPDF() {
         .eq("checklist_id", selectedChecklistId);
 
       // Buscar dados do projeto/orçamento se disponível
-      let projeto = null;
       let orcamento = null;
       if (checklist.orcamento_id) {
         const { data: orcamentoData } = await supabase
           .from("orcamentos")
           .select("*, clientes(*)")
           .eq("id", checklist.orcamento_id)
-          .single();
+          .maybeSingle();
         orcamento = orcamentoData;
       }
 
