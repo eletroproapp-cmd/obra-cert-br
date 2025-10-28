@@ -14,6 +14,7 @@ import { FileText, Send, Loader2, Pencil, Receipt, Download, CheckCircle, AlertC
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
+import { EmailDialog } from '@/components/shared/EmailDialog';
 
 interface FaturaDialogProps {
   faturaId: string | null;
@@ -83,6 +84,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }:
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emitindoNFe, setEmitindoNFe] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
   useEffect(() => {
     if (faturaId && open) {
@@ -166,26 +168,23 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }:
     }
   };
 
-  const handleSendEmail = async () => {
+  const handleOpenEmailDialog = () => {
+    setEmailDialogOpen(true);
+  };
+
+  const handleSendEmail = async (email: string, subject: string, body: string) => {
     if (!fatura) return;
 
-    setSendingEmail(true);
-    try {
-      const { error } = await supabase.functions.invoke('enviar-fatura', {
-        body: {
-          clienteEmail: fatura.cliente.email,
-          faturaId: faturaId,
-        }
-      });
+    const { error } = await supabase.functions.invoke('enviar-fatura', {
+      body: {
+        clienteEmail: email,
+        faturaId: faturaId,
+        customSubject: subject,
+        customBody: body,
+      }
+    });
 
-      if (error) throw error;
-
-      toast.success('Fatura enviada por email com sucesso!');
-    } catch (error: any) {
-      toast.error('Erro ao enviar email: ' + error.message);
-    } finally {
-      setSendingEmail(false);
-    }
+    if (error) throw error;
   };
 
   const handleEmitirNFe = async () => {
@@ -945,13 +944,40 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }:
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
-            <Button onClick={handleSendEmail} disabled={sendingEmail} variant="hero">
+            <Button onClick={handleOpenEmailDialog} variant="hero">
               <Send className="h-4 w-4 mr-2" />
-              {sendingEmail ? 'Enviando...' : 'Enviar por Email'}
+              Enviar por Email
             </Button>
           </div>
         </div>
       </DialogContent>
+
+      {fatura && (
+        <EmailDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          recipientEmail={fatura.cliente.email}
+          defaultSubject={`Fatura nº ${fatura.numero} - ${empresaInfo?.nome_fantasia || 'Sua Empresa'}`}
+          defaultBody={`Prezado(a) ${fatura.cliente.nome},
+
+Segue em anexo a fatura nº ${fatura.numero}.
+
+Detalhes:
+- Título: ${fatura.titulo}
+- Valor Total: R$ ${fatura.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+- Vencimento: ${new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
+
+${fatura.forma_pagamento ? `Forma de Pagamento: ${fatura.forma_pagamento}` : ''}
+
+Contamos com seu pagamento até a data de vencimento.
+
+Atenciosamente,
+${empresaInfo?.nome_fantasia || 'Sua Empresa'}`}
+          onSend={handleSendEmail}
+          onDownloadPDF={handleGeneratePDF}
+          documentType="fatura"
+        />
+      )}
     </Dialog>
   );
 };

@@ -13,6 +13,7 @@ import { FileText, Send, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { EmailDialog } from '@/components/shared/EmailDialog';
 
 interface OrcamentoDialogProps {
   orcamentoId: string | null;
@@ -80,6 +81,7 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit, onDel
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [convertendo, setConvertendo] = useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
 
   useEffect(() => {
     if (orcamentoId && open) {
@@ -158,26 +160,23 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit, onDel
     }
   };
 
-  const handleSendEmail = async () => {
+  const handleOpenEmailDialog = () => {
+    setEmailDialogOpen(true);
+  };
+
+  const handleSendEmail = async (email: string, subject: string, body: string) => {
     if (!orcamento) return;
 
-    setSendingEmail(true);
-    try {
-      const { error } = await supabase.functions.invoke('enviar-orcamento', {
-        body: {
-          clienteEmail: orcamento.cliente.email,
-          orcamentoId: orcamentoId,
-        }
-      });
+    const { error } = await supabase.functions.invoke('enviar-orcamento', {
+      body: {
+        clienteEmail: email,
+        orcamentoId: orcamentoId,
+        customSubject: subject,
+        customBody: body,
+      }
+    });
 
-      if (error) throw error;
-
-      toast.success('Orçamento enviado por email com sucesso!');
-    } catch (error: any) {
-      toast.error('Erro ao enviar email: ' + error.message);
-    } finally {
-      setSendingEmail(false);
-    }
+    if (error) throw error;
   };
 
   const handleGeneratePDF = async () => {
@@ -1000,9 +999,9 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit, onDel
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
-            <Button variant="outline" onClick={handleSendEmail} disabled={sendingEmail}>
+            <Button variant="outline" onClick={handleOpenEmailDialog}>
               <Send className="h-4 w-4 mr-2" />
-              {sendingEmail ? 'Enviando...' : 'Enviar Email'}
+              Enviar Email
             </Button>
             <Button 
               onClick={handleConvertToFatura}
@@ -1015,6 +1014,31 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit, onDel
           </div>
         </div>
       </DialogContent>
+
+      {orcamento && (
+        <EmailDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          recipientEmail={orcamento.cliente.email}
+          defaultSubject={`Orçamento nº ${orcamento.numero} - ${empresaInfo?.nome_fantasia || 'Sua Empresa'}`}
+          defaultBody={`Prezado(a) ${orcamento.cliente.nome},
+
+Segue em anexo o orçamento nº ${orcamento.numero} para sua análise.
+
+Detalhes:
+- Título: ${orcamento.titulo}
+- Valor Total: R$ ${orcamento.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+- Validade: ${orcamento.validade_dias} dias
+
+Estamos à disposição para quaisquer esclarecimentos.
+
+Atenciosamente,
+${empresaInfo?.nome_fantasia || 'Sua Empresa'}`}
+          onSend={handleSendEmail}
+          onDownloadPDF={handleGeneratePDF}
+          documentType="orçamento"
+        />
+      )}
     </Dialog>
   );
 };

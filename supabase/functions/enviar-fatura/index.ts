@@ -16,6 +16,8 @@ const corsHeaders = {
 interface FaturaEmailRequest {
   faturaId: string;
   clienteEmail: string;
+  customSubject?: string;
+  customBody?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -62,7 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { faturaId, clienteEmail }: FaturaEmailRequest = await req.json();
+    const { faturaId, clienteEmail, customSubject, customBody }: FaturaEmailRequest = await req.json();
 
     if (!faturaId || typeof faturaId !== 'string' || faturaId.length !== 36) {
       return new Response(
@@ -103,33 +105,45 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("user_id", user.id)
       .single();
 
-    // Buscar template personalizado
-    const { data: template } = await supabaseClient
-      .from("email_templates")
-      .select("assunto, corpo_html")
-      .eq("user_id", user.id)
-      .eq("tipo", "nova_fatura")
-      .eq("ativo", true)
-      .single();
-
-    let assunto = `Sua Fatura ${sanitize(fatura.numero)}`;
+    let assunto = customSubject || `Sua Fatura ${sanitize(fatura.numero)}`;
     let corpoHtml = "";
 
-    if (template) {
-      // Usar template personalizado
-      assunto = template.assunto
-        .replace(/{{numero}}/g, sanitize(fatura.numero))
-        .replace(/{{cliente_nome}}/g, sanitize(fatura.clientes.nome));
-
-      corpoHtml = template.corpo_html
-        .replace(/{{numero}}/g, sanitize(fatura.numero))
-        .replace(/{{cliente_nome}}/g, sanitize(fatura.clientes.nome))
-        .replace(/{{titulo}}/g, sanitize(fatura.titulo || ''))
-        .replace(/{{status}}/g, sanitize(fatura.status || ''))
-        .replace(/{{data_vencimento}}/g, new Date(fatura.data_vencimento).toLocaleDateString('pt-BR'))
-        .replace(/{{forma_pagamento}}/g, sanitize(fatura.forma_pagamento || ''))
-        .replace(/{{valor_total}}/g, `R$ ${Number(fatura.valor_total || 0).toFixed(2)}`);
+    if (customBody) {
+      // Usar corpo personalizado do usuário (converter texto simples para HTML preservando quebras de linha)
+      corpoHtml = `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="font-size: 14px; color: #333; line-height: 1.6; white-space: pre-wrap;">${sanitize(customBody)}</div>
+          </div>
+        </div>
+      `;
     } else {
+      // Buscar template personalizado
+      const { data: template } = await supabaseClient
+        .from("email_templates")
+        .select("assunto, corpo_html")
+        .eq("user_id", user.id)
+        .eq("tipo", "nova_fatura")
+        .eq("ativo", true)
+        .single();
+
+      if (template) {
+        // Usar template personalizado
+        if (!customSubject) {
+          assunto = template.assunto
+            .replace(/{{numero}}/g, sanitize(fatura.numero))
+            .replace(/{{cliente_nome}}/g, sanitize(fatura.clientes.nome));
+        }
+
+        corpoHtml = template.corpo_html
+          .replace(/{{numero}}/g, sanitize(fatura.numero))
+          .replace(/{{cliente_nome}}/g, sanitize(fatura.clientes.nome))
+          .replace(/{{titulo}}/g, sanitize(fatura.titulo || ''))
+          .replace(/{{status}}/g, sanitize(fatura.status || ''))
+          .replace(/{{data_vencimento}}/g, new Date(fatura.data_vencimento).toLocaleDateString('pt-BR'))
+          .replace(/{{forma_pagamento}}/g, sanitize(fatura.forma_pagamento || ''))
+          .replace(/{{valor_total}}/g, `R$ ${Number(fatura.valor_total || 0).toFixed(2)}`);
+      } else {
       // Template padrão profissional
       const diasVencimento = Math.ceil((new Date(fatura.data_vencimento).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
       const statusVencimento = diasVencimento < 0 ? 'VENCIDA' : diasVencimento === 0 ? 'Vence HOJE' : `Vence em ${diasVencimento} dias`;
@@ -171,6 +185,7 @@ const handler = async (req: Request): Promise<Response> => {
           </p>
         </div>
       `;
+      }
     }
 
     // Buscar configuração de email da empresa
