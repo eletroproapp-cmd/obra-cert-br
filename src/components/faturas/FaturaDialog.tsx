@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Send, Loader2, Pencil, Receipt, Download, CheckCircle, AlertCircle } from 'lucide-react';
+import { FileText, Send, Loader2, Pencil, Receipt, Download, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
@@ -20,6 +20,7 @@ interface FaturaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 interface EmpresaInfo {
@@ -76,7 +77,7 @@ interface Fatura {
   }>;
 }
 
-export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDialogProps) => {
+export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }: FaturaDialogProps) => {
   const [fatura, setFatura] = useState<Fatura | null>(null);
   const [empresaInfo, setEmpresaInfo] = useState<EmpresaInfo | null>(null);
   const [loading, setLoading] = useState(false);
@@ -929,6 +930,15 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
               }}>
                 <Pencil className="h-4 w-4 mr-2" />
                 Editar
+              </Button>
+            )}
+            {onDelete && (
+              <Button variant="outline" onClick={() => {
+                onDelete();
+                onOpenChange(false);
+              }} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
               </Button>
             )}
             <Button variant="outline" onClick={handleGeneratePDF}>

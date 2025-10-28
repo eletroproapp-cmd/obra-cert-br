@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ const Orcamentos = () => {
   const [selectedOrcamento, setSelectedOrcamento] = useState<string | null>(null);
   const [editingOrcamentoId, setEditingOrcamentoId] = useState<string | undefined>();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [deletingOrcamentoId, setDeletingOrcamentoId] = useState<string | null>(null);
   const { checkLimit, plan, refetch, getUsagePercentage } = useSubscription();
 
   useEffect(() => {
@@ -85,6 +87,27 @@ const Orcamentos = () => {
       setEditingOrcamentoId(selectedOrcamento);
       setShowForm(true);
       setSelectedOrcamento(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingOrcamentoId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('orcamentos')
+        .delete()
+        .eq('id', deletingOrcamentoId);
+
+      if (error) throw error;
+
+      toast.success('Orçamento excluído com sucesso!');
+      setDeletingOrcamentoId(null);
+      setSelectedOrcamento(null);
+      loadOrcamentos();
+      refetch();
+    } catch (error: any) {
+      toast.error('Erro ao excluir orçamento: ' + error.message);
     }
   };
 
@@ -194,7 +217,26 @@ const Orcamentos = () => {
         open={!!selectedOrcamento}
         onOpenChange={(open) => !open && setSelectedOrcamento(null)}
         onEdit={handleEdit}
+        onDelete={() => setDeletingOrcamentoId(selectedOrcamento)}
       />
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={!!deletingOrcamentoId} onOpenChange={(open) => !open && setDeletingOrcamentoId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O orçamento será permanentemente excluído.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PlanUpgradeDialog
         open={showUpgradeDialog}

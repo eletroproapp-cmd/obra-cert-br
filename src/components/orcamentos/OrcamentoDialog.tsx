@@ -9,7 +9,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { FileText, Send, Loader2, Pencil } from 'lucide-react';
+import { FileText, Send, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -19,6 +19,7 @@ interface OrcamentoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 interface Orcamento {
@@ -72,7 +73,7 @@ interface EmpresaInfo {
   cor_borda_linhas?: string;
 }
 
-export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: OrcamentoDialogProps) => {
+export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit, onDelete }: OrcamentoDialogProps) => {
   const navigate = useNavigate();
   const [orcamento, setOrcamento] = useState<Orcamento | null>(null);
   const [empresaInfo, setEmpresaInfo] = useState<EmpresaInfo | null>(null);
@@ -984,6 +985,15 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
               }}>
                 <Pencil className="h-4 w-4 mr-2" />
                 Editar
+              </Button>
+            )}
+            {onDelete && (
+              <Button variant="outline" onClick={() => {
+                onDelete();
+                onOpenChange(false);
+              }} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
               </Button>
             )}
             <Button variant="outline" onClick={handleGeneratePDF}>

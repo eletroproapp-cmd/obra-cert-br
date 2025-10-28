@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ const Faturas = () => {
   const [selectedFatura, setSelectedFatura] = useState<string | null>(null);
   const [editingFaturaId, setEditingFaturaId] = useState<string | undefined>();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [deletingFaturaId, setDeletingFaturaId] = useState<string | null>(null);
   const { checkLimit, plan, refetch } = useSubscription();
 
   useEffect(() => {
@@ -87,6 +89,27 @@ const Faturas = () => {
       setEditingFaturaId(selectedFatura);
       setShowForm(true);
       setSelectedFatura(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingFaturaId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('faturas')
+        .delete()
+        .eq('id', deletingFaturaId);
+
+      if (error) throw error;
+
+      toast.success('Fatura excluída com sucesso!');
+      setDeletingFaturaId(null);
+      setSelectedFatura(null);
+      loadFaturas();
+      refetch();
+    } catch (error: any) {
+      toast.error('Erro ao excluir fatura: ' + error.message);
     }
   };
 
@@ -198,7 +221,26 @@ const Faturas = () => {
         open={!!selectedFatura}
         onOpenChange={(open) => !open && setSelectedFatura(null)}
         onEdit={handleEdit}
+        onDelete={() => setDeletingFaturaId(selectedFatura)}
       />
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={!!deletingFaturaId} onOpenChange={(open) => !open && setDeletingFaturaId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A fatura será permanentemente excluída.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PlanUpgradeDialog
         open={showUpgradeDialog}
