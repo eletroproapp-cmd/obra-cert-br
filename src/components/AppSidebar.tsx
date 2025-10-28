@@ -48,7 +48,7 @@ const menuItems = [
     ],
   },
   {
-    section: "DOCUMENTOS",
+    section: "",
     items: [
       { title: "Orçamentos", url: "/orcamentos", icon: FileText },
       { title: "Faturas", url: "/faturas", icon: Receipt },
@@ -56,7 +56,7 @@ const menuItems = [
     ],
   },
   {
-    section: "VENDAS",
+    section: "",
     items: [
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Catálogo", url: "/catalogo", icon: FolderOpen },
@@ -64,7 +64,7 @@ const menuItems = [
     ],
   },
   {
-    section: "COMPRAS",
+    section: "",
     items: [
       { title: "Fornecedores", url: "/fornecedores", icon: Building2 },
     ],
