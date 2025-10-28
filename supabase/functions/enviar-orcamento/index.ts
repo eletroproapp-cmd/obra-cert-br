@@ -166,11 +166,58 @@ const handler = async (req: Request): Promise<Response> => {
       `;
     }
 
+    // Buscar configuração de email da empresa
+    const { data: empresaConfig } = await supabaseClient
+      .from("empresas")
+      .select("email")
+      .eq("user_id", user.id)
+      .single();
+    
+    const fromEmail = empresaConfig?.email 
+      ? `${sanitize(empresa?.nome_fantasia || 'EletroPro')} <${empresaConfig.email}>`
+      : "EletroPro <onboarding@resend.dev>";
+
+    // Gerar token público para o orçamento
+    const token = crypto.randomUUID();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30); // 30 dias
+
+    const { error: tokenError } = await supabaseClient
+      .from("orcamento_tokens")
+      .insert({
+        orcamento_id: orcamentoId,
+        token: token,
+        expires_at: expiresAt.toISOString()
+      });
+
+    if (tokenError) {
+      console.error("Erro ao criar token:", tokenError);
+    }
+
+    // Gerar link público do orçamento  
+    const baseUrl = Deno.env.get("SUPABASE_URL")?.includes("supabase.co") 
+      ? "https://62540ff3-2df8-4ad5-a58c-0892f80772f9.lovableproject.com"
+      : "http://localhost:5173";
+    const orcamentoUrl = `${baseUrl}/publico/orcamento/${token}`;
+
+    // Adicionar link no email
+    const emailComLink = corpoHtml.replace(
+      '</div>',
+      `
+        <div style="margin: 30px 0; text-align: center;">
+          <a href="${orcamentoUrl}" 
+             style="display: inline-block; padding: 12px 30px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
+            Ver Orçamento Completo
+          </a>
+        </div>
+      </div>`
+    );
+
     const emailResponse = await resend.emails.send({
-      from: "EletroPro <onboarding@resend.dev>",
+      from: fromEmail,
       to: [clienteEmail],
       subject: assunto,
-      html: corpoHtml,
+      html: emailComLink,
     });
 
     console.log("Email enviado com sucesso:", emailResponse);
