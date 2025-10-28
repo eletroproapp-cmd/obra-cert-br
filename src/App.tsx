@@ -8,6 +8,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Orcamentos from "./pages/Orcamentos";
 import Faturas from "./pages/Faturas";
+import PublicoOrcamento from "./pages/PublicoOrcamento";
+import PublicoFatura from "./pages/PublicoFatura";
 import Catalogo from "./pages/Catalogo";
 import Instalacoes from "./pages/Instalacoes";
 import Clientes from "./pages/Clientes";
@@ -32,6 +34,8 @@ const App = () => (
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/publico/orcamento/:token" element={<PublicoOrcamento />} />
+        <Route path="/publico/fatura/:token" element={<PublicoFatura />} />
         
         {/* Dashboard Routes with Sidebar - Protected */}
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
