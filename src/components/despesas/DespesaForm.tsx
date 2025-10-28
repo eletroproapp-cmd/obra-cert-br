@@ -201,14 +201,13 @@ export function DespesaForm({ despesa, onSuccess, onCancel }: DespesaFormProps) 
       <div className="space-y-2">
         <Label htmlFor="projeto_id">Projeto (Opcional)</Label>
         <Select
-          value={watch("projeto_id")}
+          value={watch("projeto_id") || undefined}
           onValueChange={(value) => setValue("projeto_id", value)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Selecione um projeto" />
+            <SelectValue placeholder="Nenhum projeto selecionado" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Nenhum projeto</SelectItem>
             {projetos?.map((projeto) => (
               <SelectItem key={projeto.id} value={projeto.id}>
                 {projeto.nome}
@@ -216,6 +215,17 @@ export function DespesaForm({ despesa, onSuccess, onCancel }: DespesaFormProps) 
             ))}
           </SelectContent>
         </Select>
+        {watch("projeto_id") && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setValue("projeto_id", "")}
+            className="h-8 px-2 text-xs"
+          >
+            Limpar seleção
+          </Button>
+        )}
       </div>
 
       <div className="space-y-2">
