@@ -186,6 +186,7 @@ export type Database = {
           certificado_digital_arquivo: string | null
           certificado_digital_tipo: string | null
           certificado_digital_validade: string | null
+          chave_pix: string | null
           cidade: string | null
           cnpj: string | null
           cor_borda_linhas: string | null
@@ -241,6 +242,7 @@ export type Database = {
           certificado_digital_arquivo?: string | null
           certificado_digital_tipo?: string | null
           certificado_digital_validade?: string | null
+          chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
           cor_borda_linhas?: string | null
@@ -296,6 +298,7 @@ export type Database = {
           certificado_digital_arquivo?: string | null
           certificado_digital_tipo?: string | null
           certificado_digital_validade?: string | null
+          chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
           cor_borda_linhas?: string | null
@@ -1000,6 +1003,104 @@ export type Database = {
           },
         ]
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_rewards: {
+        Row: {
+          applied_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          referral_id: string
+          reward_type: string
+          reward_value: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          referral_id: string
+          reward_type?: string
+          reward_value?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          referral_id?: string
+          reward_type?: string
+          reward_value?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_granted: boolean | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_granted?: boolean | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+          reward_granted?: boolean | null
+          status?: string
+        }
+        Relationships: []
+      }
       servicos: {
         Row: {
           categoria: string
@@ -1321,6 +1422,7 @@ export type Database = {
       generate_fatura_numero: { Args: never; Returns: string }
       generate_material_codigo: { Args: never; Returns: string }
       generate_orcamento_numero: { Args: never; Returns: string }
+      generate_referral_code: { Args: never; Returns: string }
       generate_servico_codigo: { Args: never; Returns: string }
       get_my_roles: {
         Args: never
@@ -1336,6 +1438,10 @@ export type Database = {
       increment_usage: {
         Args: { _resource_type: string; _user_id: string }
         Returns: undefined
+      }
+      process_referral: {
+        Args: { p_referral_code: string; p_referred_user_id: string }
+        Returns: Json
       }
     }
     Enums: {
