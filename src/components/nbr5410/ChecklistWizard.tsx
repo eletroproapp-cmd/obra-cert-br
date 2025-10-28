@@ -297,11 +297,10 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Vincular a um orçamento" />
+                            <SelectValue placeholder="Vincular a um orçamento (opcional)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Nenhum</SelectItem>
                           {orcamentos.map((orc) => (
                             <SelectItem key={orc.id} value={orc.id}>
                               {orc.numero} - {orc.titulo}
