@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
+import { useEffect } from 'react';
 
 const fornecedorSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -22,35 +23,77 @@ const fornecedorSchema = z.object({
 
 type FornecedorFormData = z.infer<typeof fornecedorSchema>;
 
+interface Fornecedor {
+  id: string;
+  nome: string;
+  email: string | null;
+  telefone: string | null;
+  cnpj: string | null;
+  endereco: string | null;
+  cidade: string | null;
+  estado: string | null;
+  cep: string | null;
+  contato_nome: string | null;
+}
+
 interface FornecedorFormProps {
+  fornecedor?: Fornecedor | null;
   onSuccess?: () => void;
 }
 
-export const FornecedorForm = ({ onSuccess }: FornecedorFormProps) => {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FornecedorFormData>({
+export const FornecedorForm = ({ fornecedor, onSuccess }: FornecedorFormProps) => {
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FornecedorFormData>({
     resolver: zodResolver(fornecedorSchema),
   });
+
+  useEffect(() => {
+    if (fornecedor) {
+      reset({
+        nome: fornecedor.nome,
+        email: fornecedor.email || '',
+        telefone: fornecedor.telefone || '',
+        cnpj: fornecedor.cnpj || '',
+        endereco: fornecedor.endereco || '',
+        cidade: fornecedor.cidade || '',
+        estado: fornecedor.estado || '',
+        cep: fornecedor.cep || '',
+        contato_nome: fornecedor.contato_nome || '',
+      });
+    }
+  }, [fornecedor, reset]);
 
   const onSubmit = async (data: FornecedorFormData) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const payload = {
-        ...data,
-        user_id: user.id,
-      } as unknown as Database['public']['Tables']['fornecedores']['Insert'];
+      if (fornecedor) {
+        // Atualizar fornecedor existente
+        const { error } = await supabase
+          .from('fornecedores')
+          .update(data)
+          .eq('id', fornecedor.id);
 
-      const { error } = await supabase
-        .from('fornecedores')
-        .insert([payload]);
+        if (error) throw error;
+        toast.success('Fornecedor atualizado com sucesso!');
+      } else {
+        // Criar novo fornecedor
+        const payload = {
+          ...data,
+          user_id: user.id,
+        } as unknown as Database['public']['Tables']['fornecedores']['Insert'];
 
-      if (error) throw error;
+        const { error } = await supabase
+          .from('fornecedores')
+          .insert([payload]);
 
-      toast.success('Fornecedor cadastrado com sucesso!');
+        if (error) throw error;
+        toast.success('Fornecedor cadastrado com sucesso!');
+      }
+
       onSuccess?.();
     } catch (error: any) {
-      toast.error('Erro ao cadastrar fornecedor: ' + error.message);
+      toast.error(`Erro ao ${fornecedor ? 'atualizar' : 'cadastrar'} fornecedor: ` + error.message);
     }
   };
 
@@ -153,7 +196,7 @@ export const FornecedorForm = ({ onSuccess }: FornecedorFormProps) => {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isSubmitting} variant="hero">
-          {isSubmitting ? 'Salvando...' : 'Salvar Fornecedor'}
+          {isSubmitting ? 'Salvando...' : fornecedor ? 'Atualizar Fornecedor' : 'Salvar Fornecedor'}
         </Button>
       </div>
     </form>

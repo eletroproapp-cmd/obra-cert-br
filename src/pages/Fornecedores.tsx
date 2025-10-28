@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Building2, Phone, Mail, Package } from "lucide-react";
+import { Plus, Building2, Phone, Mail, Package, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FornecedorForm } from "@/components/fornecedores/FornecedorForm";
@@ -14,6 +14,10 @@ interface Fornecedor {
   email: string | null;
   telefone: string | null;
   cnpj: string | null;
+  endereco: string | null;
+  cidade: string | null;
+  estado: string | null;
+  cep: string | null;
   contato_nome: string | null;
 }
 
@@ -21,6 +25,7 @@ const Fornecedores = () => {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingFornecedor, setEditingFornecedor] = useState<Fornecedor | null>(null);
 
   useEffect(() => {
     loadFornecedores();
@@ -45,7 +50,18 @@ const Fornecedores = () => {
 
   const handleSuccess = () => {
     setShowForm(false);
+    setEditingFornecedor(null);
     loadFornecedores();
+  };
+
+  const handleEdit = (fornecedor: Fornecedor) => {
+    setEditingFornecedor(fornecedor);
+    setShowForm(true);
+  };
+
+  const handleNewFornecedor = () => {
+    setEditingFornecedor(null);
+    setShowForm(true);
   };
 
   if (loading) {
@@ -66,7 +82,7 @@ const Fornecedores = () => {
           <h1 className="text-3xl font-bold mb-2">Fornecedores</h1>
           <p className="text-muted-foreground">Gerencie seus fornecedores de materiais</p>
         </div>
-        <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
+        <Button variant="hero" size="lg" onClick={handleNewFornecedor}>
           <Plus className="mr-2 h-5 w-5" />
           Novo Fornecedor
         </Button>
@@ -75,7 +91,7 @@ const Fornecedores = () => {
       {fornecedores.length === 0 ? (
         <Card className="text-center p-12">
           <p className="text-muted-foreground mb-4">Nenhum fornecedor cadastrado ainda</p>
-          <Button variant="hero" onClick={() => setShowForm(true)}>
+          <Button variant="hero" onClick={handleNewFornecedor}>
             <Plus className="mr-2 h-4 w-4" />
             Cadastrar Primeiro Fornecedor
           </Button>
@@ -85,9 +101,19 @@ const Fornecedores = () => {
           {fornecedores.map((fornecedor) => (
             <Card key={fornecedor.id} className="border-border shadow-soft hover:shadow-medium transition-all">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <span className="text-lg">{fornecedor.nome}</span>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-primary" />
+                    <span className="text-lg">{fornecedor.nome}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(fornecedor)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -124,12 +150,15 @@ const Fornecedores = () => {
         </div>
       )}
 
-      <Dialog open={showForm} onOpenChange={setShowForm}>
+      <Dialog open={showForm} onOpenChange={(open) => {
+        setShowForm(open);
+        if (!open) setEditingFornecedor(null);
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Fornecedor</DialogTitle>
+            <DialogTitle>{editingFornecedor ? 'Editar Fornecedor' : 'Novo Fornecedor'}</DialogTitle>
           </DialogHeader>
-          <FornecedorForm onSuccess={handleSuccess} />
+          <FornecedorForm fornecedor={editingFornecedor} onSuccess={handleSuccess} />
         </DialogContent>
       </Dialog>
     </div>

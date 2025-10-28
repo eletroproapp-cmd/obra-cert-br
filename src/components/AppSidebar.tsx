@@ -66,15 +66,7 @@ const menuItems = [
   {
     section: "COMPRAS",
     items: [
-      { title: "Pedidos", url: "/pedidos", icon: ShoppingCart },
-      { title: "Faturas de Compra", url: "/faturas-compra", icon: Package },
       { title: "Fornecedores", url: "/fornecedores", icon: Building2 },
-    ],
-  },
-  {
-    section: "CONTABILIDADE",
-    items: [
-      { title: "Transações", url: "/transacoes", icon: CreditCard },
     ],
   },
 ];
@@ -83,7 +75,7 @@ const bottomItems = [
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
   { title: "Indicações", url: "/indicacoes", icon: UserPlus },
-  { title: "Ajuda", url: "/ajuda", icon: HelpCircle },
+  { title: "Ajuda & Suporte", url: "https://docs.lovable.dev", icon: HelpCircle, external: true },
 ];
 
 export function AppSidebar() {
@@ -155,12 +147,21 @@ export function AppSidebar() {
                 {bottomItemsWithAdmin.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActivePath(item.url)} className="h-auto p-0">
-                      <NavLink to={item.url} end>
-                        <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg">
-                          <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
-                          {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
-                        </div>
-                      </NavLink>
+                      {'external' in item && item.external ? (
+                        <a href={item.url} target="_blank" rel="noopener noreferrer">
+                          <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg">
+                            <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
+                            {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
+                          </div>
+                        </a>
+                      ) : (
+                        <NavLink to={item.url} end>
+                          <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg">
+                            <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
+                            {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
+                          </div>
+                        </NavLink>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
