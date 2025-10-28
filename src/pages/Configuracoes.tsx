@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown, Palette, Upload, Eye, EyeOff, Gift } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
@@ -290,13 +291,22 @@ const Configuracoes = () => {
                             <Label htmlFor="nome_fantasia">
                               {formData.tipo_pessoa === 'fisica' ? 'Nome Completo *' : 'Nome Fantasia *'}
                             </Label>
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                checked={formData.mostrar_nome_fantasia !== false}
-                                onCheckedChange={(checked) => setValue('mostrar_nome_fantasia', checked)}
-                              />
-                              {formData.mostrar_nome_fantasia !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                            </div>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center gap-2">
+                                    <Switch
+                                      checked={formData.mostrar_nome_fantasia !== false}
+                                      onCheckedChange={(checked) => setValue('mostrar_nome_fantasia', checked)}
+                                    />
+                                    {formData.mostrar_nome_fantasia !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Mostrar/ocultar nos documentos</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                           <Input 
                             id="nome_fantasia" 
@@ -317,13 +327,22 @@ const Configuracoes = () => {
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <Label htmlFor="razao_social">Razão Social</Label>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={formData.mostrar_razao_social !== false}
-                                  onCheckedChange={(checked) => setValue('mostrar_razao_social', checked)}
-                                />
-                                {formData.mostrar_razao_social !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                              </div>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-2">
+                                      <Switch
+                                        checked={formData.mostrar_razao_social !== false}
+                                        onCheckedChange={(checked) => setValue('mostrar_razao_social', checked)}
+                                      />
+                                      {formData.mostrar_razao_social !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Mostrar/ocultar nos documentos</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                             <Input id="razao_social" {...register('razao_social')} />
                           </div>
@@ -334,13 +353,22 @@ const Configuracoes = () => {
                             <Label htmlFor="cnpj">
                               {formData.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'}
                             </Label>
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                checked={formData.mostrar_cnpj !== false}
-                                onCheckedChange={(checked) => setValue('mostrar_cnpj', checked)}
-                              />
-                              {formData.mostrar_cnpj !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                            </div>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center gap-2">
+                                    <Switch
+                                      checked={formData.mostrar_cnpj !== false}
+                                      onCheckedChange={(checked) => setValue('mostrar_cnpj', checked)}
+                                    />
+                                    {formData.mostrar_cnpj !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Mostrar/ocultar nos documentos</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                           <Input 
                             id="cnpj" 
@@ -357,13 +385,22 @@ const Configuracoes = () => {
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <Label htmlFor="regime_tributario">Regime Tributário</Label>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={formData.mostrar_regime_tributario !== false}
-                                  onCheckedChange={(checked) => setValue('mostrar_regime_tributario', checked)}
-                                />
-                                {formData.mostrar_regime_tributario !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                              </div>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-2">
+                                      <Switch
+                                        checked={formData.mostrar_regime_tributario !== false}
+                                        onCheckedChange={(checked) => setValue('mostrar_regime_tributario', checked)}
+                                      />
+                                      {formData.mostrar_regime_tributario !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Mostrar/ocultar nos documentos</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                             <Select defaultValue="Simples Nacional" onValueChange={(value) => setValue('regime_tributario', value)}>
                               <SelectTrigger>
@@ -384,24 +421,44 @@ const Configuracoes = () => {
                             <div className="space-y-2">
                               <div className="flex items-center justify-between">
                                 <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
-                                <div className="flex items-center gap-2">
-                                  <Switch
-                                    checked={formData.mostrar_inscricao_estadual !== false}
-                                    onCheckedChange={(checked) => setValue('mostrar_inscricao_estadual', checked)}
-                                  />
-                                </div>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="flex items-center gap-2">
+                                        <Switch
+                                          checked={formData.mostrar_inscricao_estadual !== false}
+                                          onCheckedChange={(checked) => setValue('mostrar_inscricao_estadual', checked)}
+                                        />
+                                        {formData.mostrar_inscricao_estadual !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Mostrar/ocultar nos documentos</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               </div>
                               <Input id="inscricao_estadual" {...register('inscricao_estadual')} />
                             </div>
                             <div className="space-y-2">
                               <div className="flex items-center justify-between">
                                 <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
-                                <div className="flex items-center gap-2">
-                                  <Switch
-                                    checked={formData.mostrar_inscricao_municipal !== false}
-                                    onCheckedChange={(checked) => setValue('mostrar_inscricao_municipal', checked)}
-                                  />
-                                </div>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <div className="flex items-center gap-2">
+                                        <Switch
+                                          checked={formData.mostrar_inscricao_municipal !== false}
+                                          onCheckedChange={(checked) => setValue('mostrar_inscricao_municipal', checked)}
+                                        />
+                                        {formData.mostrar_inscricao_municipal !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Mostrar/ocultar nos documentos</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               </div>
                               <Input id="inscricao_municipal" {...register('inscricao_municipal')} />
                             </div>
@@ -419,13 +476,22 @@ const Configuracoes = () => {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label htmlFor="endereco">Endereço</Label>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={formData.mostrar_endereco !== false}
-                              onCheckedChange={(checked) => setValue('mostrar_endereco', checked)}
-                            />
-                            {formData.mostrar_endereco !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={formData.mostrar_endereco !== false}
+                                    onCheckedChange={(checked) => setValue('mostrar_endereco', checked)}
+                                  />
+                                  {formData.mostrar_endereco !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Mostrar/ocultar nos documentos</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                         <Input id="endereco" {...register('endereco')} />
                       </div>
@@ -446,39 +512,66 @@ const Configuracoes = () => {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label htmlFor="telefone">Telefone</Label>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={formData.mostrar_telefone !== false}
-                              onCheckedChange={(checked) => setValue('mostrar_telefone', checked)}
-                            />
-                            {formData.mostrar_telefone !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={formData.mostrar_telefone !== false}
+                                    onCheckedChange={(checked) => setValue('mostrar_telefone', checked)}
+                                  />
+                                  {formData.mostrar_telefone !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Mostrar/ocultar nos documentos</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                         <Input id="telefone" {...register('telefone')} placeholder="(00) 00000-0000" />
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label htmlFor="email">E-mail</Label>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={formData.mostrar_email !== false}
-                              onCheckedChange={(checked) => setValue('mostrar_email', checked)}
-                            />
-                            {formData.mostrar_email !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={formData.mostrar_email !== false}
+                                    onCheckedChange={(checked) => setValue('mostrar_email', checked)}
+                                  />
+                                  {formData.mostrar_email !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Mostrar/ocultar nos documentos</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                         <Input id="email" type="email" {...register('email')} />
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label htmlFor="website">Website</Label>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={formData.mostrar_website !== false}
-                              onCheckedChange={(checked) => setValue('mostrar_website', checked)}
-                            />
-                            {formData.mostrar_website !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          </div>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={formData.mostrar_website !== false}
+                                    onCheckedChange={(checked) => setValue('mostrar_website', checked)}
+                                  />
+                                  {formData.mostrar_website !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Mostrar/ocultar nos documentos</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                         <Input id="website" {...register('website')} placeholder="https://..." />
                       </div>
