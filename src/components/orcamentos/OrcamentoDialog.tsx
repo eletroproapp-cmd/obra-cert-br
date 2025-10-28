@@ -9,11 +9,10 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { FileText, Send, Loader2, Pencil, QrCode, Copy } from 'lucide-react';
+import { FileText, Send, Loader2, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import QRCode from 'qrcode';
 
 interface OrcamentoDialogProps {
   orcamentoId: string | null;
@@ -80,9 +79,6 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [convertendo, setConvertendo] = useState(false);
-  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
-  const [publicUrl, setPublicUrl] = useState<string | null>(null);
-  const [gerandoQR, setGerandoQR] = useState(false);
 
   useEffect(() => {
     if (orcamentoId && open) {
@@ -736,65 +732,6 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
     }
   };
 
-  const handleGenerateQRCode = async () => {
-    if (!orcamentoId) return;
-
-    setGerandoQR(true);
-    try {
-      // Verificar se já existe token
-      const { data: existingToken } = await supabase
-        .from('orcamento_tokens')
-        .select('token')
-        .eq('orcamento_id', orcamentoId)
-        .single();
-
-      let token = existingToken?.token;
-
-      // Se não existe, criar novo token
-      if (!token) {
-        const { data: newToken, error: tokenError } = await supabase
-          .from('orcamento_tokens')
-          .insert({
-            orcamento_id: orcamentoId,
-            token: Math.random().toString(36).substring(2) + Date.now().toString(36),
-          })
-          .select('token')
-          .single();
-
-        if (tokenError) throw tokenError;
-        token = newToken.token;
-      }
-
-      // Gerar URL pública
-      const baseUrl = window.location.origin;
-      const url = `${baseUrl}/publico/orcamento/${token}`;
-      setPublicUrl(url);
-
-      // Gerar QR code
-      const qrDataUrl = await QRCode.toDataURL(url, {
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff',
-        },
-      });
-
-      setQrCodeUrl(qrDataUrl);
-      toast.success('QR Code gerado com sucesso!');
-    } catch (error: any) {
-      toast.error('Erro ao gerar QR Code: ' + error.message);
-    } finally {
-      setGerandoQR(false);
-    }
-  };
-
-  const handleCopyUrl = () => {
-    if (publicUrl) {
-      navigator.clipboard.writeText(publicUrl);
-      toast.success('Link copiado!');
-    }
-  };
 
   if (loading) {
     return (
@@ -1038,32 +975,6 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
             </div>
           )}
 
-          {/* QR Code para visualização pública */}
-          {qrCodeUrl && publicUrl && (
-            <div className="border rounded-lg p-4 bg-secondary/20">
-              <h3 className="font-semibold mb-3">Visualização Pública com Assinatura Digital</h3>
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 border rounded-lg bg-white p-2" />
-                <div className="flex-1 space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    Escaneie o QR Code ou compartilhe o link abaixo. O cliente poderá visualizar e assinar digitalmente o orçamento.
-                  </p>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={publicUrl}
-                      readOnly
-                      className="flex-1 px-3 py-2 text-sm border rounded-md bg-background"
-                    />
-                    <Button size="sm" variant="outline" onClick={handleCopyUrl}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Ações */}
           <div className="flex flex-wrap gap-3 justify-end pt-4 border-t">
             {onEdit && (
@@ -1075,10 +986,6 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
                 Editar
               </Button>
             )}
-            <Button variant="outline" onClick={handleGenerateQRCode} disabled={gerandoQR}>
-              <QrCode className="h-4 w-4 mr-2" />
-              {gerandoQR ? 'Gerando...' : qrCodeUrl ? 'Atualizar QR Code' : 'Gerar QR Code'}
-            </Button>
             <Button variant="outline" onClick={handleGeneratePDF}>
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF

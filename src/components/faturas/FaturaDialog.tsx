@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Send, Loader2, Pencil, Receipt, Download, CheckCircle, AlertCircle, QrCode, Copy } from 'lucide-react';
+import { FileText, Send, Loader2, Pencil, Receipt, Download, CheckCircle, AlertCircle } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
@@ -82,9 +82,6 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
   const [loading, setLoading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emitindoNFe, setEmitindoNFe] = useState(false);
-  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
-  const [publicUrl, setPublicUrl] = useState<string | null>(null);
-  const [gerandoQR, setGerandoQR] = useState(false);
 
   useEffect(() => {
     if (faturaId && open) {
@@ -211,65 +208,6 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
     }
   };
 
-  const handleGenerateQRCode = async () => {
-    if (!faturaId) return;
-
-    setGerandoQR(true);
-    try {
-      // Verificar se já existe token
-      const { data: existingToken } = await supabase
-        .from('fatura_tokens')
-        .select('token')
-        .eq('fatura_id', faturaId)
-        .single();
-
-      let token = existingToken?.token;
-
-      // Se não existe, criar novo token
-      if (!token) {
-        const { data: newToken, error: tokenError } = await supabase
-          .from('fatura_tokens')
-          .insert({
-            fatura_id: faturaId,
-            token: Math.random().toString(36).substring(2) + Date.now().toString(36),
-          })
-          .select('token')
-          .single();
-
-        if (tokenError) throw tokenError;
-        token = newToken.token;
-      }
-
-      // Gerar URL pública
-      const baseUrl = window.location.origin;
-      const url = `${baseUrl}/publico/fatura/${token}`;
-      setPublicUrl(url);
-
-      // Gerar QR code
-      const qrDataUrl = await QRCode.toDataURL(url, {
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff',
-        },
-      });
-
-      setQrCodeUrl(qrDataUrl);
-      toast.success('QR Code gerado com sucesso!');
-    } catch (error: any) {
-      toast.error('Erro ao gerar QR Code: ' + error.message);
-    } finally {
-      setGerandoQR(false);
-    }
-  };
-
-  const handleCopyUrl = () => {
-    if (publicUrl) {
-      navigator.clipboard.writeText(publicUrl);
-      toast.success('Link copiado!');
-    }
-  };
 
   // Utilidades de cor
   const hexToRgb = (hex: string) => {
@@ -982,32 +920,6 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
             </div>
           </div>
 
-          {/* QR Code para visualização pública */}
-          {qrCodeUrl && publicUrl && (
-            <div className="border rounded-lg p-4 bg-secondary/20">
-              <h3 className="font-semibold mb-3">Visualização Pública</h3>
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 border rounded-lg bg-white p-2" />
-                <div className="flex-1 space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    Escaneie o QR Code ou compartilhe o link abaixo para permitir visualização pública desta fatura
-                  </p>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={publicUrl}
-                      readOnly
-                      className="flex-1 px-3 py-2 text-sm border rounded-md bg-background"
-                    />
-                    <Button size="sm" variant="outline" onClick={handleCopyUrl}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Ações */}
           <div className="flex gap-3 justify-end pt-4 border-t flex-wrap">
             {onEdit && (
@@ -1019,10 +931,6 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
                 Editar
               </Button>
             )}
-            <Button variant="outline" onClick={handleGenerateQRCode} disabled={gerandoQR}>
-              <QrCode className="h-4 w-4 mr-2" />
-              {gerandoQR ? 'Gerando...' : qrCodeUrl ? 'Atualizar QR Code' : 'Gerar QR Code'}
-            </Button>
             <Button variant="outline" onClick={handleGeneratePDF}>
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
