@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown, Palette, Upload, Eye, EyeOff } from "lucide-react";
+import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown, Palette, Upload, Eye, EyeOff, Gift } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { validarCNPJ, formatarCNPJ, formatarCPFouCNPJ } from "@/utils/validators";
 import { PlansTab } from "@/components/subscription/PlansTab";
+import { ReferralSection } from "@/components/configuracoes/ReferralSection";
 import { useSearchParams } from "react-router-dom";
 
 interface EmpresaData {
@@ -32,6 +33,7 @@ interface EmpresaData {
   telefone: string;
   email: string;
   website: string;
+  chave_pix: string;
   logo_url: string;
   logo_position: string;
   slogan: string;
@@ -176,7 +178,7 @@ const Configuracoes = () => {
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
             <TabsTrigger value="empresa">
               <Building2 className="mr-2 h-4 w-4" />
               Minha Empresa
@@ -184,6 +186,10 @@ const Configuracoes = () => {
             <TabsTrigger value="plano">
               <Crown className="mr-2 h-4 w-4" />
               Plano
+            </TabsTrigger>
+            <TabsTrigger value="indicacoes">
+              <Gift className="mr-2 h-4 w-4" />
+              Indicações
             </TabsTrigger>
             <TabsTrigger value="financeiro">
               <DollarSign className="mr-2 h-4 w-4" />
@@ -201,6 +207,10 @@ const Configuracoes = () => {
 
           <TabsContent value="plano">
             <PlansTab />
+          </TabsContent>
+
+          <TabsContent value="indicacoes">
+            <ReferralSection />
           </TabsContent>
 
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -471,6 +481,17 @@ const Configuracoes = () => {
                           </div>
                         </div>
                         <Input id="website" {...register('website')} placeholder="https://..." />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="chave_pix">Chave PIX (para QR Code em faturas)</Label>
+                        <Input 
+                          id="chave_pix" 
+                          {...register('chave_pix')} 
+                          placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória" 
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          A chave PIX será usada para gerar o QR Code de pagamento nas faturas
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
