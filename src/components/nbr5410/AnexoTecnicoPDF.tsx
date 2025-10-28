@@ -25,6 +25,13 @@ interface Checklist {
   premissas_tecnicas: string | null;
   created_at: string;
   orcamento_id: string | null;
+  orcamentos?: {
+    numero: string;
+    titulo: string;
+    clientes?: {
+      nome: string;
+    } | null;
+  } | null;
 }
 
 export function AnexoTecnicoPDF() {
@@ -42,7 +49,16 @@ export function AnexoTecnicoPDF() {
     try {
       const { data, error } = await supabase
         .from("nbr5410_checklists")
-        .select("*")
+        .select(`
+          *,
+          orcamentos (
+            numero,
+            titulo,
+            clientes (
+              nome
+            )
+          )
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -469,12 +485,21 @@ Todos os materiais especificados devem atender às normas brasileiras aplicávei
               <SelectValue placeholder="Escolha um checklist existente" />
             </SelectTrigger>
             <SelectContent>
-              {checklists.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.tipo_imovel} - {new Date(c.created_at).toLocaleDateString("pt-BR")}
-                  {c.area_total ? ` - ${c.area_total}m²` : ""}
-                </SelectItem>
-              ))}
+              {checklists.map((c) => {
+                const clienteNome = c.orcamentos?.clientes?.nome;
+                const orcamentoNumero = c.orcamentos?.numero;
+                const label = [
+                  c.tipo_imovel,
+                  new Date(c.created_at).toLocaleDateString("pt-BR"),
+                  clienteNome || orcamentoNumero || (c.area_total ? `${c.area_total}m²` : "")
+                ].filter(Boolean).join(" - ");
+                
+                return (
+                  <SelectItem key={c.id} value={c.id}>
+                    {label}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
