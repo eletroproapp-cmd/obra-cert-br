@@ -496,8 +496,8 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
       doc.setFontSize(14);
       doc.text('R$ ' + fatura.valor_total.toFixed(2), totalX + totalW - 4, y + 10.5, { align: 'right' });
 
-      // PIX QR Code (se houver chave)
-      let pixY = y;
+      // PIX QR Code (se houver chave) - posicionado abaixo do total
+      const pixY = y + totalH + 12; // Adiciona espaço após o total
       if (empresaInfo.chave_pix) {
         const payload = buildPixPayload({
           chave: empresaInfo.chave_pix,
@@ -511,7 +511,6 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
 
         const boxW = 90, boxH = 90;
         const boxX = margin;
-        pixY += 0;
         doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
         doc.roundedRect(boxX, pixY, boxW, boxH, 3, 3);
         doc.setFont('helvetica', 'bold');
@@ -520,8 +519,8 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
         doc.text('Pague com PIX', boxX + 4, pixY + 6);
         doc.addImage(dataUrl, 'PNG', boxX + 8, pixY + 10, 74, 74);
 
-        // Copia e cola
-        const copy = doc.splitTextToSize(payload, 120);
+        // Copia e cola - posicionado ao lado do QR code
+        const copy = doc.splitTextToSize(payload, 100); // Reduzido para 100 para evitar sobreposição
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
         doc.setTextColor(90, 90, 90);
@@ -531,7 +530,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(8);
         doc.setTextColor(110, 110, 110);
-        doc.text('Configure sua chave PIX em Configurações para exibir o QR Code.', margin, y + 20);
+        doc.text('Configure sua chave PIX em Configurações para exibir o QR Code.', margin, pixY);
       }
 
       // Rodapé

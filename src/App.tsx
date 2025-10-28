@@ -21,6 +21,7 @@ import Timesheets from "./pages/Timesheets";
 import Projetos from "./pages/Projetos";
 import Admin from "./pages/Admin";
 import EmailTemplates from "./pages/EmailTemplates";
+import Indicacoes from "./pages/Indicacoes";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -49,6 +50,7 @@ const App = () => (
         <Route path="/timesheets" element={<ProtectedRoute><Timesheets /></ProtectedRoute>} />
         <Route path="/projetos" element={<ProtectedRoute><Projetos /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+        <Route path="/indicacoes" element={<ProtectedRoute><Indicacoes /></ProtectedRoute>} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
