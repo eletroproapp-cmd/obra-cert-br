@@ -509,7 +509,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
         });
         const dataUrl = await QRCode.toDataURL(payload, { errorCorrectionLevel: 'M', width: 180 });
 
-        const boxW = 90, boxH = 90;
+        const boxW = 70, boxH = 70;
         const boxX = margin;
         doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
         doc.roundedRect(boxX, pixY, boxW, boxH, 3, 3);
@@ -517,7 +517,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
         doc.setFontSize(10);
         doc.setTextColor(0, 0, 0);
         doc.text('Pague com PIX', boxX + 4, pixY + 6);
-        doc.addImage(dataUrl, 'PNG', boxX + 8, pixY + 10, 74, 74);
+        doc.addImage(dataUrl, 'PNG', boxX + 6, pixY + 10, 58, 58);
 
         // Copia e cola - posicionado ao lado do QR code
         const copy = doc.splitTextToSize(payload, 100); // Reduzido para 100 para evitar sobreposição
