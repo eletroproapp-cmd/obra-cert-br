@@ -105,30 +105,38 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const items = fatura.fatura_items
-      .map((item: any, index: number) => `
+      .map((item: any, index: number) => {
+        const descricao = sanitize(item.descricao || '');
+        const quantidade = sanitize(String(item.quantidade || 0));
+        const unidade = sanitize(item.unidade || 'un');
+        const valorUnit = Number(item.valor_unitario || 0).toFixed(2);
+        const valorTotal = Number(item.valor_total || 0).toFixed(2);
+        
+        return `
         <tr>
           <td style="padding: 8px; border-bottom: 1px solid #ddd;">${index + 1}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${sanitize(item.descricao)}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${sanitize(String(item.quantidade))}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${sanitize(item.unidade || 'un')}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${Number(item.valor_unitario).toFixed(2)}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${Number(item.valor_total).toFixed(2)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${descricao}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${quantidade}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${unidade}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${valorUnit}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${valorTotal}</td>
         </tr>
-      `)
+      `;
+      })
       .join("");
 
     const emailResponse = await resend.emails.send({
       from: "EletroPro <onboarding@resend.dev>",
       to: [clienteEmail],
-      subject: `Fatura ${sanitize(fatura.numero)} - ${sanitize(fatura.titulo)}`,
+      subject: `Fatura ${sanitize(fatura.numero || '')} - ${sanitize(fatura.titulo || '')}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-          <h1 style="color: #333;">Fatura ${sanitize(fatura.numero)}</h1>
-          <h2 style="color: #666;">${sanitize(fatura.titulo)}</h2>
+          <h1 style="color: #333;">Fatura ${sanitize(fatura.numero || '')}</h1>
+          <h2 style="color: #666;">${sanitize(fatura.titulo || '')}</h2>
           
           <div style="margin: 20px 0;">
-            <p><strong>Cliente:</strong> ${sanitize(fatura.clientes.nome)}</p>
-            <p><strong>Status:</strong> ${sanitize(fatura.status)}</p>
+            <p><strong>Cliente:</strong> ${sanitize(fatura.clientes?.nome || '')}</p>
+            <p><strong>Status:</strong> ${sanitize(fatura.status || '')}</p>
             <p><strong>Vencimento:</strong> ${new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}</p>
             ${fatura.forma_pagamento ? `<p><strong>Forma de Pagamento:</strong> ${sanitize(fatura.forma_pagamento)}</p>` : ''}
             ${fatura.descricao ? `<p><strong>Descrição:</strong> ${sanitize(fatura.descricao)}</p>` : ''}
@@ -158,7 +166,7 @@ const handler = async (req: Request): Promise<Response> => {
           ${fatura.observacoes ? `
             <div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #333;">
               <strong>Observações:</strong>
-              <p>${sanitize(fatura.observacoes)}</p>
+              <p>${sanitize(fatura.observacoes || '')}</p>
             </div>
           ` : ''}
 
