@@ -67,7 +67,7 @@ const Dashboard = () => {
       // Carregar faturas (filtradas por data de pagamento para receitas)
       const { data: faturas } = await supabase
         .from('faturas')
-        .select('valor_total, status, data_pagamento')
+        .select('valor_total, status, data_pagamento, data_vencimento')
         .eq('user_id', user.id);
 
       // Carregar despesas (filtradas por data)
@@ -95,9 +95,14 @@ const Dashboard = () => {
       const fimDate = new Date(dataFim);
       
       const totalReceitas = faturas?.filter(f => {
-        if (f.status !== 'Pago' || !f.data_pagamento) return false;
-        const pagamentoDate = new Date(f.data_pagamento);
-        return pagamentoDate >= inicioDate && pagamentoDate <= fimDate;
+        if (f.status !== 'Pago') return false;
+        
+        // Se tem data de pagamento, usa ela; senão, usa data de vencimento
+        const dataParaFiltro = f.data_pagamento || f.data_vencimento;
+        if (!dataParaFiltro) return false;
+        
+        const dataFatura = new Date(dataParaFiltro);
+        return dataFatura >= inicioDate && dataFatura <= fimDate;
       }).reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
 
       // Calcular despesas
