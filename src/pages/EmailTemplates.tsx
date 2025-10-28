@@ -144,19 +144,19 @@ export default function EmailTemplates() {
     
     return {
       nome: tipoLabel,
-      assunto: `${tipoLabel} {{numero}}`,
-      corpo_html: `<p>Bonjour <strong>{{cliente_nome}}</strong>,</p>
+      assunto: `Seu Orçamento {{numero}}`,
+      corpo_html: `<p>Olá, <strong>{{cliente_nome}}</strong>,</p>
 
-<p>Nous vous remercions d'avoir fait appel à notre société.</p>
+<p>Obrigado por entrar em contato com nossa empresa.</p>
 
-<p>Votre devis n° <strong>{{numero}}</strong> peut être consulté ou téléchargé directement en ligne :</p>
+<p>Seu orçamento n° <strong>{{numero}}</strong> pode ser consultado ou baixado diretamente online:</p>
 
 <div style="text-align: center; margin: 30px 0;">
-  <a href="{{link_documento}}" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Lien de consultation du document</a>
+  <a href="{{link_documento}}" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Link de consulta do documento</a>
 </div>
 
 <div style="margin: 40px 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-  <p style="color: #6b7280; font-style: italic;">Signature de l'email</p>
+  <p style="color: #6b7280; font-style: italic;">Assinatura do email</p>
 </div>`,
     };
   };
