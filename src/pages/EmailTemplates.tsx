@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,10 +6,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Mail, Save, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  Mail, 
+  Save, 
+  Bold, 
+  Italic, 
+  Underline,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Link,
+  FileText,
+  X
+} from 'lucide-react';
 
 interface EmailTemplate {
   id: string;
@@ -29,52 +44,71 @@ const tiposTemplate = [
   { value: 'fatura_liquidada', label: 'Fatura Liquidada' },
 ];
 
-const variaveisPorTipo: Record<string, string[]> = {
-  novo_orcamento: ['numero', 'titulo', 'cliente_nome', 'status', 'validade_dias', 'descricao', 'tabela_itens', 'valor_total', 'observacoes'],
-  reenvio_orcamento: ['numero', 'titulo', 'cliente_nome', 'status', 'validade_dias', 'descricao', 'tabela_itens', 'valor_total', 'observacoes'],
-  nova_fatura: ['numero', 'titulo', 'cliente_nome', 'status', 'data_vencimento', 'forma_pagamento', 'descricao', 'tabela_itens', 'valor_total', 'observacoes'],
-  reenvio_fatura: ['numero', 'titulo', 'cliente_nome', 'status', 'data_vencimento', 'forma_pagamento', 'descricao', 'tabela_itens', 'valor_total', 'observacoes'],
-  fatura_liquidada: ['numero', 'titulo', 'cliente_nome', 'data_pagamento', 'valor_total', 'forma_pagamento'],
+const variaveisPorTipo: Record<string, Array<{nome: string, descricao: string}>> = {
+  novo_orcamento: [
+    { nome: 'numero', descricao: 'Nº do documento' },
+    { nome: 'titulo', descricao: 'Título' },
+    { nome: 'cliente_nome', descricao: 'Prénom du client' },
+    { nome: 'status', descricao: 'Status' },
+    { nome: 'validade_dias', descricao: 'Validade (dias)' },
+    { nome: 'valor_total', descricao: 'Valor total' },
+    { nome: 'link_documento', descricao: 'Link de consulta' },
+  ],
+  reenvio_orcamento: [
+    { nome: 'numero', descricao: 'Nº do documento' },
+    { nome: 'titulo', descricao: 'Título' },
+    { nome: 'cliente_nome', descricao: 'Prénom du client' },
+    { nome: 'status', descricao: 'Status' },
+    { nome: 'validade_dias', descricao: 'Validade (dias)' },
+    { nome: 'valor_total', descricao: 'Valor total' },
+    { nome: 'link_documento', descricao: 'Link de consulta' },
+  ],
+  nova_fatura: [
+    { nome: 'numero', descricao: 'Nº do documento' },
+    { nome: 'titulo', descricao: 'Título' },
+    { nome: 'cliente_nome', descricao: 'Prénom du client' },
+    { nome: 'status', descricao: 'Status' },
+    { nome: 'data_vencimento', descricao: 'Data vencimento' },
+    { nome: 'forma_pagamento', descricao: 'Forma pagamento' },
+    { nome: 'valor_total', descricao: 'Valor total' },
+    { nome: 'link_documento', descricao: 'Link de consulta' },
+  ],
+  reenvio_fatura: [
+    { nome: 'numero', descricao: 'Nº do documento' },
+    { nome: 'titulo', descricao: 'Título' },
+    { nome: 'cliente_nome', descricao: 'Prénom du client' },
+    { nome: 'status', descricao: 'Status' },
+    { nome: 'data_vencimento', descricao: 'Data vencimento' },
+    { nome: 'valor_total', descricao: 'Valor total' },
+    { nome: 'link_documento', descricao: 'Link de consulta' },
+  ],
+  fatura_liquidada: [
+    { nome: 'numero', descricao: 'Nº do documento' },
+    { nome: 'cliente_nome', descricao: 'Prénom du client' },
+    { nome: 'data_pagamento', descricao: 'Data pagamento' },
+    { nome: 'valor_total', descricao: 'Valor total' },
+    { nome: 'forma_pagamento', descricao: 'Forma pagamento' },
+  ],
 };
 
 export default function EmailTemplates() {
-  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [selectedTipo, setSelectedTipo] = useState<string>('novo_orcamento');
   const [currentTemplate, setCurrentTemplate] = useState<Partial<EmailTemplate>>({
     nome: '',
     assunto: '',
     corpo_html: '',
   });
+  const [anexarPDF, setAnexarPDF] = useState(true);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    loadTemplates();
-  }, []);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const assuntoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (selectedTipo) {
       loadTemplateByTipo(selectedTipo);
     }
   }, [selectedTipo]);
-
-  const loadTemplates = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('email_templates')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      setTemplates(data || []);
-    } catch (error: any) {
-      console.error('Erro ao carregar templates:', error);
-      toast.error('Erro ao carregar templates');
-    }
-  };
 
   const loadTemplateByTipo = async (tipo: string) => {
     setLoading(true);
@@ -87,14 +121,13 @@ export default function EmailTemplates() {
         .select('*')
         .eq('user_id', user.id)
         .eq('tipo', tipo)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
         setCurrentTemplate(data);
       } else {
-        // Criar template padrão se não existir
         const defaultTemplate = getDefaultTemplate(tipo);
         setCurrentTemplate(defaultTemplate);
       }
@@ -107,109 +140,76 @@ export default function EmailTemplates() {
   };
 
   const getDefaultTemplate = (tipo: string): Partial<EmailTemplate> => {
-    const templates: Record<string, any> = {
-      novo_orcamento: {
-        nome: 'Novo Orçamento',
-        assunto: 'Orçamento {{numero}} - {{titulo}}',
-        corpo_html: `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-  <h1 style="color: #333;">Orçamento {{numero}}</h1>
-  <h2 style="color: #666;">{{titulo}}</h2>
-  <div style="margin: 20px 0;">
-    <p><strong>Cliente:</strong> {{cliente_nome}}</p>
-    <p><strong>Status:</strong> {{status}}</p>
-    <p><strong>Validade:</strong> {{validade_dias}} dias</p>
-    <p><strong>Descrição:</strong> {{descricao}}</p>
-  </div>
-  <h3>Itens do Orçamento:</h3>
-  {{tabela_itens}}
-  <div style="text-align: right; margin: 20px 0;">
-    <h2 style="color: #333;">Total: R$ {{valor_total}}</h2>
-  </div>
-  <div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #333;">
-    <strong>Observações:</strong>
-    <p>{{observacoes}}</p>
-  </div>
-  <p style="color: #666; font-size: 12px; margin-top: 40px;">
-    Este é um e-mail automático. Para mais informações, entre em contato conosco.
-  </p>
-</div>`,
-      },
-      reenvio_orcamento: {
-        nome: 'Reenvio de Orçamento',
-        assunto: 'Lembrete: Orçamento {{numero}} - {{titulo}}',
-        corpo_html: `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-  <h1 style="color: #333;">Lembrete: Orçamento {{numero}}</h1>
-  <p>Prezado(a) {{cliente_nome}},</p>
-  <p>Gostaríamos de saber se você teve a oportunidade de analisar nosso orçamento.</p>
-  <h2 style="color: #666;">{{titulo}}</h2>
-  <div style="margin: 20px 0;">
-    <p><strong>Status:</strong> {{status}}</p>
-    <p><strong>Validade:</strong> {{validade_dias}} dias</p>
-  </div>
-  {{tabela_itens}}
-  <div style="text-align: right; margin: 20px 0;">
-    <h2 style="color: #333;">Total: R$ {{valor_total}}</h2>
-  </div>
-  <p style="margin-top: 20px;">Estamos à disposição para esclarecer qualquer dúvida.</p>
-</div>`,
-      },
-      nova_fatura: {
-        nome: 'Nova Fatura',
-        assunto: 'Fatura {{numero}} - {{titulo}}',
-        corpo_html: `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-  <h1 style="color: #333;">Fatura {{numero}}</h1>
-  <h2 style="color: #666;">{{titulo}}</h2>
-  <div style="margin: 20px 0;">
-    <p><strong>Cliente:</strong> {{cliente_nome}}</p>
-    <p><strong>Status:</strong> {{status}}</p>
-    <p><strong>Vencimento:</strong> {{data_vencimento}}</p>
-    <p><strong>Forma de Pagamento:</strong> {{forma_pagamento}}</p>
-  </div>
-  {{tabela_itens}}
-  <div style="text-align: right; margin: 20px 0;">
-    <h2 style="color: #333;">Total: R$ {{valor_total}}</h2>
-  </div>
-  <div style="margin: 30px 0; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107;">
-    <strong>⚠️ Atenção:</strong>
-    <p>Pagamento deve ser realizado até {{data_vencimento}}</p>
-  </div>
-</div>`,
-      },
-      reenvio_fatura: {
-        nome: 'Reenvio de Fatura',
-        assunto: 'Lembrete: Fatura {{numero}} - Vencimento {{data_vencimento}}',
-        corpo_html: `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-  <h1 style="color: #d32f2f;">Lembrete: Fatura {{numero}}</h1>
-  <p>Prezado(a) {{cliente_nome}},</p>
-  <p>Informamos que a fatura abaixo ainda está <strong>{{status}}</strong>.</p>
-  <div style="margin: 20px 0; padding: 15px; background-color: #ffebee; border-left: 4px solid #d32f2f;">
-    <strong>⚠️ Vencimento:</strong> {{data_vencimento}}
-  </div>
-  {{tabela_itens}}
-  <div style="text-align: right; margin: 20px 0;">
-    <h2 style="color: #333;">Total: R$ {{valor_total}}</h2>
-  </div>
-  <p>Para evitar multas e juros, solicitamos que o pagamento seja efetuado o mais breve possível.</p>
-</div>`,
-      },
-      fatura_liquidada: {
-        nome: 'Fatura Liquidada',
-        assunto: 'Pagamento Confirmado - Fatura {{numero}}',
-        corpo_html: `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-  <h1 style="color: #2e7d32;">✓ Pagamento Confirmado</h1>
-  <p>Prezado(a) {{cliente_nome}},</p>
-  <p>Confirmamos o recebimento do pagamento da fatura <strong>{{numero}}</strong>.</p>
-  <div style="margin: 20px 0; padding: 15px; background-color: #e8f5e9; border-left: 4px solid #2e7d32;">
-    <p><strong>Data de Pagamento:</strong> {{data_pagamento}}</p>
-    <p><strong>Valor:</strong> R$ {{valor_total}}</p>
-    <p><strong>Forma de Pagamento:</strong> {{forma_pagamento}}</p>
-  </div>
-  <p style="margin-top: 20px;">Agradecemos pela sua preferência!</p>
-</div>`,
-      },
-    };
+    const tipoLabel = tiposTemplate.find(t => t.value === tipo)?.label || tipo;
+    
+    return {
+      nome: tipoLabel,
+      assunto: `${tipoLabel} {{numero}}`,
+      corpo_html: `<p>Bonjour <strong>{{cliente_nome}}</strong>,</p>
 
-    return templates[tipo] || templates.novo_orcamento;
+<p>Nous vous remercions d'avoir fait appel à notre société.</p>
+
+<p>Votre devis n° <strong>{{numero}}</strong> peut être consulté ou téléchargé directement en ligne :</p>
+
+<div style="text-align: center; margin: 30px 0;">
+  <a href="{{link_documento}}" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Lien de consultation du document</a>
+</div>
+
+<div style="margin: 40px 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+  <p style="color: #6b7280; font-style: italic;">Signature de l'email</p>
+</div>`,
+    };
+  };
+
+  const insertVariable = (variavel: string, isAssunto = false) => {
+    const placeholder = `{{${variavel}}}`;
+    
+    if (isAssunto && assuntoRef.current) {
+      const start = assuntoRef.current.selectionStart;
+      const end = assuntoRef.current.selectionEnd;
+      const text = currentTemplate.assunto || '';
+      const newText = text.substring(0, start) + placeholder + text.substring(end);
+      setCurrentTemplate({ ...currentTemplate, assunto: newText });
+      
+      setTimeout(() => {
+        assuntoRef.current?.focus();
+        assuntoRef.current?.setSelectionRange(start + placeholder.length, start + placeholder.length);
+      }, 0);
+    } else if (textareaRef.current) {
+      const start = textareaRef.current.selectionStart;
+      const end = textareaRef.current.selectionEnd;
+      const text = currentTemplate.corpo_html || '';
+      const newText = text.substring(0, start) + placeholder + text.substring(end);
+      setCurrentTemplate({ ...currentTemplate, corpo_html: newText });
+      
+      setTimeout(() => {
+        textareaRef.current?.focus();
+        textareaRef.current?.setSelectionRange(start + placeholder.length, start + placeholder.length);
+      }, 0);
+    }
+  };
+
+  const wrapSelection = (tag: string) => {
+    if (!textareaRef.current) return;
+    
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    const text = currentTemplate.corpo_html || '';
+    const selectedText = text.substring(start, end);
+    
+    if (!selectedText) {
+      toast.error('Selecione o texto primeiro');
+      return;
+    }
+    
+    const wrapped = `<${tag}>${selectedText}</${tag}>`;
+    const newText = text.substring(0, start) + wrapped + text.substring(end);
+    setCurrentTemplate({ ...currentTemplate, corpo_html: newText });
+    
+    setTimeout(() => {
+      textareaRef.current?.focus();
+      textareaRef.current?.setSelectionRange(start, start + wrapped.length);
+    }, 0);
   };
 
   const handleSave = async () => {
@@ -229,7 +229,7 @@ export default function EmailTemplates() {
         tipo: selectedTipo,
         assunto: currentTemplate.assunto,
         corpo_html: currentTemplate.corpo_html,
-        variaveis_disponiveis: variaveisPorTipo[selectedTipo],
+        variaveis_disponiveis: variaveisPorTipo[selectedTipo]?.map(v => v.nome) || [],
         ativo: true,
       };
 
@@ -242,7 +242,6 @@ export default function EmailTemplates() {
       if (error) throw error;
 
       toast.success('Template salvo com sucesso!');
-      loadTemplates();
     } catch (error: any) {
       console.error('Erro ao salvar template:', error);
       toast.error('Erro ao salvar template');
@@ -251,9 +250,20 @@ export default function EmailTemplates() {
     }
   };
 
+  const renderPreview = () => {
+    let html = currentTemplate.corpo_html || '';
+    
+    variaveisPorTipo[selectedTipo]?.forEach(v => {
+      const regex = new RegExp(`{{${v.nome}}}`, 'g');
+      html = html.replace(regex, `<span style="background-color: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 3px; font-weight: 500;">${v.descricao}</span>`);
+    });
+    
+    return { __html: html };
+  };
+
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-6xl mx-auto space-y-6">
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
@@ -266,21 +276,9 @@ export default function EmailTemplates() {
           </div>
         </div>
 
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Configure o Resend:</strong> Para enviar emails, você precisa configurar a chave RESEND_API_KEY.
-            Crie uma conta em <a href="https://resend.com" target="_blank" rel="noopener noreferrer" className="underline">resend.com</a> e 
-            adicione sua chave API nas configurações do projeto.
-          </AlertDescription>
-        </Alert>
-
         <Card>
           <CardHeader>
             <CardTitle>Selecione o Tipo de Email</CardTitle>
-            <CardDescription>
-              Escolha o tipo de email que deseja editar
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <Select value={selectedTipo} onValueChange={setSelectedTipo}>
@@ -301,48 +299,171 @@ export default function EmailTemplates() {
         {!loading && (
           <Card>
             <CardHeader>
-              <CardTitle>Editar Template</CardTitle>
-              <CardDescription>
-                Variáveis disponíveis: {variaveisPorTipo[selectedTipo]?.map(v => `{{${v}}}`).join(', ')}
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Modèle d'email "{currentTemplate.nome}"</CardTitle>
+                  <CardDescription className="mt-1">
+                    Edite o template com variáveis dinâmicas
+                  </CardDescription>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      + Données dynamiques
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {variaveisPorTipo[selectedTipo]?.map((v) => (
+                      <DropdownMenuItem 
+                        key={v.nome}
+                        onClick={() => insertVariable(v.nome)}
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        {v.descricao}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome do Template</Label>
-                <Input
-                  id="nome"
-                  value={currentTemplate.nome || ''}
-                  onChange={(e) => setCurrentTemplate({ ...currentTemplate, nome: e.target.value })}
-                  placeholder="Ex: Novo Orçamento"
-                />
+            <CardContent className="space-y-6">
+              {/* Barra de Ferramentas */}
+              <div className="flex items-center gap-1 p-2 bg-muted rounded-lg border">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => wrapSelection('strong')}
+                  title="Negrito"
+                >
+                  <Bold className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => wrapSelection('em')}
+                  title="Itálico"
+                >
+                  <Italic className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => wrapSelection('u')}
+                  title="Sublinhado"
+                >
+                  <Underline className="h-4 w-4" />
+                </Button>
+                
+                <Separator orientation="vertical" className="h-6 mx-2" />
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  title="Alinhar à esquerda"
+                >
+                  <AlignLeft className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  title="Centralizar"
+                >
+                  <AlignCenter className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  title="Alinhar à direita"
+                >
+                  <AlignRight className="h-4 w-4" />
+                </Button>
               </div>
 
+              {/* Assunto */}
               <div className="space-y-2">
-                <Label htmlFor="assunto">Assunto do Email</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="assunto">Objet de l'email</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Variáveis
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {variaveisPorTipo[selectedTipo]?.map((v) => (
+                        <DropdownMenuItem 
+                          key={v.nome}
+                          onClick={() => insertVariable(v.nome, true)}
+                        >
+                          {v.descricao}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 <Input
+                  ref={assuntoRef}
                   id="assunto"
                   value={currentTemplate.assunto || ''}
                   onChange={(e) => setCurrentTemplate({ ...currentTemplate, assunto: e.target.value })}
-                  placeholder="Ex: Orçamento {{numero}} - {{titulo}}"
+                  placeholder="Ex: Votre devis n° {{numero}}"
+                  className="font-medium"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="corpo">Corpo do Email (HTML)</Label>
-                <Textarea
-                  id="corpo"
-                  value={currentTemplate.corpo_html || ''}
-                  onChange={(e) => setCurrentTemplate({ ...currentTemplate, corpo_html: e.target.value })}
-                  placeholder="Cole aqui o HTML do email..."
-                  rows={20}
-                  className="font-mono text-sm"
+              <Tabs defaultValue="editor" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="editor">Editor</TabsTrigger>
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="editor" className="space-y-4">
+                  <div className="space-y-2">
+                    <Textarea
+                      ref={textareaRef}
+                      value={currentTemplate.corpo_html || ''}
+                      onChange={(e) => setCurrentTemplate({ ...currentTemplate, corpo_html: e.target.value })}
+                      placeholder="Digite o conteúdo do email..."
+                      rows={18}
+                      className="font-mono text-sm"
+                    />
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="preview" className="space-y-4">
+                  <div 
+                    className="border rounded-lg p-6 bg-white min-h-[400px]"
+                    dangerouslySetInnerHTML={renderPreview()}
+                  />
+                </TabsContent>
+              </Tabs>
+
+              {/* Anexar PDF */}
+              <div className="flex items-center justify-between py-4 border-t">
+                <Label htmlFor="anexar-pdf" className="text-base">
+                  Joindre le PDF du document à l'email
+                </Label>
+                <Switch 
+                  id="anexar-pdf"
+                  checked={anexarPDF} 
+                  onCheckedChange={setAnexarPDF}
                 />
               </div>
 
-              <Button onClick={handleSave} disabled={saving} className="w-full">
-                <Save className="mr-2 h-4 w-4" />
-                {saving ? 'Salvando...' : 'Salvar Template'}
-              </Button>
+              {/* Botões de Ação */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={() => loadTemplateByTipo(selectedTipo)}
+                >
+                  Annuler
+                </Button>
+                <Button onClick={handleSave} disabled={saving}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {saving ? 'Salvando...' : 'Enregistrer'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
