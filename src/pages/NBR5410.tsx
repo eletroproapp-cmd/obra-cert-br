@@ -6,6 +6,7 @@ import { CheckSquare, FileText, Calculator, AlertTriangle, BookOpen } from "luci
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChecklistWizard } from "@/components/nbr5410/ChecklistWizard";
 import { OrcamentoAssistente } from "@/components/nbr5410/OrcamentoAssistente";
+import { AnexoTecnicoPDF } from "@/components/nbr5410/AnexoTecnicoPDF";
 
 export default function NBR5410() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -37,11 +38,12 @@ export default function NBR5410() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="checklist">Checklist</TabsTrigger>
           <TabsTrigger value="orcamento">Assistente de Orçamento</TabsTrigger>
           <TabsTrigger value="tabelas">Tabelas de Referência</TabsTrigger>
+          <TabsTrigger value="anexo">Anexo Técnico</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -116,7 +118,7 @@ export default function NBR5410() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setActiveTab("anexo")}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
@@ -133,8 +135,8 @@ export default function NBR5410() {
                   <li>• Memorial descritivo</li>
                   <li>• Anexo para orçamento/fatura</li>
                 </ul>
-                <Button className="mt-4 w-full" variant="outline" disabled>
-                  Em breve
+                <Button className="mt-4 w-full">
+                  Gerar Anexo Técnico
                 </Button>
               </CardContent>
             </Card>
@@ -532,6 +534,10 @@ export default function NBR5410() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="anexo">
+          <AnexoTecnicoPDF />
         </TabsContent>
       </Tabs>
     </div>
