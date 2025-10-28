@@ -113,19 +113,19 @@ export function AppSidebar() {
         <div className="flex-1 overflow-auto py-4">
           {/* Main Menu Items */}
           {menuItems.map((section, idx) => (
-            <SidebarGroup key={idx} className="px-3 mb-4">
+            <SidebarGroup key={idx} className="px-3 mb-2">
               {section.section && open && (
                 <SidebarGroupLabel className="text-[11px] font-bold tracking-wider text-sidebar-foreground/60 px-3 py-2 mb-1 uppercase">
                   {section.section}
                 </SidebarGroupLabel>
               )}
               <SidebarGroupContent>
-                <SidebarMenu className="space-y-1">
+                <SidebarMenu className="space-y-0.5">
                   {section.items.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActivePath(item.url)} className="h-auto p-0">
                         <NavLink to={item.url} end>
-                          <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg">
+                          <div className="flex items-center gap-3 w-full px-3 py-2 rounded-lg">
                             <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
                             {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
                           </div>
@@ -141,22 +141,22 @@ export function AppSidebar() {
 
         {/* Bottom Items */}
         <div className="mt-auto border-t border-sidebar-border">
-          <SidebarGroup className="px-3 py-3">
+          <SidebarGroup className="px-3 py-2">
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
+              <SidebarMenu className="space-y-0.5">
                 {bottomItemsWithAdmin.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActivePath(item.url)} className="h-auto p-0">
                       {'external' in item && item.external ? (
                         <a href={item.url} target="_blank" rel="noopener noreferrer">
-                          <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg">
+                          <div className="flex items-center gap-3 w-full px-3 py-2 rounded-lg">
                             <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
                             {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
                           </div>
                         </a>
                       ) : (
                         <NavLink to={item.url} end>
-                          <div className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg">
+                          <div className="flex items-center gap-3 w-full px-3 py-2 rounded-lg">
                             <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
                             {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
                           </div>

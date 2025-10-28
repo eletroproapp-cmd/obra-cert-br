@@ -23,14 +23,38 @@ const checklistSchema = z.object({
   tem_aquecedor: z.boolean().default(false),
   tem_piscina: z.boolean().default(false),
   
-  // Checklist de conformidade
+  // Circuitos e proteção
   circuito_chuveiro_dedicado: z.boolean().default(false),
   circuito_ac_dedicado: z.boolean().default(false),
-  tem_dr_areas_molhadas: z.boolean().default(false),
   secao_cabo_chuveiro_adequada: z.boolean().default(false),
-  disjuntores_dimensionados: z.boolean().default(false),
-  aterramento_presente: z.boolean().default(false),
+  tem_dr_areas_molhadas: z.boolean().default(false),
   tomadas_areas_molhadas_dr: z.boolean().default(false),
+  disjuntores_dimensionados: z.boolean().default(false),
+  
+  // Aterramento e equipotencialização
+  aterramento_presente: z.boolean().default(false),
+  equipotencializacao_banheiro: z.boolean().default(false),
+  condutor_protecao_adequado: z.boolean().default(false),
+  
+  // Distribuição e quadros
+  quadro_distribuicao_adequado: z.boolean().default(false),
+  espaco_reserva_quadro: z.boolean().default(false),
+  identificacao_circuitos: z.boolean().default(false),
+  barramento_neutro_terra_separados: z.boolean().default(false),
+  
+  // Instalação e condutores
+  secao_minima_iluminacao: z.boolean().default(false),
+  secao_minima_tomadas: z.boolean().default(false),
+  cores_condutores_padrao: z.boolean().default(false),
+  eletrodutos_dimensionados: z.boolean().default(false),
+  
+  // Pontos de utilização
+  tomadas_cozinha_suficientes: z.boolean().default(false),
+  tomadas_banheiro_distancia: z.boolean().default(false),
+  iluminacao_emergencia: z.boolean().default(false),
+  
+  // Proteção contra sobretensões
+  protecao_surtos_presente: z.boolean().default(false),
   
   observacoes: z.string().optional(),
 });
@@ -62,6 +86,20 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
       disjuntores_dimensionados: false,
       aterramento_presente: false,
       tomadas_areas_molhadas_dr: false,
+      equipotencializacao_banheiro: false,
+      condutor_protecao_adequado: false,
+      quadro_distribuicao_adequado: false,
+      espaco_reserva_quadro: false,
+      identificacao_circuitos: false,
+      barramento_neutro_terra_separados: false,
+      secao_minima_iluminacao: false,
+      secao_minima_tomadas: false,
+      cores_condutores_padrao: false,
+      eletrodutos_dimensionados: false,
+      tomadas_cozinha_suficientes: false,
+      tomadas_banheiro_distancia: false,
+      iluminacao_emergencia: false,
+      protecao_surtos_presente: false,
     },
   });
 
@@ -98,6 +136,30 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
       newAlertas.push("NBR 5410 (5.3): Disjuntores devem ser dimensionados conforme corrente do circuito");
     }
 
+    if (!values.equipotencializacao_banheiro) {
+      newAlertas.push("NBR 5410 (6.4.2.2): Equipotencialização local obrigatória em banheiros");
+    }
+
+    if (!values.quadro_distribuicao_adequado) {
+      newAlertas.push("NBR 5410 (6.5.4): Quadro de distribuição deve estar em local de fácil acesso");
+    }
+
+    if (!values.identificacao_circuitos) {
+      newAlertas.push("NBR 5410 (6.5.4.10): Todos os circuitos devem estar identificados no quadro");
+    }
+
+    if (!values.secao_minima_iluminacao) {
+      newAlertas.push("NBR 5410 (6.2.6): Seção mínima 1,5mm² para circuitos de iluminação");
+    }
+
+    if (!values.secao_minima_tomadas) {
+      newAlertas.push("NBR 5410 (6.2.6): Seção mínima 2,5mm² para circuitos de tomadas");
+    }
+
+    if (!values.cores_condutores_padrao) {
+      newAlertas.push("NBR 5410 (6.1.5.3): Cores dos condutores devem seguir o padrão (azul claro=neutro, verde/amarelo=terra)");
+    }
+
     setAlertas(newAlertas);
     return newAlertas;
   };
@@ -118,6 +180,20 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
         disjuntores_dimensionados: data.disjuntores_dimensionados,
         aterramento_presente: data.aterramento_presente,
         tomadas_areas_molhadas_dr: data.tomadas_areas_molhadas_dr,
+        equipotencializacao_banheiro: data.equipotencializacao_banheiro,
+        condutor_protecao_adequado: data.condutor_protecao_adequado,
+        quadro_distribuicao_adequado: data.quadro_distribuicao_adequado,
+        espaco_reserva_quadro: data.espaco_reserva_quadro,
+        identificacao_circuitos: data.identificacao_circuitos,
+        barramento_neutro_terra_separados: data.barramento_neutro_terra_separados,
+        secao_minima_iluminacao: data.secao_minima_iluminacao,
+        secao_minima_tomadas: data.secao_minima_tomadas,
+        cores_condutores_padrao: data.cores_condutores_padrao,
+        eletrodutos_dimensionados: data.eletrodutos_dimensionados,
+        tomadas_cozinha_suficientes: data.tomadas_cozinha_suficientes,
+        tomadas_banheiro_distancia: data.tomadas_banheiro_distancia,
+        iluminacao_emergencia: data.iluminacao_emergencia,
+        protecao_surtos_presente: data.protecao_surtos_presente,
       };
 
       const { data: checklist, error } = await supabase
@@ -301,120 +377,366 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
 
             {/* Step 2: Checklist Técnico */}
             {step === 2 && (
-              <div className="space-y-4">
-                <h4 className="font-semibold">Conformidade com NBR 5410</h4>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-base">Circuitos e Proteção</h4>
 
-                <FormField
-                  control={form.control}
-                  name="circuito_chuveiro_dedicado"
-                  render={({ field }) => (
-                    <FormItem className="flex items-start space-x-2">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1">
-                        <FormLabel className="!mt-0">Circuito dedicado para chuveiro</FormLabel>
-                        <p className="text-xs text-muted-foreground">NBR 5410 (9.5.3)</p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="circuito_chuveiro_dedicado"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Circuito dedicado para chuveiro</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (9.5.3)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="secao_cabo_chuveiro_adequada"
-                  render={({ field }) => (
-                    <FormItem className="flex items-start space-x-2">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1">
-                        <FormLabel className="!mt-0">Seção mínima 4mm² para chuveiro</FormLabel>
-                        <p className="text-xs text-muted-foreground">NBR 5410 (6.2.6)</p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="secao_cabo_chuveiro_adequada"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Seção mínima 4mm² para chuveiro</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.2.6)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="circuito_ac_dedicado"
-                  render={({ field }) => (
-                    <FormItem className="flex items-start space-x-2">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1">
-                        <FormLabel className="!mt-0">Circuito dedicado para ar condicionado</FormLabel>
-                        <p className="text-xs text-muted-foreground">NBR 5410 (9.5.3)</p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="circuito_ac_dedicado"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Circuito dedicado para ar condicionado</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (9.5.3)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="tem_dr_areas_molhadas"
-                  render={({ field }) => (
-                    <FormItem className="flex items-start space-x-2">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1">
-                        <FormLabel className="!mt-0">Proteção DR para áreas molhadas</FormLabel>
-                        <p className="text-xs text-muted-foreground">NBR 5410 (5.1.3.2)</p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="tem_dr_areas_molhadas"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Proteção DR para áreas molhadas</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (5.1.3.2)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="tomadas_areas_molhadas_dr"
-                  render={({ field }) => (
-                    <FormItem className="flex items-start space-x-2">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1">
-                        <FormLabel className="!mt-0">Tomadas em banheiro/cozinha com DR 30mA</FormLabel>
-                        <p className="text-xs text-muted-foreground">NBR 5410 (9.5.1)</p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="tomadas_areas_molhadas_dr"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Tomadas em banheiro/cozinha com DR 30mA</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (9.5.1)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="aterramento_presente"
-                  render={({ field }) => (
-                    <FormItem className="flex items-start space-x-2">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1">
-                        <FormLabel className="!mt-0">Sistema de aterramento implementado</FormLabel>
-                        <p className="text-xs text-muted-foreground">NBR 5410 (6.4)</p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="disjuntores_dimensionados"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Disjuntores corretamente dimensionados</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (5.3)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="disjuntores_dimensionados"
-                  render={({ field }) => (
-                    <FormItem className="flex items-start space-x-2">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1">
-                        <FormLabel className="!mt-0">Disjuntores corretamente dimensionados</FormLabel>
-                        <p className="text-xs text-muted-foreground">NBR 5410 (5.3)</p>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-base">Aterramento e Equipotencialização</h4>
+
+                  <FormField
+                    control={form.control}
+                    name="aterramento_presente"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Sistema de aterramento implementado</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.4)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="equipotencializacao_banheiro"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Equipotencialização local em banheiros</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.4.2.2)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="condutor_protecao_adequado"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Condutor de proteção (PE) com seção adequada</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.4.3)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-base">Quadro de Distribuição</h4>
+
+                  <FormField
+                    control={form.control}
+                    name="quadro_distribuicao_adequado"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Quadro em local acessível e ventilado</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.5.4)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="espaco_reserva_quadro"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Espaço de reserva de 15% no quadro</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.5.4.11)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="identificacao_circuitos"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Todos os circuitos identificados no quadro</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.5.4.10)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="barramento_neutro_terra_separados"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Barramentos de neutro e terra separados</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.4.4.2)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-base">Condutores e Instalação</h4>
+
+                  <FormField
+                    control={form.control}
+                    name="secao_minima_iluminacao"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Seção mínima 1,5mm² para iluminação</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.2.6)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="secao_minima_tomadas"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Seção mínima 2,5mm² para tomadas</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.2.6)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="cores_condutores_padrao"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Cores dos condutores conforme padrão</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.1.5.3) - Azul claro (neutro), Verde/Amarelo (terra)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="eletrodutos_dimensionados"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Eletrodutos com taxa de ocupação ≤40%</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (6.2.11.3)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-base">Pontos de Utilização</h4>
+
+                  <FormField
+                    control={form.control}
+                    name="tomadas_cozinha_suficientes"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Quantidade mínima de tomadas na cozinha</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (9.5.2) - 1 tomada a cada 3,5m de perímetro</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="tomadas_banheiro_distancia"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Tomadas em banheiro a 60cm do box</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (9.1)</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="iluminacao_emergencia"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Iluminação de emergência (quando aplicável)</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (5.8.6) - Obrigatório em edificações comerciais</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-base">Proteção Adicional</h4>
+
+                  <FormField
+                    control={form.control}
+                    name="protecao_surtos_presente"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-2">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="!mt-0">Dispositivo de proteção contra surtos (DPS)</FormLabel>
+                          <p className="text-xs text-muted-foreground">NBR 5410 (5.4.2) - Recomendado para todas as instalações</p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             )}
 
