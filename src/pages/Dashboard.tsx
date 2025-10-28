@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, DollarSign, FileText, Users, Wrench, TrendingUp, AlertTriangle, Calendar, Clock } from "lucide-react";
+import { ArrowUpRight, DollarSign, FileText, Users, Wrench, TrendingUp, AlertTriangle, Calendar, Clock, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { format, isToday, isFuture, parseISO } from "date-fns";
+import { format, isToday, isFuture, parseISO, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface DashboardMetrics {
   totalReceitas: number;
@@ -43,10 +46,12 @@ const Dashboard = () => {
   });
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dataInicio, setDataInicio] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+  const [dataFim, setDataFim] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
 
   useEffect(() => {
     loadMetrics();
-  }, []);
+  }, [dataInicio, dataFim]);
 
   const loadMetrics = async () => {
     try {
@@ -59,11 +64,19 @@ const Dashboard = () => {
         .select('valor_total, status')
         .eq('user_id', user.id);
 
-      // Carregar faturas
+      // Carregar faturas (filtradas por data de pagamento para receitas)
       const { data: faturas } = await supabase
         .from('faturas')
-        .select('valor_total, status')
+        .select('valor_total, status, data_pagamento')
         .eq('user_id', user.id);
+
+      // Carregar despesas (filtradas por data)
+      const { data: despesas } = await supabase
+        .from('despesas')
+        .select('valor, data')
+        .eq('user_id', user.id)
+        .gte('data', dataInicio)
+        .lte('data', dataFim);
 
       // Carregar instalações
       const { data: instalacoes } = await supabase
@@ -77,8 +90,17 @@ const Dashboard = () => {
         .select('estoque_atual, estoque_minimo')
         .eq('user_id', user.id);
 
-      const totalReceitas = faturas?.filter(f => f.status === 'Pago').reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
-      const totalDespesas = 0; // Será implementado quando houver módulo de despesas
+      // Calcular receitas (faturas pagas dentro do período)
+      const totalReceitas = faturas?.filter(f => 
+        f.status === 'Pago' && 
+        f.data_pagamento && 
+        f.data_pagamento >= dataInicio && 
+        f.data_pagamento <= dataFim
+      ).reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
+
+      // Calcular despesas
+      const totalDespesas = despesas?.reduce((sum, d) => sum + Number(d.valor), 0) || 0;
+
       const totalOrcamentos = orcamentos?.length || 0;
       const orcamentosPendentes = orcamentos?.filter(o => o.status === 'Pendente').length || 0;
       const totalFaturas = faturas?.length || 0;
@@ -230,10 +252,46 @@ const Dashboard = () => {
 
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Resumo Financeiro</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Resumo Financeiro</CardTitle>
+                <Link to="/despesas">
+                  <Badge variant="outline" className="cursor-pointer hover:bg-secondary">
+                    Ver despesas
+                  </Badge>
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                {/* Filtros de Data */}
+                <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                  <div className="space-y-2">
+                    <Label htmlFor="dataInicio" className="text-xs font-medium flex items-center gap-1">
+                      <Filter className="h-3 w-3" />
+                      Data Início
+                    </Label>
+                    <Input
+                      id="dataInicio"
+                      type="date"
+                      value={dataInicio}
+                      onChange={(e) => setDataInicio(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dataFim" className="text-xs font-medium">
+                      Data Fim
+                    </Label>
+                    <Input
+                      id="dataFim"
+                      type="date"
+                      value={dataFim}
+                      onChange={(e) => setDataFim(e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   <div className="text-center p-3 bg-success/10 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Receitas</p>
