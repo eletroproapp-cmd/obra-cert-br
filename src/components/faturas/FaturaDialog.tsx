@@ -305,62 +305,145 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
       ];
 
       let y = 16;
+      
+      // === CARREGAR LOGO SE EXISTIR ===
+      const loadLogo = async (url: string): Promise<HTMLImageElement | null> => {
+        try {
+          const img1 = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('img onerror'));
+            img.src = url;
+          });
+          return img1;
+        } catch (_) {}
+        
+        try {
+          const res = await fetch(url, { mode: 'cors' });
+          const blob = await res.blob();
+          const dataUrl: string = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+          const img2 = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('img2 onerror'));
+            img.src = dataUrl;
+          });
+          return img2;
+        } catch (e) {
+          console.error('Falha ao carregar logo (fetch):', e);
+          return null;
+        }
+      };
+
+      let logoImg: HTMLImageElement | null = null;
+      const logoHeight = 20;
+      const logoPosition = empresaInfo.logo_position || 'right';
+      
+      if (empresaInfo.logo_url) {
+        logoImg = await loadLogo(empresaInfo.logo_url);
+      }
+      
       // Top line
       doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
-      doc.setLineWidth(1);
+      doc.setLineWidth(1.2);
       doc.line(margin, y, pageWidth - margin, y);
       y += 6;
 
-      // Title centered
+      // LAYOUT: LOGO À DIREITA/ESQUERDA COM TÍTULO CENTRALIZADO
+      const leftColStart = margin;
+      const rightColEnd = pageWidth - margin;
+      const logoWidth = logoImg ? (logoImg.width / logoImg.height) * logoHeight : 0;
+      const hasLogo = logoImg !== null;
+
+      // 1) Título centralizado acima
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(28);
       doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
       doc.text('FATURA', pageWidth / 2, y + 2, { align: 'center' });
       y += 10;
 
-      // Left column - company
+      const logoX = hasLogo && logoPosition === 'right' ? (rightColEnd - logoWidth) : rightColEnd;
+      const rightTextMaxX = hasLogo && logoPosition === 'right' ? (logoX - 6) : rightColEnd;
+      const leftTextStartX = hasLogo && logoPosition === 'left' ? (leftColStart + logoWidth + 6) : leftColStart;
+
+      // 2) Coluna Esquerda - Informações da Empresa
+      let leftYPos = y;
       doc.setFontSize(16);
       doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
-      doc.text(empresaInfo.nome_fantasia, margin, y);
-      doc.setFontSize(8);
-      doc.setTextColor(90, 90, 90);
-      y += 5;
-      if (empresaInfo.razao_social) { doc.text(empresaInfo.razao_social, margin, y); y += 4; }
+      doc.text(empresaInfo.nome_fantasia, leftTextStartX, leftYPos);
+      leftYPos += 5;
+      
+      if (empresaInfo.razao_social) {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(90, 90, 90);
+        doc.text(empresaInfo.razao_social, leftTextStartX, leftYPos);
+        leftYPos += 4;
+      }
+      
       doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
-      if (empresaInfo.endereco) { doc.text(empresaInfo.endereco, margin, y); y += 3.5; }
+      
+      if (empresaInfo.endereco) { doc.text(empresaInfo.endereco, leftTextStartX, leftYPos); leftYPos += 3.5; }
       let addrLine = '';
       if (empresaInfo.cep) addrLine += empresaInfo.cep + ' ';
       if (empresaInfo.cidade) addrLine += empresaInfo.cidade;
       if (empresaInfo.estado) addrLine += ' - ' + empresaInfo.estado;
-      if (addrLine) { doc.text(addrLine, margin, y); y += 3.5; }
-      if (empresaInfo.telefone) { doc.text('Tel: ' + empresaInfo.telefone, margin, y); y += 3.5; }
-      if (empresaInfo.email) { doc.text('E-mail: ' + empresaInfo.email, margin, y); y += 3.5; }
-      if (empresaInfo.website) { doc.text('Site: ' + empresaInfo.website, margin, y); y += 3.5; }
-      if (empresaInfo.cnpj) { doc.text('CNPJ: ' + empresaInfo.cnpj, margin, y); }
+      if (addrLine) { doc.text(addrLine, leftTextStartX, leftYPos); leftYPos += 3.5; }
+      if (empresaInfo.telefone) { doc.text('Tel: ' + empresaInfo.telefone, leftTextStartX, leftYPos); leftYPos += 3.5; }
+      if (empresaInfo.email) { doc.text('E-mail: ' + empresaInfo.email, leftTextStartX, leftYPos); leftYPos += 3.5; }
+      if (empresaInfo.website) { doc.text('Site: ' + empresaInfo.website, leftTextStartX, leftYPos); leftYPos += 3.5; }
+      if (empresaInfo.cnpj) { doc.text('CNPJ: ' + empresaInfo.cnpj, leftTextStartX, leftYPos); }
 
-      // Right column - number and dates
-      let ry = y - 20; // align roughly
-      const rightX = pageWidth - margin;
+      // 3) Coluna Direita - Nº e Datas
+      let rightYPos = y;
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text('nº ' + fatura.numero, rightX, ry, { align: 'right' });
-      ry += 7;
+      doc.text('nº ' + fatura.numero, rightTextMaxX, rightYPos, { align: 'right' });
+      rightYPos += 7;
+
       doc.setFontSize(8);
-      doc.setTextColor(80, 80, 80);
-      doc.text('Emitida em:', rightX, ry, { align: 'right' }); ry += 3.5;
-      doc.setFont('helvetica', 'normal');
-      doc.text(new Date(fatura.created_at).toLocaleDateString('pt-BR'), rightX, ry, { align: 'right' }); ry += 4.5;
       doc.setFont('helvetica', 'bold');
-      doc.text('Vencimento:', rightX, ry, { align: 'right' }); ry += 3.5;
+      doc.setTextColor(80, 80, 80);
+      doc.text('Em data de:', rightTextMaxX, rightYPos, { align: 'right' });
+      rightYPos += 3.5;
       doc.setFont('helvetica', 'normal');
-      doc.text(new Date(fatura.data_vencimento).toLocaleDateString('pt-BR'), rightX, ry, { align: 'right' });
+      doc.text(new Date(fatura.created_at).toLocaleDateString('pt-BR'), rightTextMaxX, rightYPos, { align: 'right' });
+      rightYPos += 4.5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Vencimento:', rightTextMaxX, rightYPos, { align: 'right' });
+      rightYPos += 3.5;
+      doc.setFont('helvetica', 'normal');
+      doc.text(new Date(fatura.data_vencimento).toLocaleDateString('pt-BR'), rightTextMaxX, rightYPos, { align: 'right' });
+
+      // 4) Desenhar logo
+      let logoBottom = y;
+      if (hasLogo && logoImg) {
+        if (logoPosition === 'right') {
+          const x = rightColEnd - logoWidth;
+          doc.addImage(logoImg, 'PNG', x, y - 2, logoWidth, logoHeight);
+          logoBottom = Math.max(logoBottom, y - 2 + logoHeight);
+        } else if (logoPosition === 'left') {
+          const x = leftColStart;
+          doc.addImage(logoImg, 'PNG', x, y - 2, logoWidth, logoHeight);
+          logoBottom = Math.max(logoBottom, y - 2 + logoHeight);
+        }
+      }
+
+      // 5) Ajusta yPos
+      y = Math.max(leftYPos, rightYPos, logoBottom) + 8;
 
       // Separator
-      y = Math.max(y, ry) + 8;
       doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
-      doc.setLineWidth(1);
+      doc.setLineWidth(1.2);
       doc.line(margin, y, pageWidth - margin, y);
       y += 8;
 
