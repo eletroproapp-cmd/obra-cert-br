@@ -5,13 +5,7 @@ import { Resend } from "https://esm.sh/resend@4.0.1";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const sanitize = (input: string): string => {
-  return input
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
+  return input.replace(/<[^>]*>/g, '').trim();
 };
 
 const corsHeaders = {
@@ -52,7 +46,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check rate limit: 10 requests per hour
     const { data: rateLimitOk, error: rateLimitError } = await supabaseClient
       .rpc('check_rate_limit', {
         _user_id: user.id,
@@ -90,8 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("faturas")
       .select(`
         *,
-        clientes:cliente_id (nome, email),
-        fatura_items (*)
+        clientes:cliente_id (nome, email)
       `)
       .eq("id", faturaId)
       .eq("user_id", user.id)
@@ -104,82 +96,88 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const items = fatura.fatura_items
-      .map((item: any, index: number) => {
-        const descricao = sanitize(item.descricao || '');
-        const quantidade = sanitize(String(item.quantidade || 0));
-        const unidade = sanitize(item.unidade || 'un');
-        const valorUnit = Number(item.valor_unitario || 0).toFixed(2);
-        const valorTotal = Number(item.valor_total || 0).toFixed(2);
-        
-        return `
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${index + 1}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${descricao}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${quantidade}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${unidade}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${valorUnit}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #ddd;">R$ ${valorTotal}</td>
-        </tr>
+    // Buscar empresa info
+    const { data: empresa } = await supabaseClient
+      .from("empresas")
+      .select("nome_fantasia")
+      .eq("user_id", user.id)
+      .single();
+
+    // Buscar template personalizado
+    const { data: template } = await supabaseClient
+      .from("email_templates")
+      .select("assunto, corpo_html")
+      .eq("user_id", user.id)
+      .eq("tipo", "nova_fatura")
+      .eq("ativo", true)
+      .single();
+
+    let assunto = `Sua Fatura ${sanitize(fatura.numero)}`;
+    let corpoHtml = "";
+
+    if (template) {
+      // Usar template personalizado
+      assunto = template.assunto
+        .replace(/{{numero}}/g, sanitize(fatura.numero))
+        .replace(/{{cliente_nome}}/g, sanitize(fatura.clientes.nome));
+
+      corpoHtml = template.corpo_html
+        .replace(/{{numero}}/g, sanitize(fatura.numero))
+        .replace(/{{cliente_nome}}/g, sanitize(fatura.clientes.nome))
+        .replace(/{{titulo}}/g, sanitize(fatura.titulo || ''))
+        .replace(/{{status}}/g, sanitize(fatura.status || ''))
+        .replace(/{{data_vencimento}}/g, new Date(fatura.data_vencimento).toLocaleDateString('pt-BR'))
+        .replace(/{{forma_pagamento}}/g, sanitize(fatura.forma_pagamento || ''))
+        .replace(/{{valor_total}}/g, `R$ ${Number(fatura.valor_total || 0).toFixed(2)}`);
+    } else {
+      // Template padrão profissional
+      const diasVencimento = Math.ceil((new Date(fatura.data_vencimento).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      const statusVencimento = diasVencimento < 0 ? 'VENCIDA' : diasVencimento === 0 ? 'Vence HOJE' : `Vence em ${diasVencimento} dias`;
+      
+      corpoHtml = `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+          <div style="background-color: #ffffff; border-radius: 8px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <p style="font-size: 16px; color: #333; margin-bottom: 20px;">Prezado(a) <strong>${sanitize(fatura.clientes.nome)}</strong>,</p>
+            
+            <p style="font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 15px;">
+              Segue em anexo a fatura <strong>${sanitize(fatura.numero)}</strong> referente aos serviços prestados.
+            </p>
+            
+            <div style="background-color: #f5f5f5; border-left: 4px solid #6366f1; padding: 15px; margin: 20px 0; border-radius: 4px;">
+              <p style="margin: 5px 0; font-size: 14px; color: #333;"><strong>Fatura:</strong> ${sanitize(fatura.numero)}</p>
+              <p style="margin: 5px 0; font-size: 14px; color: #333;"><strong>Valor:</strong> R$ ${Number(fatura.valor_total || 0).toFixed(2)}</p>
+              <p style="margin: 5px 0; font-size: 14px; color: #333;"><strong>Vencimento:</strong> ${new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')} (${statusVencimento})</p>
+              ${fatura.forma_pagamento ? `<p style="margin: 5px 0; font-size: 14px; color: #333;"><strong>Forma de Pagamento:</strong> ${sanitize(fatura.forma_pagamento)}</p>` : ''}
+            </div>
+            
+            ${diasVencimento <= 3 && diasVencimento >= 0 ? `
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+              <p style="margin: 0; font-size: 14px; color: #856404;"><strong>⚠️ Atenção:</strong> Prazo de vencimento próximo!</p>
+            </div>
+            ` : ''}
+            
+            <p style="font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 15px;">
+              Estamos à disposição para esclarecimentos adicionais.
+            </p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+              <p style="font-size: 14px; color: #333; margin-bottom: 5px;">Atenciosamente,</p>
+              <p style="font-size: 14px; color: #6366f1; font-weight: 600; margin: 0;">${sanitize(empresa?.nome_fantasia || 'Nossa Empresa')}</p>
+            </div>
+          </div>
+          
+          <p style="font-size: 11px; color: #999; text-align: center; margin-top: 20px;">
+            Este é um email automático. Por favor, não responda diretamente a esta mensagem.
+          </p>
+        </div>
       `;
-      })
-      .join("");
+    }
 
     const emailResponse = await resend.emails.send({
       from: "EletroPro <onboarding@resend.dev>",
       to: [clienteEmail],
-      subject: `Fatura ${sanitize(fatura.numero || '')} - ${sanitize(fatura.titulo || '')}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-          <h1 style="color: #333;">Fatura ${sanitize(fatura.numero || '')}</h1>
-          <h2 style="color: #666;">${sanitize(fatura.titulo || '')}</h2>
-          
-          <div style="margin: 20px 0;">
-            <p><strong>Cliente:</strong> ${sanitize(fatura.clientes?.nome || '')}</p>
-            <p><strong>Status:</strong> ${sanitize(fatura.status || '')}</p>
-            <p><strong>Vencimento:</strong> ${new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}</p>
-            ${fatura.forma_pagamento ? `<p><strong>Forma de Pagamento:</strong> ${sanitize(fatura.forma_pagamento)}</p>` : ''}
-            ${fatura.descricao ? `<p><strong>Descrição:</strong> ${sanitize(fatura.descricao)}</p>` : ''}
-          </div>
-
-          <h3>Itens da Fatura:</h3>
-          <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-            <thead>
-              <tr style="background-color: #f5f5f5;">
-                <th style="padding: 8px; border-bottom: 2px solid #ddd; text-align: left;">#</th>
-                <th style="padding: 8px; border-bottom: 2px solid #ddd; text-align: left;">Descrição</th>
-                <th style="padding: 8px; border-bottom: 2px solid #ddd; text-align: left;">Qtd</th>
-                <th style="padding: 8px; border-bottom: 2px solid #ddd; text-align: left;">Un</th>
-                <th style="padding: 8px; border-bottom: 2px solid #ddd; text-align: left;">Valor Unit.</th>
-                <th style="padding: 8px; border-bottom: 2px solid #ddd; text-align: left;">Valor Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${items}
-            </tbody>
-          </table>
-
-          <div style="text-align: right; margin: 20px 0;">
-            <h2 style="color: #333;">Total: R$ ${Number(fatura.valor_total).toFixed(2)}</h2>
-          </div>
-
-          ${fatura.observacoes ? `
-            <div style="margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #333;">
-              <strong>Observações:</strong>
-              <p>${sanitize(fatura.observacoes || '')}</p>
-            </div>
-          ` : ''}
-
-          <div style="margin: 30px 0; padding: 15px; background-color: #fff3cd; border-left: 4px solid #ffc107;">
-            <strong>⚠️ Atenção:</strong>
-            <p>Pagamento deve ser realizado até ${new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}</p>
-          </div>
-
-          <p style="color: #666; font-size: 12px; margin-top: 40px;">
-            Este é um e-mail automático. Para mais informações, entre em contato conosco.
-          </p>
-        </div>
-      `,
+      subject: assunto,
+      html: corpoHtml,
     });
 
     console.log("Email enviado com sucesso:", emailResponse);
