@@ -67,7 +67,7 @@ const Dashboard = () => {
       // Carregar faturas (filtradas por data de pagamento para receitas)
       const { data: faturas } = await supabase
         .from('faturas')
-        .select('valor_total, status, data_pagamento, data_vencimento')
+        .select('valor_total, status, data_pagamento, data_vencimento, created_at')
         .eq('user_id', user.id);
 
       // Carregar despesas (filtradas por data)
@@ -97,8 +97,8 @@ const Dashboard = () => {
       const totalReceitas = faturas?.filter(f => {
         if (f.status !== 'Pago') return false;
         
-        // Se tem data de pagamento, usa ela; senão, usa data de vencimento
-        const dataParaFiltro = f.data_pagamento || f.data_vencimento;
+        // Usa data_pagamento; se ausente, usa created_at; se ainda ausente, usa data_vencimento
+        const dataParaFiltro = f.data_pagamento || f.created_at || f.data_vencimento;
         if (!dataParaFiltro) return false;
         
         const dataFatura = new Date(dataParaFiltro);
