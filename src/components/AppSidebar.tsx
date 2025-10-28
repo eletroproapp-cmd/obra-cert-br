@@ -18,7 +18,6 @@ import {
   UserCog,
   Shield,
   FolderKanban,
-  Mail,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "@/assets/logo-eletropro.png";
@@ -47,7 +46,6 @@ const menuItems = [
       { title: "Folhas de Ponto", url: "/timesheets", icon: Clock },
       { title: "Orçamentos", url: "/orcamentos", icon: FileText },
       { title: "Faturas", url: "/faturas", icon: Receipt },
-      { title: "Modelos de Email", url: "/email-templates", icon: Mail },
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Catálogo", url: "/catalogo", icon: FolderOpen },
       { title: "NBR 5410", url: "/nbr5410", icon: CheckSquare },

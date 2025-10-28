@@ -80,7 +80,6 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
   const [fatura, setFatura] = useState<Fatura | null>(null);
   const [empresaInfo, setEmpresaInfo] = useState<EmpresaInfo | null>(null);
   const [loading, setLoading] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState(false);
   const [emitindoNFe, setEmitindoNFe] = useState(false);
 
   useEffect(() => {
@@ -168,22 +167,27 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
   const handleSendEmail = async () => {
     if (!fatura) return;
 
-    setSendingEmail(true);
     try {
-      const { error } = await supabase.functions.invoke('enviar-fatura', {
-        body: {
-          clienteEmail: fatura.cliente.email,
-          faturaId: faturaId,
-        }
-      });
-
-      if (error) throw error;
-
-      toast.success('Fatura enviada por email!');
+      // Gera o PDF primeiro
+      await handleGeneratePDF();
+      
+      // Prepara o email com assunto e corpo
+      const assunto = encodeURIComponent(`Sua Fatura ${fatura.numero}`);
+      const corpo = encodeURIComponent(
+        `Olá, ${fatura.cliente.nome},\n\n` +
+        `Obrigado por entrar em contato com nossa empresa.\n\n` +
+        `A fatura está em anexo.\n\n` +
+        `Desde já agradeço a atenção.\n\n` +
+        `Atenciosamente,\n` +
+        `${empresaInfo?.nome_fantasia || 'Sua Empresa'}`
+      );
+      
+      // Abre o cliente de email
+      window.location.href = `mailto:${fatura.cliente.email}?subject=${assunto}&body=${corpo}`;
+      
+      toast.success('PDF baixado! Anexe o arquivo no email que foi aberto.');
     } catch (error: any) {
-      toast.error('Erro ao enviar email: ' + error.message);
-    } finally {
-      setSendingEmail(false);
+      toast.error('Erro ao preparar email: ' + error.message);
     }
   };
 
@@ -935,9 +939,9 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit }: FaturaDia
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
-            <Button onClick={handleSendEmail} disabled={sendingEmail} variant="hero">
+            <Button onClick={handleSendEmail} variant="hero">
               <Send className="h-4 w-4 mr-2" />
-              {sendingEmail ? 'Enviando...' : 'Enviar por Email'}
+              Enviar por Email
             </Button>
           </div>
         </div>

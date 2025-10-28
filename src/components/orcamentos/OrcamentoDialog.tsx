@@ -77,7 +77,6 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
   const [orcamento, setOrcamento] = useState<Orcamento | null>(null);
   const [empresaInfo, setEmpresaInfo] = useState<EmpresaInfo | null>(null);
   const [loading, setLoading] = useState(false);
-  const [sendingEmail, setSendingEmail] = useState(false);
   const [convertendo, setConvertendo] = useState(false);
 
   useEffect(() => {
@@ -160,22 +159,27 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
   const handleSendEmail = async () => {
     if (!orcamento) return;
 
-    setSendingEmail(true);
     try {
-      const { error } = await supabase.functions.invoke('enviar-orcamento', {
-        body: {
-          clienteEmail: orcamento.cliente.email,
-          orcamentoId: orcamentoId,
-        }
-      });
-
-      if (error) throw error;
-
-      toast.success('Orçamento enviado por email!');
+      // Gera o PDF primeiro
+      await handleGeneratePDF();
+      
+      // Prepara o email com assunto e corpo
+      const assunto = encodeURIComponent(`Seu Orçamento ${orcamento.numero}`);
+      const corpo = encodeURIComponent(
+        `Olá, ${orcamento.cliente.nome},\n\n` +
+        `Obrigado por entrar em contato com nossa empresa.\n\n` +
+        `O orçamento está em anexo.\n\n` +
+        `Desde já agradeço a atenção.\n\n` +
+        `Atenciosamente,\n` +
+        `${empresaInfo?.nome_fantasia || 'Sua Empresa'}`
+      );
+      
+      // Abre o cliente de email
+      window.location.href = `mailto:${orcamento.cliente.email}?subject=${assunto}&body=${corpo}`;
+      
+      toast.success('PDF baixado! Anexe o arquivo no email que foi aberto.');
     } catch (error: any) {
-      toast.error('Erro ao enviar email: ' + error.message);
-    } finally {
-      setSendingEmail(false);
+      toast.error('Erro ao preparar email: ' + error.message);
     }
   };
 
@@ -990,9 +994,9 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit }: Orc
               <FileText className="h-4 w-4 mr-2" />
               Gerar PDF
             </Button>
-            <Button variant="outline" onClick={handleSendEmail} disabled={sendingEmail}>
+            <Button variant="outline" onClick={handleSendEmail}>
               <Send className="h-4 w-4 mr-2" />
-              {sendingEmail ? 'Enviando...' : 'Enviar Email'}
+              Enviar Email
             </Button>
             <Button 
               onClick={handleConvertToFatura}
