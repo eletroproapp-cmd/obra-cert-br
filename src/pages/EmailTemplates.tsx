@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,24 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { 
-  Mail, 
-  Save, 
-  Bold, 
-  Italic, 
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Link,
-  FileText,
-  X
-} from 'lucide-react';
+import { Mail, Save } from 'lucide-react';
 
 interface EmailTemplate {
   id: string;
@@ -36,6 +21,14 @@ interface EmailTemplate {
   ativo: boolean;
 }
 
+interface TemplateFields {
+  saudacao: string;
+  mensagem_principal: string;
+  mensagem_anexo: string;
+  despedida: string;
+  assinatura: string;
+}
+
 const tiposTemplate = [
   { value: 'novo_orcamento', label: 'Novo Orçamento' },
   { value: 'reenvio_orcamento', label: 'Reenvio de Orçamento' },
@@ -44,71 +37,59 @@ const tiposTemplate = [
   { value: 'fatura_liquidada', label: 'Fatura Liquidada' },
 ];
 
-const variaveisPorTipo: Record<string, Array<{nome: string, descricao: string}>> = {
-  novo_orcamento: [
-    { nome: 'numero', descricao: 'Nº do documento' },
-    { nome: 'titulo', descricao: 'Título' },
-    { nome: 'cliente_nome', descricao: 'Prénom du client' },
-    { nome: 'status', descricao: 'Status' },
-    { nome: 'validade_dias', descricao: 'Validade (dias)' },
-    { nome: 'valor_total', descricao: 'Valor total' },
-    { nome: 'link_documento', descricao: 'Link de consulta' },
-  ],
-  reenvio_orcamento: [
-    { nome: 'numero', descricao: 'Nº do documento' },
-    { nome: 'titulo', descricao: 'Título' },
-    { nome: 'cliente_nome', descricao: 'Prénom du client' },
-    { nome: 'status', descricao: 'Status' },
-    { nome: 'validade_dias', descricao: 'Validade (dias)' },
-    { nome: 'valor_total', descricao: 'Valor total' },
-    { nome: 'link_documento', descricao: 'Link de consulta' },
-  ],
-  nova_fatura: [
-    { nome: 'numero', descricao: 'Nº do documento' },
-    { nome: 'titulo', descricao: 'Título' },
-    { nome: 'cliente_nome', descricao: 'Prénom du client' },
-    { nome: 'status', descricao: 'Status' },
-    { nome: 'data_vencimento', descricao: 'Data vencimento' },
-    { nome: 'forma_pagamento', descricao: 'Forma pagamento' },
-    { nome: 'valor_total', descricao: 'Valor total' },
-    { nome: 'link_documento', descricao: 'Link de consulta' },
-  ],
-  reenvio_fatura: [
-    { nome: 'numero', descricao: 'Nº do documento' },
-    { nome: 'titulo', descricao: 'Título' },
-    { nome: 'cliente_nome', descricao: 'Prénom du client' },
-    { nome: 'status', descricao: 'Status' },
-    { nome: 'data_vencimento', descricao: 'Data vencimento' },
-    { nome: 'valor_total', descricao: 'Valor total' },
-    { nome: 'link_documento', descricao: 'Link de consulta' },
-  ],
-  fatura_liquidada: [
-    { nome: 'numero', descricao: 'Nº do documento' },
-    { nome: 'cliente_nome', descricao: 'Prénom du client' },
-    { nome: 'data_pagamento', descricao: 'Data pagamento' },
-    { nome: 'valor_total', descricao: 'Valor total' },
-    { nome: 'forma_pagamento', descricao: 'Forma pagamento' },
-  ],
+const defaultFields: TemplateFields = {
+  saudacao: 'Olá,',
+  mensagem_principal: 'Obrigado por entrar em contato com nossa empresa.',
+  mensagem_anexo: 'O orçamento está em anexo.',
+  despedida: 'Desde já agradeço a atenção.',
+  assinatura: 'Atenciosamente,\nSua Empresa',
 };
 
 export default function EmailTemplates() {
   const [selectedTipo, setSelectedTipo] = useState<string>('novo_orcamento');
-  const [currentTemplate, setCurrentTemplate] = useState<Partial<EmailTemplate>>({
-    nome: '',
-    assunto: '',
-    corpo_html: '',
-  });
+  const [fields, setFields] = useState<TemplateFields>(defaultFields);
   const [anexarPDF, setAnexarPDF] = useState(true);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const assuntoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (selectedTipo) {
       loadTemplateByTipo(selectedTipo);
     }
   }, [selectedTipo]);
+
+  const parseHtmlToFields = (html: string): TemplateFields => {
+    // Tenta extrair os campos do HTML salvo
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const paragraphs = tempDiv.querySelectorAll('p');
+    
+    if (paragraphs.length >= 4) {
+      return {
+        saudacao: paragraphs[0].textContent?.replace('{{cliente_nome}}', '').trim() || defaultFields.saudacao,
+        mensagem_principal: paragraphs[1].textContent || defaultFields.mensagem_principal,
+        mensagem_anexo: paragraphs[2].textContent || defaultFields.mensagem_anexo,
+        despedida: paragraphs[3].textContent || defaultFields.despedida,
+        assinatura: tempDiv.querySelector('div')?.textContent?.trim() || defaultFields.assinatura,
+      };
+    }
+    
+    return defaultFields;
+  };
+
+  const buildHtmlFromFields = (fields: TemplateFields): string => {
+    return `<p>${fields.saudacao} <strong>{{cliente_nome}}</strong>,</p>
+
+<p>${fields.mensagem_principal}</p>
+
+<p>${fields.mensagem_anexo}</p>
+
+<p>${fields.despedida}</p>
+
+<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+  <p style="color: #6b7280; white-space: pre-line;">${fields.assinatura}</p>
+</div>`;
+  };
 
   const loadTemplateByTipo = async (tipo: string) => {
     setLoading(true);
@@ -125,11 +106,10 @@ export default function EmailTemplates() {
 
       if (error && error.code !== 'PGRST116') throw error;
 
-      if (data) {
-        setCurrentTemplate(data);
+      if (data && data.corpo_html) {
+        setFields(parseHtmlToFields(data.corpo_html));
       } else {
-        const defaultTemplate = getDefaultTemplate(tipo);
-        setCurrentTemplate(defaultTemplate);
+        setFields(defaultFields);
       }
     } catch (error: any) {
       console.error('Erro ao carregar template:', error);
@@ -139,80 +119,9 @@ export default function EmailTemplates() {
     }
   };
 
-  const getDefaultTemplate = (tipo: string): Partial<EmailTemplate> => {
-    const tipoLabel = tiposTemplate.find(t => t.value === tipo)?.label || tipo;
-    
-    return {
-      nome: tipoLabel,
-      assunto: `Seu Orçamento {{numero}}`,
-      corpo_html: `<p>Olá, <strong>{{cliente_nome}}</strong>,</p>
-
-<p>Obrigado por entrar em contato com nossa empresa.</p>
-
-<p>O orçamento está em anexo.</p>
-
-<p>Desde já agradeço a atenção.</p>
-
-<div style="margin-top: 30px;">
-  <p style="color: #6b7280; font-style: italic;">Assinatura da empresa</p>
-</div>`,
-    };
-  };
-
-  const insertVariable = (variavel: string, isAssunto = false) => {
-    const placeholder = `{{${variavel}}}`;
-    
-    if (isAssunto && assuntoRef.current) {
-      const start = assuntoRef.current.selectionStart;
-      const end = assuntoRef.current.selectionEnd;
-      const text = currentTemplate.assunto || '';
-      const newText = text.substring(0, start) + placeholder + text.substring(end);
-      setCurrentTemplate({ ...currentTemplate, assunto: newText });
-      
-      setTimeout(() => {
-        assuntoRef.current?.focus();
-        assuntoRef.current?.setSelectionRange(start + placeholder.length, start + placeholder.length);
-      }, 0);
-    } else if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
-      const text = currentTemplate.corpo_html || '';
-      const newText = text.substring(0, start) + placeholder + text.substring(end);
-      setCurrentTemplate({ ...currentTemplate, corpo_html: newText });
-      
-      setTimeout(() => {
-        textareaRef.current?.focus();
-        textareaRef.current?.setSelectionRange(start + placeholder.length, start + placeholder.length);
-      }, 0);
-    }
-  };
-
-  const wrapSelection = (tag: string) => {
-    if (!textareaRef.current) return;
-    
-    const start = textareaRef.current.selectionStart;
-    const end = textareaRef.current.selectionEnd;
-    const text = currentTemplate.corpo_html || '';
-    const selectedText = text.substring(start, end);
-    
-    if (!selectedText) {
-      toast.error('Selecione o texto primeiro');
-      return;
-    }
-    
-    const wrapped = `<${tag}>${selectedText}</${tag}>`;
-    const newText = text.substring(0, start) + wrapped + text.substring(end);
-    setCurrentTemplate({ ...currentTemplate, corpo_html: newText });
-    
-    setTimeout(() => {
-      textareaRef.current?.focus();
-      textareaRef.current?.setSelectionRange(start, start + wrapped.length);
-    }, 0);
-  };
-
   const handleSave = async () => {
-    if (!currentTemplate.nome || !currentTemplate.assunto || !currentTemplate.corpo_html) {
-      toast.error('Preencha todos os campos obrigatórios');
+    if (!fields.saudacao || !fields.mensagem_principal) {
+      toast.error('Preencha os campos obrigatórios');
       return;
     }
 
@@ -221,13 +130,16 @@ export default function EmailTemplates() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      const tipoLabel = tiposTemplate.find(t => t.value === selectedTipo)?.label || selectedTipo;
+      const corpo_html = buildHtmlFromFields(fields);
+
       const templateData = {
         user_id: user.id,
-        nome: currentTemplate.nome,
+        nome: tipoLabel,
         tipo: selectedTipo,
-        assunto: currentTemplate.assunto,
-        corpo_html: currentTemplate.corpo_html,
-        variaveis_disponiveis: variaveisPorTipo[selectedTipo]?.map(v => v.nome) || [],
+        assunto: `Seu Orçamento {{numero}}`,
+        corpo_html,
+        variaveis_disponiveis: ['numero', 'cliente_nome'],
         ativo: true,
       };
 
@@ -249,14 +161,12 @@ export default function EmailTemplates() {
   };
 
   const renderPreview = () => {
-    let html = currentTemplate.corpo_html || '';
+    const html = buildHtmlFromFields(fields);
+    const previewHtml = html
+      .replace(/{{numero}}/g, '<span style="background-color: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 3px; font-weight: 500;">Número do Orçamento</span>')
+      .replace(/{{cliente_nome}}/g, '<span style="background-color: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 3px; font-weight: 500;">Nome do Cliente</span>');
     
-    variaveisPorTipo[selectedTipo]?.forEach(v => {
-      const regex = new RegExp(`{{${v.nome}}}`, 'g');
-      html = html.replace(regex, `<span style="background-color: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 3px; font-weight: 500;">${v.descricao}</span>`);
-    });
-    
-    return { __html: html };
+    return { __html: previewHtml };
   };
 
   return (
@@ -297,150 +207,88 @@ export default function EmailTemplates() {
         {!loading && (
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Modèle d'email "{currentTemplate.nome}"</CardTitle>
-                  <CardDescription className="mt-1">
-                    Edite o template com variáveis dinâmicas
-                  </CardDescription>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      + Données dynamiques
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    {variaveisPorTipo[selectedTipo]?.map((v) => (
-                      <DropdownMenuItem 
-                        key={v.nome}
-                        onClick={() => insertVariable(v.nome)}
-                      >
-                        <FileText className="mr-2 h-4 w-4" />
-                        {v.descricao}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+              <CardTitle>Personalize seu Template de Email</CardTitle>
+              <CardDescription>
+                Preencha os campos abaixo. As variáveis {'{numero}'} e {'{cliente_nome}'} serão substituídas automaticamente.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Barra de Ferramentas */}
-              <div className="flex items-center gap-1 p-2 bg-muted rounded-lg border">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => wrapSelection('strong')}
-                  title="Negrito"
-                >
-                  <Bold className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => wrapSelection('em')}
-                  title="Itálico"
-                >
-                  <Italic className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => wrapSelection('u')}
-                  title="Sublinhado"
-                >
-                  <Underline className="h-4 w-4" />
-                </Button>
-                
-                <Separator orientation="vertical" className="h-6 mx-2" />
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  title="Alinhar à esquerda"
-                >
-                  <AlignLeft className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  title="Centralizar"
-                >
-                  <AlignCenter className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  title="Alinhar à direita"
-                >
-                  <AlignRight className="h-4 w-4" />
-                </Button>
+              <div className="grid gap-6">
+                {/* Saudação */}
+                <div className="space-y-2">
+                  <Label htmlFor="saudacao">Saudação Inicial</Label>
+                  <Input
+                    id="saudacao"
+                    value={fields.saudacao}
+                    onChange={(e) => setFields({ ...fields, saudacao: e.target.value })}
+                    placeholder="Ex: Olá,"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Será seguido automaticamente por: <strong>Nome do Cliente</strong>
+                  </p>
+                </div>
+
+                {/* Mensagem Principal */}
+                <div className="space-y-2">
+                  <Label htmlFor="mensagem-principal">Mensagem Principal</Label>
+                  <Textarea
+                    id="mensagem-principal"
+                    value={fields.mensagem_principal}
+                    onChange={(e) => setFields({ ...fields, mensagem_principal: e.target.value })}
+                    placeholder="Ex: Obrigado por entrar em contato com nossa empresa."
+                    rows={2}
+                  />
+                </div>
+
+                {/* Mensagem sobre Anexo */}
+                <div className="space-y-2">
+                  <Label htmlFor="mensagem-anexo">Mensagem sobre o Anexo</Label>
+                  <Textarea
+                    id="mensagem-anexo"
+                    value={fields.mensagem_anexo}
+                    onChange={(e) => setFields({ ...fields, mensagem_anexo: e.target.value })}
+                    placeholder="Ex: O orçamento está em anexo."
+                    rows={2}
+                  />
+                </div>
+
+                {/* Despedida */}
+                <div className="space-y-2">
+                  <Label htmlFor="despedida">Despedida</Label>
+                  <Input
+                    id="despedida"
+                    value={fields.despedida}
+                    onChange={(e) => setFields({ ...fields, despedida: e.target.value })}
+                    placeholder="Ex: Desde já agradeço a atenção."
+                  />
+                </div>
+
+                {/* Assinatura */}
+                <div className="space-y-2">
+                  <Label htmlFor="assinatura">Assinatura da Empresa</Label>
+                  <Textarea
+                    id="assinatura"
+                    value={fields.assinatura}
+                    onChange={(e) => setFields({ ...fields, assinatura: e.target.value })}
+                    placeholder="Ex: Atenciosamente,&#10;Sua Empresa"
+                    rows={3}
+                  />
+                </div>
               </div>
 
-              {/* Assunto */}
+              {/* Preview */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="assunto">Objet de l'email</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <FileText className="h-4 w-4 mr-2" />
-                        Variáveis
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {variaveisPorTipo[selectedTipo]?.map((v) => (
-                        <DropdownMenuItem 
-                          key={v.nome}
-                          onClick={() => insertVariable(v.nome, true)}
-                        >
-                          {v.descricao}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                <Input
-                  ref={assuntoRef}
-                  id="assunto"
-                  value={currentTemplate.assunto || ''}
-                  onChange={(e) => setCurrentTemplate({ ...currentTemplate, assunto: e.target.value })}
-                  placeholder="Ex: Votre devis n° {{numero}}"
-                  className="font-medium"
+                <Label>Pré-visualização</Label>
+                <div 
+                  className="border rounded-lg p-6 bg-muted/50 min-h-[200px]"
+                  dangerouslySetInnerHTML={renderPreview()}
                 />
               </div>
-
-              <Tabs defaultValue="editor" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="editor">Editor</TabsTrigger>
-                  <TabsTrigger value="preview">Preview</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="editor" className="space-y-4">
-                  <div className="space-y-2">
-                    <Textarea
-                      ref={textareaRef}
-                      value={currentTemplate.corpo_html || ''}
-                      onChange={(e) => setCurrentTemplate({ ...currentTemplate, corpo_html: e.target.value })}
-                      placeholder="Digite o conteúdo do email..."
-                      rows={18}
-                      className="font-mono text-sm"
-                    />
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="preview" className="space-y-4">
-                  <div 
-                    className="border rounded-lg p-6 bg-white min-h-[400px]"
-                    dangerouslySetInnerHTML={renderPreview()}
-                  />
-                </TabsContent>
-              </Tabs>
 
               {/* Anexar PDF */}
               <div className="flex items-center justify-between py-4 border-t">
                 <Label htmlFor="anexar-pdf" className="text-base">
-                  Joindre le PDF du document à l'email
+                  Anexar PDF do documento ao email
                 </Label>
                 <Switch 
                   id="anexar-pdf"
@@ -453,13 +301,13 @@ export default function EmailTemplates() {
               <div className="flex items-center justify-end gap-3 pt-4 border-t">
                 <Button 
                   variant="outline" 
-                  onClick={() => loadTemplateByTipo(selectedTipo)}
+                  onClick={() => setFields(defaultFields)}
                 >
-                  Annuler
+                  Restaurar Padrão
                 </Button>
                 <Button onClick={handleSave} disabled={saving}>
                   <Save className="mr-2 h-4 w-4" />
-                  {saving ? 'Salvando...' : 'Enregistrer'}
+                  {saving ? 'Salvando...' : 'Salvar Template'}
                 </Button>
               </div>
             </CardContent>
