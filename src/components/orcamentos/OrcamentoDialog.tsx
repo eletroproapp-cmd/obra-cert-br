@@ -1028,7 +1028,6 @@ Segue em anexo o orçamento nº ${orcamento.numero} para sua análise.
 Detalhes:
 - Título: ${orcamento.titulo}
 - Valor Total: R$ ${orcamento.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-- Validade: ${orcamento.validade_dias} dias
 
 Estamos à disposição para quaisquer esclarecimentos.
 
