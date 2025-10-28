@@ -45,27 +45,12 @@ const menuItems = [
       { title: "Planejamento", url: "/planejamento", icon: Calendar },
       { title: "Funcionários", url: "/funcionarios", icon: UserCog },
       { title: "Folhas de Ponto", url: "/timesheets", icon: Clock },
-    ],
-  },
-  {
-    section: "",
-    items: [
       { title: "Orçamentos", url: "/orcamentos", icon: FileText },
       { title: "Faturas", url: "/faturas", icon: Receipt },
       { title: "Modelos de Email", url: "/email-templates", icon: Mail },
-    ],
-  },
-  {
-    section: "",
-    items: [
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Catálogo", url: "/catalogo", icon: FolderOpen },
       { title: "NBR 5410", url: "/nbr5410", icon: CheckSquare },
-    ],
-  },
-  {
-    section: "",
-    items: [
       { title: "Fornecedores", url: "/fornecedores", icon: Building2 },
     ],
   },

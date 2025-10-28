@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { AlertCircle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
 
 const checklistSchema = z.object({
+  projeto_id: z.string().optional(),
   tipo_imovel: z.string().min(1, "Tipo de imóvel é obrigatório"),
   area_total: z.coerce.number().positive().optional(),
   num_comodos: z.coerce.number().int().positive().optional(),
@@ -69,10 +70,34 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [alertas, setAlertas] = useState<string[]>([]);
+  const [projetos, setProjetos] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadProjetos = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("projetos")
+        .select("id, nome")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erro ao carregar projetos:", error);
+        return;
+      }
+
+      setProjetos(data || []);
+    };
+
+    loadProjetos();
+  }, []);
 
   const form = useForm<ChecklistFormData>({
     resolver: zodResolver(checklistSchema),
     defaultValues: {
+      projeto_id: "",
       tipo_imovel: "",
       tem_chuveiro: false,
       tem_ar_condicionado: false,
@@ -200,6 +225,7 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
         .from("nbr5410_checklists")
         .insert({
           user_id: user.id,
+          projeto_id: data.projeto_id || null,
           tipo_imovel: data.tipo_imovel,
           area_total: data.area_total,
           num_comodos: data.num_comodos,
@@ -251,6 +277,31 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
             {/* Step 1: Dados do Projeto */}
             {step === 1 && (
               <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="projeto_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Projeto (Opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um projeto" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {projetos.map((projeto) => (
+                            <SelectItem key={projeto.id} value={projeto.id}>
+                              {projeto.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="tipo_imovel"
