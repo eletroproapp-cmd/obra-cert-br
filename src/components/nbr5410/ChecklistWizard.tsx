@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AlertCircle, CheckCircle2, ArrowRight, ArrowLeft } from "lucide-react";
+import { AlertCircle, CheckCircle2, ArrowRight, ArrowLeft, Plus, Trash2 } from "lucide-react";
 
 const checklistSchema = z.object({
   tipo_imovel: z.string().min(1, "Tipo de imóvel é obrigatório"),
@@ -74,6 +76,8 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
   const [loading, setLoading] = useState(false);
   const [alertas, setAlertas] = useState<string[]>([]);
   const [cargasCustomizadas, setCargasCustomizadas] = useState<Array<{ nome: string; potencia: number }>>([]);
+  const [showCargaDialog, setShowCargaDialog] = useState(false);
+  const [novaCarga, setNovaCarga] = useState({ nome: "", potencia: "" });
 
   const form = useForm<ChecklistFormData>({
     resolver: zodResolver(checklistSchema),
@@ -244,7 +248,8 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
   };
 
   return (
-    <Card className="max-w-3xl mx-auto">
+    <>
+      <Card className="max-w-3xl mx-auto">
       <CardHeader>
         <CardTitle>Checklist de Conformidade NBR 5410</CardTitle>
         <CardDescription>
@@ -386,19 +391,9 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        const nome = prompt("Nome da carga:");
-                        const potenciaStr = prompt("Potência (kW):");
-                        if (nome && potenciaStr) {
-                          const potencia = parseFloat(potenciaStr);
-                          if (!isNaN(potencia)) {
-                            const novasCargasCustomizadas = [...cargasCustomizadas, { nome, potencia }];
-                            setCargasCustomizadas(novasCargasCustomizadas);
-                            form.setValue("cargas_especiais_customizadas", novasCargasCustomizadas);
-                          }
-                        }
-                      }}
+                      onClick={() => setShowCargaDialog(true)}
                     >
+                      <Plus className="h-4 w-4 mr-2" />
                       Adicionar Carga
                     </Button>
                   </div>
@@ -420,7 +415,7 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
                               form.setValue("cargas_especiais_customizadas", novasCargasCustomizadas);
                             }}
                           >
-                            Remover
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       ))}
@@ -867,5 +862,68 @@ export function ChecklistWizard({ onComplete }: ChecklistWizardProps) {
         </Form>
       </CardContent>
     </Card>
+
+    <Dialog open={showCargaDialog} onOpenChange={setShowCargaDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Adicionar Carga Especial</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="nome-carga">Nome da Carga</Label>
+            <Input
+              id="nome-carga"
+              placeholder="Ex: Bomba de Água, Portão Elétrico"
+              value={novaCarga.nome}
+              onChange={(e) => setNovaCarga({ ...novaCarga, nome: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="potencia-carga">Potência (kW)</Label>
+            <Input
+              id="potencia-carga"
+              type="number"
+              step="0.1"
+              placeholder="Ex: 1.5"
+              value={novaCarga.potencia}
+              onChange={(e) => setNovaCarga({ ...novaCarga, potencia: e.target.value })}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowCargaDialog(false);
+              setNovaCarga({ nome: "", potencia: "" });
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              if (!novaCarga.nome || !novaCarga.potencia) {
+                toast.error("Preencha todos os campos");
+                return;
+              }
+              const potencia = parseFloat(novaCarga.potencia);
+              if (isNaN(potencia) || potencia <= 0) {
+                toast.error("Potência inválida");
+                return;
+              }
+              const novasCargasCustomizadas = [...cargasCustomizadas, { nome: novaCarga.nome, potencia }];
+              setCargasCustomizadas(novasCargasCustomizadas);
+              form.setValue("cargas_especiais_customizadas", novasCargasCustomizadas);
+              setShowCargaDialog(false);
+              setNovaCarga({ nome: "", potencia: "" });
+              toast.success("Carga adicionada com sucesso");
+            }}
+          >
+            Adicionar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

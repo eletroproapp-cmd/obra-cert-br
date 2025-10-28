@@ -24,6 +24,7 @@ interface Checklist {
   observacoes: string | null;
   premissas_tecnicas: string | null;
   created_at: string;
+  orcamento_id: string | null;
 }
 
 export function AnexoTecnicoPDF() {
@@ -87,6 +88,18 @@ export function AnexoTecnicoPDF() {
         .select("*")
         .eq("checklist_id", selectedChecklistId);
 
+      // Buscar dados do projeto/orçamento se disponível
+      let projeto = null;
+      let orcamento = null;
+      if (checklist.orcamento_id) {
+        const { data: orcamentoData } = await supabase
+          .from("orcamentos")
+          .select("*, clientes(*)")
+          .eq("id", checklist.orcamento_id)
+          .single();
+        orcamento = orcamentoData;
+      }
+
       const pdf = new jsPDF();
       let yPos = 20;
       const pageHeight = pdf.internal.pageSize.height;
@@ -147,6 +160,21 @@ export function AnexoTecnicoPDF() {
 
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "normal");
+      
+      // Informações do orçamento/cliente se disponível
+      if (orcamento) {
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`Orçamento: ${orcamento.numero}`, margin, yPos);
+        pdf.setFont("helvetica", "normal");
+        yPos += lineHeight;
+        
+        if (orcamento.clientes) {
+          pdf.text(`Cliente: ${orcamento.clientes.nome}`, margin, yPos);
+          yPos += lineHeight;
+        }
+        yPos += 5;
+      }
+      
       pdf.text(`Tipo de Imóvel: ${checklist.tipo_imovel}`, margin, yPos);
       yPos += lineHeight;
 
