@@ -91,12 +91,14 @@ const Dashboard = () => {
         .eq('user_id', user.id);
 
       // Calcular receitas (faturas pagas dentro do período)
-      const totalReceitas = faturas?.filter(f => 
-        f.status === 'Pago' && 
-        f.data_pagamento && 
-        f.data_pagamento >= dataInicio && 
-        f.data_pagamento <= dataFim
-      ).reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
+      const inicioDate = new Date(dataInicio);
+      const fimDate = new Date(dataFim);
+      
+      const totalReceitas = faturas?.filter(f => {
+        if (f.status !== 'Pago' || !f.data_pagamento) return false;
+        const pagamentoDate = new Date(f.data_pagamento);
+        return pagamentoDate >= inicioDate && pagamentoDate <= fimDate;
+      }).reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
 
       // Calcular despesas
       const totalDespesas = despesas?.reduce((sum, d) => sum + Number(d.valor), 0) || 0;

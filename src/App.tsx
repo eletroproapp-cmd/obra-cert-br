@@ -25,6 +25,7 @@ import Admin from "./pages/Admin";
 import EmailTemplates from "./pages/EmailTemplates";
 import Indicacoes from "./pages/Indicacoes";
 import Despesas from "./pages/Despesas";
+import Suporte from "./pages/Suporte";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -57,6 +58,7 @@ const App = () => (
         <Route path="/despesas" element={<ProtectedRoute><Despesas /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         <Route path="/indicacoes" element={<ProtectedRoute><Indicacoes /></ProtectedRoute>} />
+        <Route path="/suporte" element={<ProtectedRoute><Suporte /></ProtectedRoute>} />
         
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
