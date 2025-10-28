@@ -394,8 +394,46 @@ export type Database = {
           },
         ]
       }
+      fatura_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          fatura_id: string
+          id: string
+          token: string
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          fatura_id: string
+          id?: string
+          token: string
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          fatura_id?: string
+          id?: string
+          token?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fatura_tokens_fatura_id_fkey"
+            columns: ["fatura_id"]
+            isOneToOne: false
+            referencedRelation: "faturas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faturas: {
         Row: {
+          assinado_em: string | null
+          assinante_nome: string | null
+          assinatura_url: string | null
           cliente_id: string | null
           created_at: string
           data_pagamento: string | null
@@ -419,6 +457,9 @@ export type Database = {
           valor_total: number
         }
         Insert: {
+          assinado_em?: string | null
+          assinante_nome?: string | null
+          assinatura_url?: string | null
           cliente_id?: string | null
           created_at?: string
           data_pagamento?: string | null
@@ -442,6 +483,9 @@ export type Database = {
           valor_total?: number
         }
         Update: {
+          assinado_em?: string | null
+          assinante_nome?: string | null
+          assinatura_url?: string | null
           cliente_id?: string | null
           created_at?: string
           data_pagamento?: string | null
@@ -903,8 +947,46 @@ export type Database = {
           },
         ]
       }
+      orcamento_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          orcamento_id: string
+          token: string
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          orcamento_id: string
+          token: string
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          orcamento_id?: string
+          token?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_tokens_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamentos: {
         Row: {
+          assinado_em: string | null
+          assinante_nome: string | null
+          assinatura_url: string | null
           cliente_id: string | null
           created_at: string
           descricao: string | null
@@ -919,6 +1001,9 @@ export type Database = {
           valor_total: number
         }
         Insert: {
+          assinado_em?: string | null
+          assinante_nome?: string | null
+          assinatura_url?: string | null
           cliente_id?: string | null
           created_at?: string
           descricao?: string | null
@@ -933,6 +1018,9 @@ export type Database = {
           valor_total?: number
         }
         Update: {
+          assinado_em?: string | null
+          assinante_nome?: string | null
+          assinatura_url?: string | null
           cliente_id?: string | null
           created_at?: string
           descricao?: string | null
@@ -1424,6 +1512,7 @@ export type Database = {
       generate_orcamento_numero: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_servico_codigo: { Args: never; Returns: string }
+      generate_unique_token: { Args: { length?: number }; Returns: string }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
