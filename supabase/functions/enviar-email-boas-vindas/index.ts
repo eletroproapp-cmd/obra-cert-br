@@ -19,7 +19,7 @@ serve(async (req) => {
     console.log(`Enviando email de boas-vindas para: ${email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "EletroPro <onboarding@resend.dev>",
+      from: "Seu App <no-reply@send.eletroproapp.com>",
       to: [email],
       subject: "Bem-vindo ao EletroPro! 🎉",
       html: `

@@ -182,7 +182,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     const fromEmail = empresaConfig?.email 
       ? `${sanitize(empresa?.nome_fantasia || 'EletroPro')} <${empresaConfig.email}>`
-      : "EletroPro <onboarding@resend.dev>";
+      : "Seu App <no-reply@send.eletroproapp.com>";
 
     // Gerar token público para a fatura
     const token = crypto.randomUUID();

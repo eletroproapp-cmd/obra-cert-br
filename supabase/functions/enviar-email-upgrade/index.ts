@@ -19,7 +19,7 @@ serve(async (req) => {
     console.log(`Enviando email de upgrade para: ${email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "EletroPro <onboarding@resend.dev>",
+      from: "Seu App <no-reply@send.eletroproapp.com>",
       to: [email],
       subject: `🎉 Upgrade confirmado - Plano ${planName}`,
       html: `
