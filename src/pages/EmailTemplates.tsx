@@ -149,14 +149,12 @@ export default function EmailTemplates() {
 
 <p>Obrigado por entrar em contato com nossa empresa.</p>
 
-<p>Seu orçamento n° <strong>{{numero}}</strong> pode ser consultado ou baixado diretamente online:</p>
+<p>O orçamento está em anexo.</p>
 
-<div style="text-align: center; margin: 30px 0;">
-  <a href="{{link_documento}}" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px;">Link de consulta do documento</a>
-</div>
+<p>Desde já agradeço a atenção.</p>
 
-<div style="margin: 40px 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-  <p style="color: #6b7280; font-style: italic;">Assinatura do email</p>
+<div style="margin-top: 30px;">
+  <p style="color: #6b7280; font-style: italic;">Assinatura da empresa</p>
 </div>`,
     };
   };
