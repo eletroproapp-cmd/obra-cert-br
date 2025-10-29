@@ -59,11 +59,11 @@ export const ReferralSection = () => {
               <div className="mt-4 space-y-2">
                 <div className="flex items-start gap-2">
                   <Badge variant="secondary" className="mt-0.5">Indicador</Badge>
-                  <p className="text-sm">Quando seu indicado assinar <strong>qualquer plano pago</strong>, você ganha <strong>50% de desconto</strong> na próxima mensalidade!</p>
+                  <p className="text-sm">Quando seu indicado assinar <strong>qualquer plano pago</strong>, você ganha <strong>30 dias grátis</strong>!</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <Badge variant="default" className="mt-0.5">Indicado</Badge>
-                  <p className="text-sm">Ao assinar <strong>qualquer plano pago</strong> (Básico ou Professional), você ganha <strong>30 dias grátis</strong>!</p>
+                  <p className="text-sm">Ao assinar <strong>qualquer plano pago</strong> (Básico ou Professional), você também ganha <strong>30 dias grátis</strong>!</p>
                 </div>
               </div>
             </div>
@@ -198,9 +198,7 @@ export const ReferralSection = () => {
                           <Gift className="h-5 w-5 text-success" />
                           <div>
                             <p className="font-medium">
-                              {reward.reward_type === 'discount_50_percent' 
-                                ? `50% de desconto (R$ ${reward.reward_value.toFixed(2)})`
-                                : `${reward.reward_value} dias grátis`}
+                              {reward.reward_value} dias grátis
                             </p>
                             <p className="text-xs text-muted-foreground">
                               Criado em: {new Date(reward.created_at).toLocaleDateString('pt-BR')}
