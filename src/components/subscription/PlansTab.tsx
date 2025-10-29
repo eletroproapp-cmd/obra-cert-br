@@ -129,19 +129,24 @@ export const PlansTab = () => {
 
       if (data?.url) {
         const url = data.url as string;
-        toast.success("Redirecionando para pagamento...");
+        toast.success("Abrindo checkout em nova aba...");
         
         setTimeout(() => {
-          try {
-            if (window.top) {
-              (window.top as Window).location.href = url;
-            } else {
+          const win = window.open(url, '_blank', 'noopener,noreferrer');
+          if (!win) {
+            // Pop-up bloqueado: faz fallback para redireciono no contexto atual
+            try {
+              if (window.top) {
+                (window.top as Window).location.href = url;
+              } else {
+                window.location.href = url;
+              }
+            } catch {
               window.location.href = url;
             }
-          } catch {
-            window.open(url, '_blank', 'noopener,noreferrer');
           }
-        }, 1000);
+          setUpgrading(false);
+        }, 500);
       } else {
         throw new Error('URL de checkout não recebida');
       }

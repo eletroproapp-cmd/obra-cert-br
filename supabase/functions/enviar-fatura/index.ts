@@ -555,6 +555,7 @@ const handler = async (req: Request): Promise<Response> => {
         {
           filename: `Fatura_${fatura.numero}.pdf`,
           content: pdfBase64,
+          contentType: 'application/pdf'
         }
       ]
     });
