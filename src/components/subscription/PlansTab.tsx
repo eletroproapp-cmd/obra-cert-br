@@ -17,10 +17,9 @@ const plans = [
     period: '/mês',
     description: 'Ideal para começar',
     features: [
-      '5 clientes',
+      '100 clientes',
       '10 orçamentos por mês',
       '5 faturas por mês',
-      '2 instalações ativas',
       '50 materiais no catálogo'
     ],
     limitations: ['Recursos básicos', 'Suporte por email']
@@ -36,7 +35,6 @@ const plans = [
       '50 clientes',
       '100 orçamentos por mês',
       '50 faturas por mês',
-      '10 instalações ativas',
       '500 materiais no catálogo',
       '5 funcionários',
       'Suporte prioritário'

@@ -26,11 +26,6 @@ const resourceConfig = {
     icon: Receipt,
     key: 'faturas_mes' 
   },
-  instalacoes: { 
-    label: 'Instalações Ativas', 
-    icon: Building2,
-    key: 'instalacoes' 
-  },
   materiais: { 
     label: 'Materiais no Catálogo', 
     icon: Package,

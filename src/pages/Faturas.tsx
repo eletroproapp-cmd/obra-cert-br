@@ -67,7 +67,7 @@ const Faturas = () => {
   };
 
   const handleNewFatura = () => {
-    const limitCheck = checkLimit('faturas');
+    const limitCheck = checkLimit('faturas_mes');
     
     if (!limitCheck.allowed) {
       setShowUpgradeDialog(true);
@@ -151,8 +151,8 @@ const Faturas = () => {
       {plan && (
         <UsageLimitAlert
           resourceName="faturas este mês"
-          current={checkLimit('faturas').current}
-          limit={checkLimit('faturas').limit}
+          current={checkLimit('faturas_mes').current}
+          limit={checkLimit('faturas_mes').limit}
         />
       )}
 

@@ -46,7 +46,7 @@ const menuItems = [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
       { title: "Projetos", url: "/projetos", icon: FolderKanban, requiresPro: true },
       { title: "Planejamento", url: "/planejamento", icon: Calendar },
-      { title: "Funcionários", url: "/funcionarios", icon: UserCog, requiresPro: true },
+      { title: "Funcionários", url: "/funcionarios", icon: UserCog, requiresBasic: true },
       { title: "Folhas de Ponto", url: "/timesheets", icon: Clock, requiresPro: true },
       { title: "Orçamentos", url: "/orcamentos", icon: FileText },
       { title: "Faturas", url: "/faturas", icon: Receipt },
@@ -75,6 +75,7 @@ export function AppSidebar() {
   
   const isActivePath = (url: string) => pathname === url;
   const isProfessional = plan?.plan_type === 'professional';
+  const isBasicOrPro = plan?.plan_type === 'basic' || plan?.plan_type === 'professional';
 
   const bottomItemsWithAdmin = isAdmin 
     ? [
@@ -114,7 +115,11 @@ export function AppSidebar() {
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-0.5">
                   {section.items.map((item) => {
-                    const isLocked = item.requiresPro && !isProfessional;
+                    const isLockedPro = item.requiresPro && !isProfessional;
+                    const isLockedBasic = item.requiresBasic && !isBasicOrPro;
+                    const isLocked = isLockedPro || isLockedBasic;
+                    const badgeText = isLockedPro ? 'Pro' : isLockedBasic ? 'Basic' : null;
+                    
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton 
@@ -129,7 +134,7 @@ export function AppSidebar() {
                               {open && (
                                 <div className="flex items-center gap-2 flex-1">
                                   <span className="text-sm text-sidebar-foreground">{item.title}</span>
-                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Pro</Badge>
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{badgeText}</Badge>
                                 </div>
                               )}
                             </div>

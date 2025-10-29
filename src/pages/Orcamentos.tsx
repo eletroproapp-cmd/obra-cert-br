@@ -65,7 +65,7 @@ const Orcamentos = () => {
   };
 
   const handleNewOrcamento = () => {
-    const limitCheck = checkLimit('orcamentos');
+    const limitCheck = checkLimit('orcamentos_mes');
     
     if (!limitCheck.allowed) {
       setShowUpgradeDialog(true);
@@ -149,8 +149,8 @@ const Orcamentos = () => {
       {plan && (
         <UsageLimitAlert
           resourceName="orçamentos este mês"
-          current={checkLimit('orcamentos').current}
-          limit={checkLimit('orcamentos').limit}
+          current={checkLimit('orcamentos_mes').current}
+          limit={checkLimit('orcamentos_mes').limit}
         />
       )}
 
