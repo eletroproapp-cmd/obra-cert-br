@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Cable, AlertTriangle, Wrench, Pencil } from "lucide-react";
@@ -232,52 +233,61 @@ const Catalogo = () => {
               </Button>
             </Card>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {materiais.map((material) => (
-                <Card key={material.id} className="border-border shadow-soft hover:shadow-medium transition-all relative group">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => handleEditMaterial(material.id, e)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Cable className="h-5 w-5 text-primary" />
-                      <span className="text-lg">{material.nome}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Preço Venda</TableHead>
+                    <TableHead>Estoque</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {materiais.map((material) => (
+                    <TableRow key={material.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Cable className="h-4 w-4 text-primary" />
+                          <span className="font-medium">{material.nome}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded inline-block">
                           {material.categoria}
                         </div>
-                        {material.estoque_atual <= material.estoque_minimo && (
-                          <div className="px-2 py-1 bg-destructive/10 text-destructive text-xs font-medium rounded flex items-center gap-1">
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        R$ {material.preco_venda.toFixed(2)}/{material.unidade}
+                      </TableCell>
+                      <TableCell>
+                        {material.estoque_atual} {material.unidade}
+                      </TableCell>
+                      <TableCell>
+                        {material.estoque_atual <= material.estoque_minimo ? (
+                          <div className="px-2 py-1 bg-destructive/10 text-destructive text-xs font-medium rounded inline-flex items-center gap-1">
                             <AlertTriangle className="h-3 w-3" />
                             Estoque Baixo
                           </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">OK</span>
                         )}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Preço</p>
-                        <p className="text-lg font-bold text-primary">
-                          R$ {material.preco_venda.toFixed(2)}/{material.unidade}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Estoque</p>
-                        <p className="font-medium">
-                          {material.estoque_atual} {material.unidade}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleEditMaterial(material.id, e)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </TabsContent>
@@ -300,44 +310,50 @@ const Catalogo = () => {
               </Button>
             </Card>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {servicos.map((servico) => (
-                <Card key={servico.id} className="border-border shadow-soft hover:shadow-medium transition-all relative group">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => handleEditServico(servico.id, e)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Wrench className="h-5 w-5 text-primary" />
-                      <span className="text-lg">{servico.nome}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded inline-block">
-                        {servico.categoria}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Preço</p>
-                        <p className="text-lg font-bold text-primary">
-                          R$ {servico.preco_hora.toFixed(2)}/{servico.unidade}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground">Tempo Estimado</p>
-                        <p className="font-medium">
-                          {servico.tempo_estimado} {servico.unidade}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Preço</TableHead>
+                    <TableHead>Tempo Estimado</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {servicos.map((servico) => (
+                    <TableRow key={servico.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Wrench className="h-4 w-4 text-primary" />
+                          <span className="font-medium">{servico.nome}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded inline-block">
+                          {servico.categoria}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        R$ {servico.preco_hora.toFixed(2)}/{servico.unidade}
+                      </TableCell>
+                      <TableCell>
+                        {servico.tempo_estimado} {servico.unidade}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleEditServico(servico.id, e)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
         </TabsContent>
