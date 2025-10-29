@@ -127,6 +127,16 @@ export const useSubscription = () => {
         usageMap[item.resource_type] = item.count;
       });
 
+      // Fallback: contar faturas do mês atual diretamente, caso usage_tracking não esteja atualizado
+      const { count: faturasCount, error: faturasCountError } = await supabase
+        .from('faturas')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .gte('created_at', periodStart.toISOString());
+      if (!faturasCountError && typeof faturasCount === 'number') {
+        usageMap['faturas_mes'] = faturasCount;
+      }
+
       setUsage(usageMap);
     } catch (error) {
       console.error('Erro ao buscar uso:', error);

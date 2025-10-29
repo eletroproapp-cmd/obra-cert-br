@@ -53,21 +53,7 @@ export const ReferralSection = () => {
             <Gift className="h-5 w-5 text-primary" />
             <CardTitle>Programa de Indicações</CardTitle>
           </div>
-          <CardDescription>
-            <div className="space-y-2">
-              <p>Indique amigos e ganhe recompensas incríveis!</p>
-              <div className="mt-4 space-y-2">
-                <div className="flex items-start gap-2">
-                  <Badge variant="secondary" className="mt-0.5">Indicador</Badge>
-                  <p className="text-sm">Quando seu indicado assinar <strong>qualquer plano pago</strong>, você ganha <strong>30 dias grátis</strong>!</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Badge variant="default" className="mt-0.5">Indicado</Badge>
-                  <p className="text-sm">Ao assinar <strong>qualquer plano pago</strong> (Básico ou Professional), você também ganha <strong>30 dias grátis</strong>!</p>
-                </div>
-              </div>
-            </div>
-          </CardDescription>
+          <CardDescription>Indique amigos e ganhe recompensas incríveis!</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Estatísticas */}

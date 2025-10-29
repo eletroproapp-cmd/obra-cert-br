@@ -18,10 +18,12 @@ export const UsageLimitAlert = ({
   showUpgrade = true 
 }: UsageLimitAlertProps) => {
   const navigate = useNavigate();
-  const percentage = Math.round((current / limit) * 100);
+  const isUnlimited = limit >= 999999;
+  if (isUnlimited || limit === 0) return null;
+  const percentage = Math.min(100, Math.round((current / limit) * 100));
   const isNearLimit = percentage >= 80;
   const isAtLimit = current >= limit;
-
+ 
   if (!isNearLimit) return null;
 
   return (

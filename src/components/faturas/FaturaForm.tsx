@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ClienteForm } from '@/components/clientes/ClienteForm';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const faturaSchema = z.object({
   cliente_id: z.string().min(1, 'Selecione um cliente'),
@@ -68,6 +69,7 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
     }
   });
 
+const { plan } = useSubscription();
   const selectedClienteId = watch('cliente_id');
 
   useEffect(() => {
@@ -246,10 +248,26 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
         onSuccess?.();
         return { id: faturaId };
       } else {
-        // Criar nova fatura
+        // Criar nova fatura - validar limite do plano antes
+        const limit = plan?.limits?.faturas_mes ?? 0;
+        const isUnlimited = limit >= 999999;
+        if (!isUnlimited && limit > 0) {
+          const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+          const { count: fCount, error: fCountError } = await supabase
+            .from('faturas')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .gte('created_at', monthStart.toISOString());
+          if (!fCountError && typeof fCount === 'number' && fCount >= limit) {
+            toast.error('Limite de faturas do plano atingido este mês. Faça upgrade para continuar.');
+            setIsSubmitting(false);
+            return null;
+          }
+        }
+
         const { data: numeroData, error: numeroError } = await supabase
           .rpc('generate_fatura_numero');
-
+ 
         if (numeroError) throw numeroError;
 
         const { data: fatura, error: faturaError } = await supabase
@@ -287,11 +305,18 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
 
         if (itemsError) throw itemsError;
 
-        // Incrementar contador de uso
-        await supabase.rpc('increment_usage', {
-          _user_id: user.id,
-          _resource_type: 'faturas_mes'
-        });
+        // Incrementar contador de uso (opcional)
+        try {
+          const { error: incError } = await (supabase as any).rpc('increment_usage', {
+            _user_id: user.id,
+            _resource_type: 'faturas_mes'
+          });
+          if (incError) {
+            console.debug('increment_usage indisponível:', incError.message);
+          }
+        } catch (e) {
+          console.debug('increment_usage não suportado neste backend');
+        }
 
         toast.success('Fatura criada com sucesso!');
         onSuccess?.();
