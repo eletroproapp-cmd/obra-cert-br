@@ -533,7 +533,7 @@ const Configuracoes = () => {
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Label htmlFor="email">E-mail</Label>
+                          <Label htmlFor="email">E-mail (para envio de orçamentos e faturas)</Label>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -551,7 +551,16 @@ const Configuracoes = () => {
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <Input id="email" type="email" {...register('email')} />
+                        <Input 
+                          id="email" 
+                          type="email" 
+                          {...register('email')} 
+                          placeholder="Deixe vazio para usar email padrão (recomendado)"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Deixe vazio:</strong> Usa email padrão do sistema (funciona sem configuração)<br/>
+                          <strong>Email próprio:</strong> Você precisa verificar seu domínio em <a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">resend.com/domains</a>
+                        </p>
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
