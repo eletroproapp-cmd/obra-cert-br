@@ -62,6 +62,32 @@ serve(async (req) => {
         if (updateResult.ok) {
           console.log(`Subscription updated for user ${userId} to ${planType}`);
           
+          // Processar recompensas de indicação
+          try {
+            const rewardsResponse = await fetch(
+              `${supabaseUrl}/rest/v1/rpc/process_referral_rewards`,
+              {
+                method: 'POST',
+                headers: {
+                  'apikey': supabaseServiceKey,
+                  'Authorization': `Bearer ${supabaseServiceKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  p_user_id: userId,
+                  p_plan_type: planType
+                }),
+              }
+            );
+            
+            if (rewardsResponse.ok) {
+              const rewardsResult = await rewardsResponse.json();
+              console.log('Recompensas de indicação processadas:', rewardsResult);
+            }
+          } catch (rewardsError) {
+            console.error('Erro ao processar recompensas de indicação:', rewardsError);
+          }
+          
           // Enviar email de confirmação de upgrade
           try {
             // Buscar email do usuário

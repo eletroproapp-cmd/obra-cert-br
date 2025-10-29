@@ -54,7 +54,19 @@ export const ReferralSection = () => {
             <CardTitle>Programa de Indicações</CardTitle>
           </div>
           <CardDescription>
-            Indique amigos e ganhe 30 dias grátis para cada indicação bem-sucedida! Seu amigo também ganha 30 dias.
+            <div className="space-y-2">
+              <p>Indique amigos e ganhe recompensas incríveis!</p>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-start gap-2">
+                  <Badge variant="secondary" className="mt-0.5">Básico</Badge>
+                  <p className="text-sm">Quando seu indicado assinar o <strong>plano Básico</strong>, você ganha <strong>50% de desconto</strong> na próxima mensalidade!</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Badge variant="default" className="mt-0.5">Pro</Badge>
+                  <p className="text-sm">Quando você for indicado e assinar o <strong>plano Professional</strong>, você ganha <strong>30 dias grátis</strong>!</p>
+                </div>
+              </div>
+            </div>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -89,10 +101,8 @@ export const ReferralSection = () => {
                 <div className="flex items-center gap-3">
                   <CheckCircle className="h-8 w-8 text-accent" />
                   <div>
-                    <p className="text-2xl font-bold">
-                      {pendingRewards.reduce((sum, r) => sum + r.reward_value, 0)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Dias Grátis</p>
+                    <p className="text-2xl font-bold">{pendingRewards.length}</p>
+                    <p className="text-sm text-muted-foreground">Recompensas Ativas</p>
                   </div>
                 </div>
               </CardContent>
@@ -149,7 +159,7 @@ export const ReferralSection = () => {
             <div>
               <h3 className="text-lg font-semibold mb-2">Foi Indicado?</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Use o código que você recebeu e ganhe 30 dias grátis
+                Use o código que você recebeu. Ao assinar o plano Professional, você ganha 30 dias grátis!
               </p>
             </div>
 
@@ -184,10 +194,14 @@ export const ReferralSection = () => {
                   <Card key={reward.id}>
                     <CardContent className="pt-4">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                         <div className="flex items-center gap-3">
                           <Gift className="h-5 w-5 text-success" />
                           <div>
-                            <p className="font-medium">{reward.reward_value} dias grátis</p>
+                            <p className="font-medium">
+                              {reward.reward_type === 'discount_50_percent' 
+                                ? `50% de desconto (R$ ${reward.reward_value.toFixed(2)})`
+                                : `${reward.reward_value} dias grátis`}
+                            </p>
                             <p className="text-xs text-muted-foreground">
                               Criado em: {new Date(reward.created_at).toLocaleDateString('pt-BR')}
                             </p>
