@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.76.1";
 import { Resend } from "https://esm.sh/resend@4.0.1";
+import jsPDF from "https://esm.sh/jspdf@2.5.2";
+import autoTable from "https://esm.sh/jspdf-autotable@3.8.3";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -85,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("faturas")
       .select(`
         *,
-        clientes:cliente_id (nome, email)
+        clientes:cliente_id (nome, email, telefone, endereco, cidade, estado, cep)
       `)
       .eq("id", faturaId)
       .eq("user_id", user.id)
@@ -98,10 +100,25 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Buscar empresa info
+    // Buscar itens da fatura
+    const { data: items, error: itemsError } = await supabaseClient
+      .from("fatura_items")
+      .select("*")
+      .eq("fatura_id", faturaId)
+      .order("ordem");
+
+    if (itemsError) {
+      console.error("Erro ao buscar itens:", itemsError);
+      return new Response(
+        JSON.stringify({ error: "Erro ao buscar itens da fatura" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Buscar empresa info completa
     const { data: empresa } = await supabaseClient
       .from("empresas")
-      .select("nome_fantasia")
+      .select("*")
       .eq("user_id", user.id)
       .single();
 
@@ -188,15 +205,9 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Buscar configuração de email da empresa
-    const { data: empresaConfig } = await supabaseClient
-      .from("empresas")
-      .select("email")
-      .eq("user_id", user.id)
-      .single();
-    
+    // Determinar email do remetente
     let fromEmail: string;
-    const empresaEmail = empresaConfig?.email || '';
+    const empresaEmail = empresa?.email || '';
     const domain = empresaEmail.split('@')[1]?.toLowerCase() || '';
     const publicDomains = new Set([
       'gmail.com','hotmail.com','outlook.com','yahoo.com','live.com','icloud.com',
@@ -209,47 +220,273 @@ const handler = async (req: Request): Promise<Response> => {
       if (empresaEmail) console.log('Domínio de email não verificado/público. Usando remetente padrão.');
     }
 
-    // Gerar token público para a fatura
-    const token = crypto.randomUUID();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 90); // 90 dias
-
-    const { error: tokenError } = await supabaseClient
-      .from("fatura_tokens")
-      .insert({
-        fatura_id: faturaId,
-        token: token,
-        expires_at: expiresAt.toISOString()
-      });
-
-    if (tokenError) {
-      console.error("Erro ao criar token:", tokenError);
+    // === GERAR PDF ===
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 99, g: 102, b: 241 };
+    };
+    
+    const primaryColor = empresa?.cor_primaria || '#6366F1';
+    const secondaryColor = empresa?.cor_secundaria || '#E5E7EB';
+    const borderColor = empresa?.cor_borda_secoes || primaryColor;
+    const rgbPrimary = hexToRgb(primaryColor);
+    const rgbSecondary = hexToRgb(secondaryColor);
+    const rgbBorder = hexToRgb(borderColor);
+    
+    const lightSecondaryR = Math.min(255, rgbSecondary.r + (255 - rgbSecondary.r) * 0.85);
+    const lightSecondaryG = Math.min(255, rgbSecondary.g + (255 - rgbSecondary.g) * 0.85);
+    const lightSecondaryB = Math.min(255, rgbSecondary.b + (255 - rgbSecondary.b) * 0.85);
+    
+    let yPos = 15;
+    
+    // === CABEÇALHO ===
+    doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+    doc.setLineWidth(1.2);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 6;
+    
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+    doc.text('FATURA', pageWidth / 2, yPos + 2, { align: 'center' });
+    yPos += 10;
+    
+    // Informações da empresa (esquerda)
+    const leftStart = margin;
+    let leftY = yPos;
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(empresa?.nome_fantasia || 'Empresa', leftStart, leftY);
+    leftY += 5;
+    
+    if (empresa?.razao_social && empresa.tipo_pessoa === 'juridica') {
+      doc.setFontSize(8);
+      doc.setTextColor(90, 90, 90);
+      doc.text(empresa.razao_social, leftStart, leftY);
+      leftY += 4;
     }
+    
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    if (empresa?.endereco) { doc.text(empresa.endereco, leftStart, leftY); leftY += 3.5; }
+    if (empresa?.cep || empresa?.cidade || empresa?.estado) {
+      let addr = '';
+      if (empresa.cep) addr += empresa.cep + ' ';
+      if (empresa.cidade) addr += empresa.cidade;
+      if (empresa.estado) addr += ' - ' + empresa.estado;
+      doc.text(addr, leftStart, leftY);
+      leftY += 3.5;
+    }
+    if (empresa?.telefone) { doc.text('Tel: ' + empresa.telefone, leftStart, leftY); leftY += 3.5; }
+    if (empresa?.email) { doc.text('E-mail: ' + empresa.email, leftStart, leftY); leftY += 3.5; }
+    if (empresa?.cnpj) { 
+      const label = empresa.tipo_pessoa === 'fisica' ? 'CPF' : 'CNPJ'; 
+      doc.text(label + ': ' + empresa.cnpj, leftStart, leftY); 
+      leftY += 3.5; 
+    }
+    
+    // Informações da fatura (direita)
+    const rightEnd = pageWidth - margin;
+    let rightY = yPos;
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('nº ' + fatura.numero, rightEnd, rightY, { align: 'right' });
+    rightY += 7;
+    
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(80, 80, 80);
+    doc.text('Emissão:', rightEnd, rightY, { align: 'right' });
+    rightY += 3.5;
+    doc.setFont('helvetica', 'normal');
+    doc.text(new Date(fatura.data_emissao).toLocaleDateString('pt-BR'), rightEnd, rightY, { align: 'right' });
+    rightY += 4.5;
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Vencimento:', rightEnd, rightY, { align: 'right' });
+    rightY += 3.5;
+    doc.setFont('helvetica', 'normal');
+    doc.text(new Date(fatura.data_vencimento).toLocaleDateString('pt-BR'), rightEnd, rightY, { align: 'right' });
+    rightY += 4.5;
+    
+    if (fatura.forma_pagamento) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Pagamento:', rightEnd, rightY, { align: 'right' });
+      rightY += 3.5;
+      doc.setFont('helvetica', 'normal');
+      doc.text(fatura.forma_pagamento, rightEnd, rightY, { align: 'right' });
+    }
+    
+    yPos = Math.max(leftY, rightY) + 8;
+    
+    doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+    doc.setLineWidth(1.2);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    yPos += 8;
+    
+    // === CLIENTE ===
+    const clientBoxHeight = 26;
+    doc.setFillColor(lightSecondaryR, lightSecondaryG, lightSecondaryB);
+    doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(margin, yPos, pageWidth - 2 * margin, clientBoxHeight, 3, 3, 'FD');
+    
+    yPos += 5;
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(80, 80, 80);
+    doc.text('CLIENTE', margin + 4, yPos);
+    yPos += 5;
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text(fatura.clientes.nome, margin + 4, yPos);
+    yPos += 5;
+    
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(90, 90, 90);
+    if (fatura.clientes.endereco) {
+      doc.text(fatura.clientes.endereco, margin + 4, yPos);
+      yPos += 3.5;
+    }
+    if (fatura.clientes.cep || fatura.clientes.cidade || fatura.clientes.estado) {
+      let clientAddr = '';
+      if (fatura.clientes.cep) clientAddr += fatura.clientes.cep + ' ';
+      if (fatura.clientes.cidade) clientAddr += fatura.clientes.cidade;
+      if (fatura.clientes.estado) clientAddr += ' - ' + fatura.clientes.estado;
+      doc.text(clientAddr, margin + 4, yPos);
+    }
+    
+    yPos += clientBoxHeight - 13 + 8;
+    
+    // === TÍTULO E DESCRIÇÃO ===
+    if (fatura.titulo) {
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(fatura.titulo, margin, yPos);
+      yPos += 5;
+      
+      if (fatura.descricao) {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(90, 90, 90);
+        const splitDesc = doc.splitTextToSize(fatura.descricao, pageWidth - 2 * margin);
+        doc.text(splitDesc, margin, yPos);
+        yPos += splitDesc.length * 3.5 + 5;
+      } else {
+        yPos += 3;
+      }
+    }
+    
+    // === TABELA DE ITENS ===
+    const tableData = (items || []).map((item: any) => [
+      item.descricao,
+      item.quantidade.toString(),
+      item.unidade,
+      'R$ ' + item.valor_unitario.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      'R$ ' + item.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    ]);
 
-    // Gerar link público da fatura
-    const baseUrl = Deno.env.get("SUPABASE_URL")?.includes("supabase.co") 
-      ? "https://62540ff3-2df8-4ad5-a58c-0892f80772f9.lovableproject.com"
-      : "http://localhost:5173";
-    const faturaUrl = `${baseUrl}/publico/fatura/${token}`;
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Descrição', 'Qtd.', 'Unidade', 'Preço Un.', 'Total']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [rgbPrimary.r, rgbPrimary.g, rgbPrimary.b],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [50, 50, 50]
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto', halign: 'left' },
+        1: { cellWidth: 20, halign: 'center' },
+        2: { cellWidth: 25, halign: 'center' },
+        3: { cellWidth: 30, halign: 'right' },
+        4: { cellWidth: 30, halign: 'right' }
+      },
+      margin: { left: margin, right: margin }
+    });
 
-    // Adicionar link no email
-    const emailComLink = corpoHtml.replace(
-      '</div>',
-      `
-        <div style="margin: 30px 0; text-align: center;">
-          <a href="${faturaUrl}" 
-             style="display: inline-block; padding: 12px 30px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
-            Ver Fatura Completa
-          </a>
-        </div>
-      </div>`
-    );
+    yPos = (doc as any).lastAutoTable.finalY + 5;
 
+    // === TOTAL ===
+    const totalBoxWidth = 60;
+    const totalBoxHeight = 10;
+    const totalBoxX = pageWidth - margin - totalBoxWidth;
+    doc.setFillColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
+    doc.roundedRect(totalBoxX, yPos, totalBoxWidth, totalBoxHeight, 2, 2, 'F');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('TOTAL:', totalBoxX + 4, yPos + 6.5);
+    const valorTotal = 'R$ ' + Number(fatura.valor_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    doc.text(valorTotal, totalBoxX + totalBoxWidth - 4, yPos + 6.5, { align: 'right' });
+    
+    yPos += totalBoxHeight + 8;
+    
+    // === OBSERVAÇÕES ===
+    if (fatura.observacoes) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Observações:', margin, yPos);
+      yPos += 5;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(90, 90, 90);
+      const splitObs = doc.splitTextToSize(fatura.observacoes, pageWidth - 2 * margin);
+      doc.text(splitObs, margin, yPos);
+      yPos += splitObs.length * 3.5 + 8;
+    }
+    
+    // === RODAPÉ ===
+    const footerY = doc.internal.pageSize.getHeight() - 15;
+    doc.setDrawColor(rgbBorder.r, rgbBorder.g, rgbBorder.b);
+    doc.setLineWidth(0.5);
+    doc.line(margin, footerY, pageWidth - margin, footerY);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    doc.text(empresa?.nome_fantasia || 'EletroPro', pageWidth / 2, footerY + 4, { align: 'center' });
+    if (empresa?.website) {
+      doc.text(empresa.website, pageWidth / 2, footerY + 7.5, { align: 'center' });
+    }
+    
+    // Converter PDF para base64
+    const pdfOutput = doc.output('arraybuffer');
+    const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfOutput)));
+
+    // Enviar email com PDF em anexo
     const emailResponse = await resend.emails.send({
       from: fromEmail,
       to: [clienteEmail],
       subject: assunto,
-      html: emailComLink,
+      html: corpoHtml,
+      attachments: [
+        {
+          filename: `Fatura_${fatura.numero}.pdf`,
+          content: pdfBase64,
+        }
+      ]
     });
 
     console.log("Email enviado com sucesso:", emailResponse);
