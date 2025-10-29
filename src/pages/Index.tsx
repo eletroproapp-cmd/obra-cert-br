@@ -67,16 +67,13 @@ const Index = () => {
                 Tudo em um único lugar, simples e desenvolvido especialmente para eletricistas brasileiros.
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex justify-center">
               <Link to="/auth">
-                <Button size="xl" variant="hero" className="w-full sm:w-auto">
+                <Button size="xl" variant="hero" className="min-w-[220px]">
                   Começar Agora
                   <ArrowRight className="ml-2" />
                 </Button>
               </Link>
-              <Button size="xl" variant="outline" className="w-full sm:w-auto">
-                Ver Demonstração
-              </Button>
             </div>
             <div className="flex flex-wrap gap-6 pt-4 justify-center">
               <div className="flex items-center gap-2">
