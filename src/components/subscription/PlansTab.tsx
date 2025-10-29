@@ -52,10 +52,7 @@ const plans = [
       'Faturas ilimitadas',
       'Instalações ilimitadas',
       'Materiais ilimitados',
-      'Funcionários ilimitados',
-      'Suporte premium 24/7',
-      'API de integração',
-      'Relatórios avançados'
+      'Funcionários ilimitados'
     ]
   }
 ];

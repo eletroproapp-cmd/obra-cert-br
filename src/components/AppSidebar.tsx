@@ -61,7 +61,7 @@ const menuItems = [
 
 const bottomItems = [
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-  { title: "Plano", url: "/configuracoes?tab=plano", icon: Crown, showProBadge: true },
+  { title: "Plano", url: "/configuracoes?tab=plano", icon: Crown },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
   { title: "Indicações", url: "/indicacoes", icon: UserPlus },
   { title: "Ajuda & Suporte", url: "/suporte", icon: HelpCircle },
@@ -167,14 +167,7 @@ export function AppSidebar() {
                       <NavLink to={item.url} end>
                         <div className="flex items-center gap-3 w-full px-3 py-2 rounded-lg">
                           <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
-                          {open && (
-                            <div className="flex items-center gap-2 flex-1">
-                              <span className="text-sm text-sidebar-foreground">{item.title}</span>
-                              {item.showProBadge && (
-                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Pro</Badge>
-                              )}
-                            </div>
-                          )}
+                          {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
                         </div>
                       </NavLink>
                     </SidebarMenuButton>
