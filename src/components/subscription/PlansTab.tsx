@@ -179,10 +179,15 @@ export const PlansTab = () => {
       if (data?.url) {
         console.log('✅ URL de checkout recebida:', data.url);
         toast.success("Redirecionando para checkout...");
-        // Pequeno delay para garantir que o log e toast apareçam
+        // Usar window.top para escapar do iframe do Lovable preview
+        // Stripe Checkout não funciona dentro de iframes
         setTimeout(() => {
-          console.log('🔄 Redirecionando agora...');
-          window.location.href = data.url;
+          console.log('🔄 Redirecionando no top level...');
+          if (window.top) {
+            window.top.location.href = data.url;
+          } else {
+            window.location.href = data.url;
+          }
         }, 500);
       } else {
         console.error('❌ Nenhuma URL retornada. Data completo:', JSON.stringify(data));
