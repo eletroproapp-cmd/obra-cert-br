@@ -104,6 +104,64 @@ const Catalogo = () => {
     loadServicos();
   };
 
+  const loadExampleData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Materiais de exemplo
+      const materiais = [
+        { nome: 'Fio Flexível 2,5mm²', codigo: 'FIO-2.5', categoria: 'Cabos e Fios', descricao: 'Fio flexível de cobre 2,5mm² para instalações residenciais', unidade: 'm', preco_custo: 2.50, preco_venda: 3.80, estoque_atual: 500, estoque_minimo: 100 },
+        { nome: 'Fio Flexível 4mm²', codigo: 'FIO-4', categoria: 'Cabos e Fios', descricao: 'Fio flexível de cobre 4mm² para circuitos de maior potência', unidade: 'm', preco_custo: 4.20, preco_venda: 6.50, estoque_atual: 300, estoque_minimo: 80 },
+        { nome: 'Fio Flexível 6mm²', codigo: 'FIO-6', categoria: 'Cabos e Fios', descricao: 'Fio flexível de cobre 6mm² para chuveiros e aquecedores', unidade: 'm', preco_custo: 7.50, preco_venda: 11.20, estoque_atual: 200, estoque_minimo: 50 },
+        { nome: 'Cabo Flexível 10mm²', codigo: 'CABO-10', categoria: 'Cabos e Fios', descricao: 'Cabo flexível 10mm² para entrada de energia', unidade: 'm', preco_custo: 15.80, preco_venda: 24.50, estoque_atual: 150, estoque_minimo: 40 },
+        { nome: 'Disjuntor 10A Unipolar', codigo: 'DJ-10A-1P', categoria: 'Proteção', descricao: 'Disjuntor termomagnético 10A unipolar curva C', unidade: 'un', preco_custo: 12.00, preco_venda: 18.50, estoque_atual: 50, estoque_minimo: 10 },
+        { nome: 'Disjuntor 16A Unipolar', codigo: 'DJ-16A-1P', categoria: 'Proteção', descricao: 'Disjuntor termomagnético 16A unipolar curva C', unidade: 'un', preco_custo: 13.50, preco_venda: 20.00, estoque_atual: 40, estoque_minimo: 10 },
+        { nome: 'Disjuntor 25A Bipolar', codigo: 'DJ-25A-2P', categoria: 'Proteção', descricao: 'Disjuntor termomagnético 25A bipolar curva C', unidade: 'un', preco_custo: 28.00, preco_venda: 42.00, estoque_atual: 30, estoque_minimo: 8 },
+        { nome: 'DR 25A 30mA Bipolar', codigo: 'DR-25A-30', categoria: 'Proteção', descricao: 'Dispositivo diferencial residual 25A 30mA bipolar', unidade: 'un', preco_custo: 85.00, preco_venda: 128.00, estoque_atual: 20, estoque_minimo: 5 },
+        { nome: 'Tomada 10A 2P+T', codigo: 'TOM-10A', categoria: 'Tomadas e Interruptores', descricao: 'Tomada padrão NBR 10A 2P+T', unidade: 'un', preco_custo: 8.50, preco_venda: 13.50, estoque_atual: 100, estoque_minimo: 20 },
+        { nome: 'Tomada 20A 2P+T', codigo: 'TOM-20A', categoria: 'Tomadas e Interruptores', descricao: 'Tomada padrão NBR 20A 2P+T para ar-condicionado', unidade: 'un', preco_custo: 12.00, preco_venda: 18.50, estoque_atual: 60, estoque_minimo: 15 },
+        { nome: 'Interruptor Simples', codigo: 'INT-SIMP', categoria: 'Tomadas e Interruptores', descricao: 'Interruptor simples 10A', unidade: 'un', preco_custo: 6.50, preco_venda: 10.00, estoque_atual: 80, estoque_minimo: 20 },
+        { nome: 'Caixa de Luz 4x2', codigo: 'CX-4X2', categoria: 'Caixas e Eletrodutos', descricao: 'Caixa de embutir 4x2 polegadas', unidade: 'un', preco_custo: 1.80, preco_venda: 3.00, estoque_atual: 200, estoque_minimo: 40 },
+        { nome: 'Eletroduto 3/4" PVC', codigo: 'ELET-3/4', categoria: 'Caixas e Eletrodutos', descricao: 'Eletroduto rígido PVC 3/4 polegada com 3 metros', unidade: 'un', preco_custo: 8.00, preco_venda: 12.50, estoque_atual: 100, estoque_minimo: 25 },
+        { nome: 'Quadro de Distribuição 12 Disjuntores', codigo: 'QD-12', categoria: 'Quadros', descricao: 'Quadro de distribuição para 12 disjuntores DIN', unidade: 'un', preco_custo: 45.00, preco_venda: 72.00, estoque_atual: 15, estoque_minimo: 5 },
+        { nome: 'Luminária LED 18W', codigo: 'LED-18W', categoria: 'Iluminação', descricao: 'Luminária LED 18W redonda branca sobrepor', unidade: 'un', preco_custo: 28.00, preco_venda: 45.00, estoque_atual: 40, estoque_minimo: 10 }
+      ];
+
+      const { error: matError } = await supabase
+        .from('materiais')
+        .insert(materiais.map(m => ({ ...m, user_id: user.id })));
+
+      if (matError) throw matError;
+
+      // Serviços de exemplo
+      const servicos = [
+        { nome: 'Instalação de Tomada', codigo: 'SV-TOM', categoria: 'Instalação', descricao: 'Instalação de tomada padrão NBR incluindo caixa e eletroduto', preco_hora: 65.00, tempo_estimado: 1.5, unidade: 'h', observacoes: 'Material não incluso' },
+        { nome: 'Instalação de Interruptor', codigo: 'SV-INT', categoria: 'Instalação', descricao: 'Instalação de interruptor simples ou paralelo', preco_hora: 55.00, tempo_estimado: 1, unidade: 'h', observacoes: 'Material não incluso' },
+        { nome: 'Instalação de Chuveiro Elétrico', codigo: 'SV-CHUV', categoria: 'Instalação', descricao: 'Instalação completa de chuveiro elétrico com disjuntor e fiação adequada', preco_hora: 180.00, tempo_estimado: 3, unidade: 'h', observacoes: 'Material não incluso' },
+        { nome: 'Instalação de Ar-Condicionado (Parte Elétrica)', codigo: 'SV-AR', categoria: 'Instalação', descricao: 'Instalação da parte elétrica para ar-condicionado split', preco_hora: 280.00, tempo_estimado: 4, unidade: 'h', observacoes: 'Não inclui instalação refrigeração' },
+        { nome: 'Montagem de Quadro de Distribuição', codigo: 'SV-QD', categoria: 'Montagem', descricao: 'Montagem completa de quadro de distribuição com disjuntores e DR', preco_hora: 220.00, tempo_estimado: 4, unidade: 'h', observacoes: 'Material não incluso' },
+        { nome: 'Troca de Disjuntor', codigo: 'SV-DJ', categoria: 'Manutenção', descricao: 'Troca de disjuntor no quadro existente', preco_hora: 45.00, tempo_estimado: 0.5, unidade: 'h', observacoes: 'Material não incluso' },
+        { nome: 'Instalação de Luminária', codigo: 'SV-LUM', categoria: 'Instalação', descricao: 'Instalação de luminária incluindo ponto elétrico', preco_hora: 65.00, tempo_estimado: 1.5, unidade: 'h', observacoes: 'Material não incluso' },
+        { nome: 'Teste de Continuidade', codigo: 'SV-TEST', categoria: 'Inspeção', descricao: 'Teste completo de continuidade e isolação dos circuitos', preco_hora: 120.00, tempo_estimado: 2, unidade: 'h', observacoes: 'Inclui relatório' },
+        { nome: 'Projeto Elétrico Residencial', codigo: 'SV-PROJ', categoria: 'Projeto', descricao: 'Projeto elétrico completo conforme NBR 5410', preco_hora: 850.00, tempo_estimado: 12, unidade: 'h', observacoes: 'Inclui memorial e plantas' }
+      ];
+
+      const { error: servError } = await supabase
+        .from('servicos')
+        .insert(servicos.map(s => ({ ...s, user_id: user.id })));
+
+      if (servError) throw servError;
+
+      toast.success('Dados de exemplo carregados com sucesso!');
+      loadMateriais();
+      loadServicos();
+      refetch();
+    } catch (error: any) {
+      toast.error('Erro ao carregar dados: ' + error.message);
+    }
+  };
+
   const handleEditMaterial = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingMaterialId(id);
@@ -134,6 +192,11 @@ const Catalogo = () => {
           <h1 className="text-3xl font-bold mb-2">Catálogo</h1>
           <p className="text-muted-foreground">Gerencie materiais e serviços</p>
         </div>
+        {materiais.length === 0 && servicos.length === 0 && (
+          <Button onClick={loadExampleData} variant="outline">
+            Carregar Dados de Exemplo
+          </Button>
+        )}
       </div>
 
       <Tabs defaultValue="materiais" className="w-full">
