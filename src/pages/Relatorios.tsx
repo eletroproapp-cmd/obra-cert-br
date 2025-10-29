@@ -3,9 +3,14 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { BarChart, TrendingUp, DollarSign, FileText, Calendar } from "lucide-react";
+import { BarChart, DollarSign, FileText, Calendar, Printer, Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface RelatorioFinanceiro {
   receitas: number;
@@ -16,6 +21,26 @@ interface RelatorioFinanceiro {
   faturasEmitidas: number;
   faturasPagas: number;
   taxaConversao: number;
+}
+
+interface Transacao {
+  id: string;
+  data: string;
+  tipo: 'entrada' | 'saida';
+  descricao: string;
+  categoria: string;
+  valor: number;
+  status: string;
+}
+
+interface OrcamentoDetalhado {
+  id: string;
+  numero: string;
+  data: string;
+  cliente: string;
+  titulo: string;
+  valor: number;
+  status: string;
 }
 
 const Relatorios = () => {
@@ -31,6 +56,8 @@ const Relatorios = () => {
     faturasPagas: 0,
     taxaConversao: 0,
   });
+  const [transacoes, setTransacoes] = useState<Transacao[]>([]);
+  const [orcamentosDetalhados, setOrcamentosDetalhados] = useState<OrcamentoDetalhado[]>([]);
 
   useEffect(() => {
     loadRelatorio();
@@ -43,17 +70,25 @@ const Relatorios = () => {
 
       const dataInicio = getDataInicio(periodo);
 
-      // Carregar orçamentos
+      // Carregar orçamentos detalhados
       const { data: orcamentos } = await supabase
         .from('orcamentos')
-        .select('valor_total, status, created_at')
+        .select('id, numero, titulo, valor_total, status, created_at, cliente_id, clientes(nome)')
+        .eq('user_id', user.id)
+        .gte('created_at', dataInicio)
+        .order('created_at', { ascending: false });
+
+      // Carregar faturas com clientes
+      const { data: faturas } = await supabase
+        .from('faturas')
+        .select('id, numero, titulo, valor_total, status, created_at, cliente_id, clientes(nome)')
         .eq('user_id', user.id)
         .gte('created_at', dataInicio);
 
-      // Carregar faturas
-      const { data: faturas } = await supabase
-        .from('faturas')
-        .select('valor_total, status, created_at')
+      // Carregar despesas
+      const { data: despesasData } = await supabase
+        .from('despesas')
+        .select('id, descricao, categoria, valor, data, created_at')
         .eq('user_id', user.id)
         .gte('created_at', dataInicio);
 
@@ -62,7 +97,7 @@ const Relatorios = () => {
       const faturasEmitidas = faturas?.length || 0;
       const faturasPagas = faturas?.filter(f => f.status === 'Pago').length || 0;
       const receitas = faturas?.filter(f => f.status === 'Pago').reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
-      const despesas = 0; // Será implementado quando houver módulo de despesas
+      const despesas = despesasData?.reduce((sum, d) => sum + Number(d.valor), 0) || 0;
       const lucro = receitas - despesas;
       const taxaConversao = orcamentosEmitidos > 0 ? (orcamentosAprovados / orcamentosEmitidos) * 100 : 0;
 
@@ -76,6 +111,58 @@ const Relatorios = () => {
         faturasPagas,
         taxaConversao,
       });
+
+      // Preparar transações (entradas e saídas)
+      const transacoesArray: Transacao[] = [];
+      
+      // Adicionar faturas pagas como entradas
+      faturas?.filter(f => f.status === 'Pago').forEach(fatura => {
+        transacoesArray.push({
+          id: fatura.id,
+          data: new Date(fatura.created_at).toLocaleDateString('pt-BR'),
+          tipo: 'entrada',
+          descricao: fatura.titulo,
+          categoria: `Fatura ${fatura.numero}`,
+          valor: Number(fatura.valor_total),
+          status: fatura.status
+        });
+      });
+
+      // Adicionar despesas como saídas
+      despesasData?.forEach(despesa => {
+        transacoesArray.push({
+          id: despesa.id,
+          data: new Date(despesa.data).toLocaleDateString('pt-BR'),
+          tipo: 'saida',
+          descricao: despesa.descricao,
+          categoria: despesa.categoria,
+          valor: Number(despesa.valor),
+          status: 'Pago'
+        });
+      });
+
+      // Ordenar por data (mais recentes primeiro)
+      transacoesArray.sort((a, b) => {
+        const dataA = a.data.split('/').reverse().join('');
+        const dataB = b.data.split('/').reverse().join('');
+        return dataB.localeCompare(dataA);
+      });
+
+      setTransacoes(transacoesArray);
+
+      // Preparar orçamentos detalhados
+      const orcamentosArray: OrcamentoDetalhado[] = orcamentos?.map(orc => ({
+        id: orc.id,
+        numero: orc.numero,
+        data: new Date(orc.created_at).toLocaleDateString('pt-BR'),
+        cliente: (orc.clientes as any)?.nome || 'Cliente não informado',
+        titulo: orc.titulo,
+        valor: Number(orc.valor_total),
+        status: orc.status
+      })) || [];
+
+      setOrcamentosDetalhados(orcamentosArray);
+
     } catch (error: any) {
       toast.error('Erro ao carregar relatório: ' + error.message);
     } finally {
@@ -97,6 +184,89 @@ const Relatorios = () => {
       default:
         return new Date(hoje.setMonth(hoje.getMonth() - 1)).toISOString();
     }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Aprovado':
+      case 'Pago':
+        return 'bg-success/10 text-success hover:bg-success/20';
+      case 'Pendente':
+        return 'bg-accent/10 text-accent hover:bg-accent/20';
+      case 'Recusado':
+      case 'Cancelado':
+        return 'bg-destructive/10 text-destructive hover:bg-destructive/20';
+      default:
+        return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const imprimirReceitas = () => {
+    window.print();
+  };
+
+  const exportarReceitasPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text('Relatório de Receitas e Despesas', 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Período: ${periodo}`, 14, 28);
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 34);
+
+    const tableData = transacoes.map(t => [
+      t.data,
+      t.tipo === 'entrada' ? 'Entrada' : 'Saída',
+      t.descricao,
+      t.categoria,
+      `R$ ${t.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      t.status
+    ]);
+
+    autoTable(doc, {
+      head: [['Data', 'Tipo', 'Descrição', 'Categoria', 'Valor', 'Status']],
+      body: tableData,
+      startY: 40,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [99, 102, 241] }
+    });
+
+    doc.save(`receitas-despesas-${new Date().getTime()}.pdf`);
+    toast.success('PDF exportado com sucesso!');
+  };
+
+  const imprimirOrcamentos = () => {
+    window.print();
+  };
+
+  const exportarOrcamentosPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(18);
+    doc.text('Relatório de Orçamentos', 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Período: ${periodo}`, 14, 28);
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 34);
+
+    const tableData = orcamentosDetalhados.map(o => [
+      o.numero,
+      o.data,
+      o.cliente,
+      o.titulo,
+      `R$ ${o.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      o.status
+    ]);
+
+    autoTable(doc, {
+      head: [['Número', 'Data', 'Cliente', 'Título', 'Valor', 'Status']],
+      body: tableData,
+      startY: 40,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [99, 102, 241] }
+    });
+
+    doc.save(`orcamentos-${new Date().getTime()}.pdf`);
+    toast.success('PDF exportado com sucesso!');
   };
 
   if (loading) {
@@ -239,13 +409,71 @@ const Relatorios = () => {
           <TabsContent value="receitas">
             <Card>
               <CardHeader>
-                <CardTitle>Detalhamento de Receitas</CardTitle>
-                <CardDescription>Análise detalhada das receitas por período</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Receitas e Despesas</CardTitle>
+                    <CardDescription>Todas as entradas e saídas de dinheiro</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={imprimirReceitas}>
+                      <Printer className="mr-2 h-4 w-4" />
+                      Imprimir
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={exportarReceitasPDF}>
+                      <Download className="mr-2 h-4 w-4" />
+                      Exportar PDF
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Gráficos e análises detalhadas serão implementados em breve.
-                </p>
+                {transacoes.length > 0 ? (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead>Categoria</TableHead>
+                          <TableHead className="text-right">Valor</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {transacoes.map((transacao) => (
+                          <TableRow key={transacao.id}>
+                            <TableCell>{transacao.data}</TableCell>
+                            <TableCell>
+                              <Badge variant={transacao.tipo === 'entrada' ? 'default' : 'secondary'}>
+                                {transacao.tipo === 'entrada' ? 'Entrada' : 'Saída'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">{transacao.descricao}</TableCell>
+                            <TableCell>{transacao.categoria}</TableCell>
+                            <TableCell className={`text-right font-semibold ${
+                              transacao.tipo === 'entrada' ? 'text-success' : 'text-destructive'
+                            }`}>
+                              {transacao.tipo === 'entrada' ? '+' : '-'} R$ {transacao.valor.toLocaleString('pt-BR', { 
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2 
+                              })}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(transacao.status)}>
+                                {transacao.status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Nenhuma transação encontrada no período selecionado.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -253,13 +481,65 @@ const Relatorios = () => {
           <TabsContent value="orcamentos">
             <Card>
               <CardHeader>
-                <CardTitle>Análise de Orçamentos</CardTitle>
-                <CardDescription>Desempenho e conversão de orçamentos</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Lista de Orçamentos</CardTitle>
+                    <CardDescription>Todos os orçamentos com detalhes completos</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={imprimirOrcamentos}>
+                      <Printer className="mr-2 h-4 w-4" />
+                      Imprimir
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={exportarOrcamentosPDF}>
+                      <Download className="mr-2 h-4 w-4" />
+                      Exportar PDF
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Gráficos e análises detalhadas serão implementados em breve.
-                </p>
+                {orcamentosDetalhados.length > 0 ? (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Número</TableHead>
+                          <TableHead>Data</TableHead>
+                          <TableHead>Cliente</TableHead>
+                          <TableHead>Título</TableHead>
+                          <TableHead className="text-right">Valor</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {orcamentosDetalhados.map((orcamento) => (
+                          <TableRow key={orcamento.id}>
+                            <TableCell className="font-medium">{orcamento.numero}</TableCell>
+                            <TableCell>{orcamento.data}</TableCell>
+                            <TableCell>{orcamento.cliente}</TableCell>
+                            <TableCell>{orcamento.titulo}</TableCell>
+                            <TableCell className="text-right font-semibold">
+                              R$ {orcamento.valor.toLocaleString('pt-BR', { 
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2 
+                              })}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(orcamento.status)}>
+                                {orcamento.status}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Nenhum orçamento encontrado no período selecionado.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
