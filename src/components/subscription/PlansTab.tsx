@@ -56,7 +56,8 @@ const plans = [
       'Funcionários ilimitados',
       'Materiais ilimitados',
       'Checklist NBR 5410',
-      'Emissão de NF-e'
+      'Emissão de NF-e',
+      'Suporte Premium'
     ]
   }
 ];
