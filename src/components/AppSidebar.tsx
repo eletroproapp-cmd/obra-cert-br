@@ -83,7 +83,7 @@ export function AppSidebar() {
         {/* Logo/Header */}
         <div className="p-5 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <img src={iconLogo} alt="EletroPro" className="h-12 w-12 flex-shrink-0" />
+            <img src={iconLogo} alt="EletroPro" className="h-16 w-16 flex-shrink-0" />
             {open && (
               <div className="flex-1">
                 <h2 className="font-bold text-lg tracking-tight">
