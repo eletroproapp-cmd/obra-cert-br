@@ -47,8 +47,8 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <img src={iconLogo} alt="EletroPro" className="h-20 lg:h-24" />
+                <div className="flex flex-col items-center text-center gap-4 lg:flex-row lg:text-left">
+                  <img src={iconLogo} alt="EletroPro" className="h-32 lg:h-40" />
                   <div>
                     <h2 className="text-4xl lg:text-5xl font-bold">
                       <span className="text-[#F97316]">Eletro</span>
