@@ -260,8 +260,8 @@ export const PlansTab = () => {
         <Alert variant="destructive">
           <Settings className="h-4 w-4" />
           <AlertTitle>Configuração Necessária</AlertTitle>
-          <AlertDescription className="flex items-center justify-between">
-            <span>
+          <AlertDescription className="space-y-3">
+            <div>
               Os preços do Stripe precisam ser configurados antes de fazer upgrade.
               <br />
               <strong>Você precisa:</strong>
@@ -269,12 +269,12 @@ export const PlansTab = () => {
               1. Copiar os Price IDs do Stripe (começam com "price_")
               <br />
               2. Configurá-los na página Admin
-            </span>
+            </div>
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => navigate('/admin')}
-              className="ml-4"
+              className="w-full sm:w-auto"
             >
               <Settings className="mr-2 h-4 w-4" />
               Ir para Admin
@@ -286,7 +286,7 @@ export const PlansTab = () => {
       {/* Current Plan Status */}
       <Card className="border-primary/20">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <CardTitle>Plano Atual</CardTitle>
               <CardDescription>
@@ -295,7 +295,7 @@ export const PlansTab = () => {
             </div>
             <Badge 
               variant={subscription?.status === 'active' ? 'default' : 'secondary'}
-              className="text-sm px-3 py-1"
+              className="text-sm px-3 py-1 w-fit"
             >
               {subscription?.status === 'active' ? (
                 <>
@@ -309,7 +309,7 @@ export const PlansTab = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-3xl font-bold">
                 R$ {plan?.price_monthly?.toFixed(2) || '0,00'}
@@ -322,7 +322,7 @@ export const PlansTab = () => {
               )}
             </div>
             {subscription?.cancel_at_period_end ? (
-              <Badge variant="destructive">
+              <Badge variant="destructive" className="w-fit">
                 Cancelamento agendado para {new Date(subscription.current_period_end!).toLocaleDateString('pt-BR')}
               </Badge>
             ) : currentPlanId !== 'free' && (
@@ -331,6 +331,7 @@ export const PlansTab = () => {
                 size="sm"
                 onClick={handleCancelSubscription}
                 disabled={canceling}
+                className="w-full sm:w-auto"
               >
                 {canceling ? 'Cancelando...' : 'Cancelar Assinatura'}
               </Button>
@@ -351,7 +352,7 @@ export const PlansTab = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {plans.map((planItem) => {
             const isCurrent = planItem.id === currentPlanId;
             const order = ['free', 'basic', 'professional'] as const;
@@ -378,21 +379,21 @@ export const PlansTab = () => {
                   </div>
                 )}
                 
-                <CardHeader className="text-center pb-8 pt-6">
-                  <CardTitle className="text-2xl">{planItem.name}</CardTitle>
-                  <CardDescription>{planItem.description}</CardDescription>
+                <CardHeader className="text-center pb-6 pt-6">
+                  <CardTitle className="text-xl sm:text-2xl">{planItem.name}</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">{planItem.description}</CardDescription>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold text-primary">{planItem.price}</span>
-                    <span className="text-muted-foreground">{planItem.period}</span>
+                    <span className="text-3xl sm:text-4xl font-bold text-primary">{planItem.price}</span>
+                    <span className="text-sm sm:text-base text-muted-foreground">{planItem.period}</span>
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2 mb-6">
+                <CardContent className="space-y-3 sm:space-y-4">
+                  <ul className="space-y-2 mb-4 sm:mb-6">
                     {planItem.features.map((feature, index) => (
                       <li key={index} className="flex items-start gap-2">
-                        <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
+                        <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0 mt-0.5" />
+                        <span className="text-xs sm:text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>

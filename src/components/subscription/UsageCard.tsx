@@ -54,9 +54,9 @@ export const UsageCard = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Uso do Plano - {plan.name}</CardTitle>
+        <CardTitle className="text-base sm:text-lg">Uso do Plano - {plan.name}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         {Object.entries(resourceConfig).map(([key, config]) => {
           const check = checkLimit(config.key);
           const percentage = check.limit > 0 
@@ -72,12 +72,12 @@ export const UsageCard = () => {
 
           return (
             <div key={key} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">{config.label}</span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-xs sm:text-sm font-medium truncate">{config.label}</span>
                 </div>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
                   {isUnlimited ? (
                     <span className="text-primary font-medium">Ilimitado</span>
                   ) : (
