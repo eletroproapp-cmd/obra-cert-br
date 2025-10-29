@@ -255,6 +255,29 @@ const handler = async (req: Request): Promise<Response> => {
     doc.line(margin, yPos, pageWidth - margin, yPos);
     yPos += 6;
     
+    // Tentar incluir logo
+    let logoIncluded = false;
+    if (empresa?.logo_url) {
+      try {
+        const logoResponse = await fetch(empresa.logo_url);
+        if (logoResponse.ok) {
+          const logoBlob = await logoResponse.arrayBuffer();
+          const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoBlob)));
+          const logoExt = empresa.logo_url.toLowerCase().endsWith('.png') ? 'PNG' : 'JPEG';
+          const logoDataUrl = `data:image/${logoExt.toLowerCase()};base64,${logoBase64}`;
+          
+          // Posicionar logo no canto superior esquerdo
+          const logoWidth = 30;
+          const logoHeight = 12;
+          doc.addImage(logoDataUrl, logoExt, margin, yPos, logoWidth, logoHeight);
+          logoIncluded = true;
+          yPos += logoHeight + 3;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar logo:', error);
+      }
+    }
+    
     doc.setFontSize(28);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(rgbPrimary.r, rgbPrimary.g, rgbPrimary.b);
