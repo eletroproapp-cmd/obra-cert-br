@@ -52,7 +52,8 @@ const plans = [
       'Faturas ilimitadas',
       'Instalações ilimitadas',
       'Materiais ilimitados',
-      'Funcionários ilimitados'
+      'Funcionários ilimitados',
+      'Suporte Premium'
     ]
   }
 ];
