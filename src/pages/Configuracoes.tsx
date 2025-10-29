@@ -19,7 +19,7 @@ import { useForm } from "react-hook-form";
 import { validarCNPJ, formatarCNPJ, formatarCPFouCNPJ } from "@/utils/validators";
 import { PlansTab } from "@/components/subscription/PlansTab";
 import { ReferralSection } from "@/components/configuracoes/ReferralSection";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 interface EmpresaData {
   tipo_pessoa: string;
@@ -85,6 +85,7 @@ const Configuracoes = () => {
   const [empresaId, setEmpresaId] = useState<string | null>(null);
   const { register, handleSubmit, reset, setValue, watch } = useForm<EmpresaData>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const defaultTab = searchParams.get('tab') || 'empresa';
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -1384,8 +1385,19 @@ const Configuracoes = () => {
                                 return;
                               }
 
-                              // Avisar usuário para contatar suporte
-                              toast.error('Para excluir sua conta, entre em contato com o suporte através da página Suporte');
+                              // Excluir conta do usuário via edge function
+                              const { data, error: deleteError } = await supabase.functions.invoke('excluir-conta');
+                              
+                              if (deleteError) {
+                                console.error('Erro ao excluir conta:', deleteError);
+                                toast.error('Erro ao excluir conta. Entre em contato com o suporte.');
+                                return;
+                              }
+
+                              toast.success('Conta excluída com sucesso');
+                              // Fazer logout e redirecionar
+                              await supabase.auth.signOut();
+                              navigate('/');
                               (document.querySelector('[data-state="open"]') as HTMLElement)?.click();
                             } catch (error: any) {
                               toast.error('Erro ao processar exclusão: ' + error.message);
