@@ -25,9 +25,9 @@ const Indicacoes = () => {
                   <span className="text-lg">1️⃣</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Plano Básico</h3>
+                  <h3 className="font-semibold mb-1">Para quem indica</h3>
                   <p className="text-sm text-muted-foreground">
-                    Quando seu indicado assinar o <strong>plano Básico</strong>, você ganha <strong>50% de desconto</strong> na próxima mensalidade do seu plano!
+                    Quando seu indicado assinar <strong>qualquer plano pago</strong>, você ganha <strong>50% de desconto</strong> na próxima mensalidade do seu plano!
                   </p>
                 </div>
               </div>
@@ -39,9 +39,9 @@ const Indicacoes = () => {
                   <span className="text-lg">2️⃣</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Plano Professional</h3>
+                  <h3 className="font-semibold mb-1">Para quem é indicado</h3>
                   <p className="text-sm text-muted-foreground">
-                    Quando você for indicado e assinar o <strong>plano Professional</strong>, você ganha <strong>30 dias de acesso gratuito</strong>!
+                    Ao assinar <strong>qualquer plano pago</strong> (Básico ou Professional), você ganha <strong>30 dias de acesso gratuito</strong>!
                   </p>
                 </div>
               </div>

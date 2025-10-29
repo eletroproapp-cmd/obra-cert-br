@@ -58,12 +58,12 @@ export const ReferralSection = () => {
               <p>Indique amigos e ganhe recompensas incríveis!</p>
               <div className="mt-4 space-y-2">
                 <div className="flex items-start gap-2">
-                  <Badge variant="secondary" className="mt-0.5">Básico</Badge>
-                  <p className="text-sm">Quando seu indicado assinar o <strong>plano Básico</strong>, você ganha <strong>50% de desconto</strong> na próxima mensalidade!</p>
+                  <Badge variant="secondary" className="mt-0.5">Indicador</Badge>
+                  <p className="text-sm">Quando seu indicado assinar <strong>qualquer plano pago</strong>, você ganha <strong>50% de desconto</strong> na próxima mensalidade!</p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Badge variant="default" className="mt-0.5">Pro</Badge>
-                  <p className="text-sm">Quando você for indicado e assinar o <strong>plano Professional</strong>, você ganha <strong>30 dias grátis</strong>!</p>
+                  <Badge variant="default" className="mt-0.5">Indicado</Badge>
+                  <p className="text-sm">Ao assinar <strong>qualquer plano pago</strong> (Básico ou Professional), você ganha <strong>30 dias grátis</strong>!</p>
                 </div>
               </div>
             </div>
@@ -159,7 +159,7 @@ export const ReferralSection = () => {
             <div>
               <h3 className="text-lg font-semibold mb-2">Foi Indicado?</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Use o código que você recebeu. Ao assinar o plano Professional, você ganha 30 dias grátis!
+                Use o código que você recebeu. Ao assinar qualquer plano pago, você ganha 30 dias grátis!
               </p>
             </div>
 
