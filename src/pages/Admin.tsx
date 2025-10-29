@@ -32,6 +32,7 @@ interface SubscriptionStats {
 
 interface UserSubscription {
   user_id: string;
+  email?: string;
   plan_type: string;
   status: string;
   created_at: string;
@@ -65,15 +66,21 @@ const Admin = () => {
 
   const loadData = async () => {
     try {
-      // Buscar todas as assinaturas
-      const { data: subs, error: subsError } = await supabase
-        .from('user_subscriptions')
-        .select('user_id, plan_type, status, created_at, current_period_end')
-        .order('created_at', { ascending: false });
+      // Buscar todas as assinaturas com emails usando query SQL
+      const { data: subs, error: subsError } = await supabase.rpc('get_subscriptions_with_emails');
 
-      if (subsError) throw subsError;
-
-      setSubscriptions(subs || []);
+      if (subsError) {
+        // Fallback: buscar sem emails se a função não existir
+        const { data: subsData, error: fallbackError } = await supabase
+          .from('user_subscriptions')
+          .select('user_id, plan_type, status, created_at, current_period_end')
+          .order('created_at', { ascending: false });
+        
+        if (fallbackError) throw fallbackError;
+        setSubscriptions(subsData || []);
+      } else {
+        setSubscriptions(subs || []);
+      }
 
       // Buscar Price IDs do Stripe
       const { data: plans } = await supabase
@@ -317,7 +324,10 @@ const Admin = () => {
                       className="flex items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="space-y-1">
-                        <p className="font-mono text-sm">{sub.user_id.substring(0, 8)}...</p>
+                        <p className="font-medium text-sm">{sub.email}</p>
+                        <p className="text-xs text-muted-foreground font-mono">
+                          ID: {sub.user_id.substring(0, 13)}...
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           Criado em: {new Date(sub.created_at).toLocaleDateString('pt-BR')}
                         </p>
