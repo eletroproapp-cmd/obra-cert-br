@@ -44,63 +44,53 @@ const Index = () => {
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="space-y-6">
-                <div className="flex flex-col items-center text-center gap-4 lg:flex-row lg:text-left">
-                  <img src={iconLogo} alt="EletroPro" className="h-32 lg:h-40" />
-                  <div>
-                    <h2 className="text-4xl lg:text-5xl font-bold">
-                      <span className="text-[#F97316]">Eletro</span>
-                      <span className="text-[#1976D2]">Pro</span>
-                    </h2>
-                    <p className="text-base lg:text-lg text-muted-foreground font-medium">Gestão elétrica de Ponta a Ponta</p>
-                  </div>
-                </div>
-                <h1 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                  Sistema completo de gestão para{" "}
-                  <span className="bg-gradient-primary bg-clip-text text-transparent">
-                    eletricistas profissionais
-                  </span>
-                </h1>
-                <p className="text-xl text-muted-foreground">
-                  Crie orçamentos técnicos conforme NBR 5410, emita faturas com nota fiscal, gerencie instalações elétricas e controle seu catálogo de materiais. 
-                  Tudo em um único lugar, simples e desenvolvido especialmente para eletricistas brasileiros.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/auth">
-                  <Button size="xl" variant="hero" className="w-full sm:w-auto">
-                    Começar Agora
-                    <ArrowRight className="ml-2" />
-                  </Button>
-                </Link>
-                <Button size="xl" variant="outline" className="w-full sm:w-auto">
-                  Ver Demonstração
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-6 pt-4">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-success" />
-                  <span className="text-sm text-muted-foreground">Sem mensalidade inicial</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-success" />
-                  <span className="text-sm text-muted-foreground">Configure em minutos</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-success" />
-                  <span className="text-sm text-muted-foreground">Suporte em português</span>
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <div className="space-y-6">
+              <div className="flex flex-col items-center text-center gap-4">
+                <img src={iconLogo} alt="EletroPro" className="h-32 lg:h-40" />
+                <div>
+                  <h2 className="text-4xl lg:text-5xl font-bold">
+                    <span className="text-[#F97316]">Eletro</span>
+                    <span className="text-[#1976D2]">Pro</span>
+                  </h2>
+                  <p className="text-base lg:text-lg text-muted-foreground font-medium">Gestão elétrica de Ponta a Ponta</p>
                 </div>
               </div>
+              <h1 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight">
+                Sistema completo de gestão para{" "}
+                <span className="bg-gradient-primary bg-clip-text text-transparent">
+                  eletricistas profissionais
+                </span>
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                Crie orçamentos técnicos conforme NBR 5410, emita faturas com nota fiscal, gerencie instalações elétricas e controle seu catálogo de materiais. 
+                Tudo em um único lugar, simples e desenvolvido especialmente para eletricistas brasileiros.
+              </p>
             </div>
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-primary opacity-20 blur-3xl rounded-full" />
-              <img
-                src={heroImage}
-                alt="Sistema de gestão para construção civil"
-                className="relative rounded-2xl shadow-large w-full h-auto"
-              />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/auth">
+                <Button size="xl" variant="hero" className="w-full sm:w-auto">
+                  Começar Agora
+                  <ArrowRight className="ml-2" />
+                </Button>
+              </Link>
+              <Button size="xl" variant="outline" className="w-full sm:w-auto">
+                Ver Demonstração
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-6 pt-4 justify-center">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-success" />
+                <span className="text-sm text-muted-foreground">Sem mensalidade inicial</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-success" />
+                <span className="text-sm text-muted-foreground">Configure em minutos</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-success" />
+                <span className="text-sm text-muted-foreground">Suporte em português</span>
+              </div>
             </div>
           </div>
         </div>
