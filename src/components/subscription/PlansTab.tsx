@@ -18,7 +18,7 @@ const plans = [
     period: '/mês',
     description: 'Ideal para começar',
     features: [
-      '100 clientes',
+      '50 clientes',
       '10 orçamentos por mês',
       '5 faturas por mês',
       '50 materiais no catálogo'
@@ -33,7 +33,7 @@ const plans = [
     description: 'Para pequenos negócios',
     highlight: true,
     features: [
-      '50 clientes',
+      '100 clientes',
       '100 orçamentos por mês',
       '50 faturas por mês',
       '500 materiais no catálogo',
