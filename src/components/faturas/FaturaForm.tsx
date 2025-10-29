@@ -287,6 +287,12 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
 
         if (itemsError) throw itemsError;
 
+        // Incrementar contador de uso
+        await supabase.rpc('increment_usage', {
+          _user_id: user.id,
+          _resource_type: 'faturas_mes'
+        });
+
         toast.success('Fatura criada com sucesso!');
         onSuccess?.();
         return fatura;

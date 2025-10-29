@@ -278,6 +278,12 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
 
         if (itemsError) throw itemsError;
 
+        // Incrementar contador de uso
+        await supabase.rpc('increment_usage', {
+          _user_id: user.id,
+          _resource_type: 'orcamentos_mes'
+        });
+
         toast.success('Orçamento criado com sucesso!');
         onSuccess?.();
         return orcamento;
