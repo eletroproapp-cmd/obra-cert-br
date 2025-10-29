@@ -86,8 +86,11 @@ export function AppSidebar() {
             <img src={iconLogo} alt="EletroPro" className="h-10 w-10 flex-shrink-0" />
             {open && (
               <div className="flex-1">
-                <h2 className="font-bold text-lg text-sidebar-foreground tracking-tight">EletroPro</h2>
-                <p className="text-xs text-sidebar-foreground/60 font-medium">Gestão Elétrica</p>
+                <h2 className="font-bold text-lg tracking-tight">
+                  <span className="text-[#F97316]">Eletro</span>
+                  <span className="text-[#1976D2]">Pro</span>
+                </h2>
+                <p className="text-xs text-sidebar-foreground/60 font-medium">Gestão elétrica de Ponta a Ponta</p>
               </div>
             )}
           </div>
