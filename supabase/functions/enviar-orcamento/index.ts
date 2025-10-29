@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.76.1";
 import { Resend } from "https://esm.sh/resend@4.0.1";
 import jsPDF from "https://esm.sh/jspdf@2.5.2";
 import autoTable from "https://esm.sh/jspdf-autotable@3.8.3";
+import QRCode from "https://esm.sh/qrcode@1.5.4";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -457,6 +458,32 @@ const handler = async (req: Request): Promise<Response> => {
       const splitObs = doc.splitTextToSize(orcamento.observacoes, pageWidth - 2 * margin);
       doc.text(splitObs, margin, yPos);
       yPos += splitObs.length * 3.5 + 8;
+    }
+    
+    // === QR CODE ===
+    if (empresa?.chave_pix) {
+      try {
+        const qrCodeDataUrl = await QRCode.toDataURL(empresa.chave_pix, {
+          width: 120,
+          margin: 1,
+          color: { dark: '#000000', light: '#FFFFFF' }
+        });
+        
+        const qrSize = 35;
+        const qrX = pageWidth - margin - qrSize;
+        const qrY = yPos;
+        
+        doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+        
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('PIX:', qrX, qrY - 2);
+        
+        yPos = qrY + qrSize + 5;
+      } catch (error) {
+        console.error('Erro ao gerar QR Code:', error);
+      }
     }
     
     // === RODAPÉ ===

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown, Palette, Upload, Eye, EyeOff, Gift, Download } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -1164,18 +1165,88 @@ const Configuracoes = () => {
                   <p className="text-sm text-muted-foreground mb-3">
                     Mantenha sua conta segura alterando sua senha periodicamente
                   </p>
-                  <Button variant="outline">
-                    Alterar Senha
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        Alterar Senha
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Alterar Senha</DialogTitle>
+                        <DialogDescription>
+                          Digite sua nova senha
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="new-password">Nova Senha</Label>
+                          <Input 
+                            id="new-password" 
+                            type="password" 
+                            placeholder="Digite sua nova senha"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirm-password">Confirmar Senha</Label>
+                          <Input 
+                            id="confirm-password" 
+                            type="password" 
+                            placeholder="Confirme sua nova senha"
+                          />
+                        </div>
+                        <Button 
+                          className="w-full"
+                          onClick={async () => {
+                            const newPassword = (document.getElementById('new-password') as HTMLInputElement)?.value;
+                            const confirmPassword = (document.getElementById('confirm-password') as HTMLInputElement)?.value;
+                            
+                            if (!newPassword || newPassword.length < 6) {
+                              toast.error('A senha deve ter pelo menos 6 caracteres');
+                              return;
+                            }
+                            
+                            if (newPassword !== confirmPassword) {
+                              toast.error('As senhas não coincidem');
+                              return;
+                            }
+                            
+                            const { error } = await supabase.auth.updateUser({
+                              password: newPassword
+                            });
+                            
+                            if (error) {
+                              toast.error('Erro ao alterar senha: ' + error.message);
+                            } else {
+                              toast.success('Senha alterada com sucesso!');
+                              (document.querySelector('[data-state="open"]') as HTMLElement)?.click();
+                            }
+                          }}
+                        >
+                          Alterar Senha
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 <Separator />
                 <div className="space-y-2">
                   <Label>Sessões Ativas</Label>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Visualize e gerencie dispositivos conectados à sua conta
+                    Encerre todas as sessões ativas (exceto a atual)
                   </p>
-                  <Button variant="outline">
-                    Gerenciar Sessões
+                  <Button 
+                    variant="outline"
+                    onClick={async () => {
+                      const { error } = await supabase.auth.signOut({ scope: 'others' });
+                      if (error) {
+                        toast.error('Erro ao encerrar sessões: ' + error.message);
+                      } else {
+                        toast.success('Sessões encerradas com sucesso!');
+                      }
+                    }}
+                  >
+                    Encerrar Outras Sessões
                   </Button>
                 </div>
               </CardContent>
@@ -1192,7 +1263,61 @@ const Configuracoes = () => {
                   <p className="text-sm text-muted-foreground mb-3">
                     Baixe todos os seus dados em formato JSON
                   </p>
-                  <Button variant="outline">
+                  <Button 
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (!user) return;
+
+                        // Buscar todos os dados do usuário
+                        const [
+                          { data: empresaData },
+                          { data: clientesData },
+                          { data: orcamentosData },
+                          { data: faturasData },
+                          { data: projetosData },
+                          { data: materiaisData },
+                          { data: servicosData }
+                        ] = await Promise.all([
+                          supabase.from('empresas').select('*').eq('user_id', user.id),
+                          supabase.from('clientes').select('*').eq('user_id', user.id),
+                          supabase.from('orcamentos').select('*').eq('user_id', user.id),
+                          supabase.from('faturas').select('*').eq('user_id', user.id),
+                          supabase.from('projetos').select('*').eq('user_id', user.id),
+                          supabase.from('materiais').select('*').eq('user_id', user.id),
+                          supabase.from('servicos').select('*').eq('user_id', user.id)
+                        ]);
+
+                        const exportData = {
+                          exportado_em: new Date().toISOString(),
+                          usuario_email: user.email,
+                          empresa: empresaData,
+                          clientes: clientesData,
+                          orcamentos: orcamentosData,
+                          faturas: faturasData,
+                          projetos: projetosData,
+                          materiais: materiaisData,
+                          servicos: servicosData
+                        };
+
+                        // Criar arquivo para download
+                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `dados_eletropro_${new Date().toISOString().split('T')[0]}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+
+                        toast.success('Dados exportados com sucesso!');
+                      } catch (error: any) {
+                        toast.error('Erro ao exportar dados: ' + error.message);
+                      }
+                    }}
+                  >
                     <Download className="mr-2 h-4 w-4" />
                     Exportar Dados
                   </Button>
@@ -1203,9 +1328,67 @@ const Configuracoes = () => {
                   <p className="text-sm text-muted-foreground mb-3 text-destructive">
                     ⚠️ Ação permanente. Todos os seus dados serão deletados
                   </p>
-                  <Button variant="destructive" disabled>
-                    Excluir Minha Conta
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="destructive">
+                        Excluir Minha Conta
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Confirmar Exclusão de Conta</DialogTitle>
+                        <DialogDescription>
+                          Esta ação é permanente e não pode ser desfeita. Digite sua senha para confirmar.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="delete-password">Sua Senha</Label>
+                          <Input 
+                            id="delete-password" 
+                            type="password" 
+                            placeholder="Digite sua senha para confirmar"
+                          />
+                        </div>
+                        <Button 
+                          variant="destructive"
+                          className="w-full"
+                          onClick={async () => {
+                            const password = (document.getElementById('delete-password') as HTMLInputElement)?.value;
+                            
+                            if (!password) {
+                              toast.error('Digite sua senha para confirmar');
+                              return;
+                            }
+
+                              try {
+                              const { data: { user } } = await supabase.auth.getUser();
+                              if (!user?.email) return;
+
+                              // Tentar fazer login novamente para verificar senha
+                              const { error: signInError } = await supabase.auth.signInWithPassword({
+                                email: user.email,
+                                password: password
+                              });
+
+                              if (signInError) {
+                                toast.error('Senha incorreta');
+                                return;
+                              }
+
+                              // Avisar usuário para contatar suporte
+                              toast.error('Para excluir sua conta, entre em contato com o suporte através da página Suporte');
+                              (document.querySelector('[data-state="open"]') as HTMLElement)?.click();
+                            } catch (error: any) {
+                              toast.error('Erro ao processar exclusão: ' + error.message);
+                            }
+                          }}
+                        >
+                          Confirmar Exclusão
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardContent>
             </Card>

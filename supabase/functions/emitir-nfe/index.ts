@@ -112,7 +112,10 @@ serve(async (req) => {
     // Validar se empresa tem certificado digital configurado
     if (!empresa.certificado_digital_tipo || empresa.certificado_digital_tipo === 'nenhum') {
       return new Response(
-        JSON.stringify({ error: 'Configuração incompleta. Contate o administrador.' }),
+        JSON.stringify({ 
+          error: 'Certificado digital não configurado',
+          details: 'Configure o certificado digital nas configurações da empresa para emitir NF-e.'
+        }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
@@ -123,7 +126,10 @@ serve(async (req) => {
     // Validar CNPJ
     if (!empresa.cnpj) {
       return new Response(
-        JSON.stringify({ error: 'Configuração incompleta. Contate o administrador.' }),
+        JSON.stringify({ 
+          error: 'CNPJ não configurado',
+          details: 'Configure o CNPJ da empresa nas configurações para emitir NF-e.'
+        }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
@@ -134,7 +140,10 @@ serve(async (req) => {
     // Validar dados do cliente
     if (!fatura.clientes?.cpf_cnpj) {
       return new Response(
-        JSON.stringify({ error: 'Dados incompletos. Verifique as informações e tente novamente.' }),
+        JSON.stringify({ 
+          error: 'CPF/CNPJ do cliente não encontrado',
+          details: 'O cliente precisa ter CPF ou CNPJ cadastrado para emitir NF-e.'
+        }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
