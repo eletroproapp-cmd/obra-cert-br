@@ -8,10 +8,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface Attachment {
+  filename: string;
+  content: string; // base64
+  contentType: string;
+}
+
 interface SupportRequest {
   tipo: 'feedback' | 'suporte';
   assunto: string;
   mensagem: string;
+  anexos?: Attachment[];
 }
 
 serve(async (req) => {
@@ -36,7 +43,7 @@ serve(async (req) => {
       throw new Error('Usuário não autenticado');
     }
 
-    const { tipo, assunto, mensagem } = await req.json() as SupportRequest;
+    const { tipo, assunto, mensagem, anexos } = await req.json() as SupportRequest;
 
     // Buscar informações da empresa do usuário
     const { data: empresa } = await supabaseClient
@@ -101,20 +108,33 @@ serve(async (req) => {
       </html>
     `;
 
+    // Preparar anexos para o Resend
+    const attachments = anexos?.map(anexo => ({
+      filename: anexo.filename,
+      content: anexo.content,
+    })) || [];
+
     // Enviar email via Resend
+    const emailPayload: any = {
+      from: 'EletroPro <noreply@eletropro.com>',
+      to: [destinatario],
+      reply_to: user.email,
+      subject: `[${tipoLabel}] ${assunto}`,
+      html: htmlContent,
+    };
+
+    // Adicionar anexos se houver
+    if (attachments.length > 0) {
+      emailPayload.attachments = attachments;
+    }
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
-      body: JSON.stringify({
-        from: 'EletroPro <noreply@eletropro.com>',
-        to: [destinatario],
-        reply_to: user.email,
-        subject: `[${tipoLabel}] ${assunto}`,
-        html: htmlContent,
-      }),
+      body: JSON.stringify(emailPayload),
     });
 
     const data = await res.json();
