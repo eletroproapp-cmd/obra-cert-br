@@ -1630,6 +1630,17 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
       }
+      get_subscriptions_with_emails: {
+        Args: never
+        Returns: {
+          created_at: string
+          current_period_end: string
+          email: string
+          plan_type: string
+          status: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

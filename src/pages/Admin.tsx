@@ -66,21 +66,13 @@ const Admin = () => {
 
   const loadData = async () => {
     try {
-      // Buscar todas as assinaturas com emails usando query SQL
-      const { data: subs, error: subsError } = await supabase.rpc('get_subscriptions_with_emails');
+      // Buscar todas as assinaturas com emails usando a função SQL
+      const { data: subs, error: subsError } = await supabase
+        .rpc('get_subscriptions_with_emails' as any) as { data: UserSubscription[] | null, error: any };
 
-      if (subsError) {
-        // Fallback: buscar sem emails se a função não existir
-        const { data: subsData, error: fallbackError } = await supabase
-          .from('user_subscriptions')
-          .select('user_id, plan_type, status, created_at, current_period_end')
-          .order('created_at', { ascending: false });
-        
-        if (fallbackError) throw fallbackError;
-        setSubscriptions(subsData || []);
-      } else {
-        setSubscriptions(subs || []);
-      }
+      if (subsError) throw subsError;
+
+      setSubscriptions(subs || []);
 
       // Buscar Price IDs do Stripe
       const { data: plans } = await supabase
@@ -96,15 +88,16 @@ const Admin = () => {
       }
 
       // Calcular estatísticas
+      const subscriptionsList = subs || [];
       const stats: SubscriptionStats = {
-        total_users: subs?.length || 0,
-        free_users: subs?.filter(s => s.plan_type === 'free').length || 0,
-        basic_users: subs?.filter(s => s.plan_type === 'basic').length || 0,
-        professional_users: subs?.filter(s => s.plan_type === 'professional').length || 0,
-        active_subscriptions: subs?.filter(s => s.status === 'active' && s.plan_type !== 'free').length || 0,
+        total_users: subscriptionsList.length,
+        free_users: subscriptionsList.filter(s => s.plan_type === 'free').length,
+        basic_users: subscriptionsList.filter(s => s.plan_type === 'basic').length,
+        professional_users: subscriptionsList.filter(s => s.plan_type === 'professional').length,
+        active_subscriptions: subscriptionsList.filter(s => s.status === 'active' && s.plan_type !== 'free').length,
         monthly_revenue: (
-          (subs?.filter(s => s.plan_type === 'basic' && s.status === 'active').length || 0) * 9.90 +
-          (subs?.filter(s => s.plan_type === 'professional' && s.status === 'active').length || 0) * 29.90
+          subscriptionsList.filter(s => s.plan_type === 'basic' && s.status === 'active').length * 9.90 +
+          subscriptionsList.filter(s => s.plan_type === 'professional' && s.status === 'active').length * 29.90
         )
       };
 
