@@ -19,10 +19,13 @@ import {
   Shield,
   FolderKanban,
   Wallet,
+  Crown,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import iconLogo from "@/assets/icon-eletropro.png";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Badge } from "@/components/ui/badge";
 
 import {
   Sidebar,
@@ -41,16 +44,16 @@ const menuItems = [
     section: "",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Projetos", url: "/projetos", icon: FolderKanban },
+      { title: "Projetos", url: "/projetos", icon: FolderKanban, requiresPro: true },
       { title: "Planejamento", url: "/planejamento", icon: Calendar },
-      { title: "Funcionários", url: "/funcionarios", icon: UserCog },
-      { title: "Folhas de Ponto", url: "/timesheets", icon: Clock },
+      { title: "Funcionários", url: "/funcionarios", icon: UserCog, requiresPro: true },
+      { title: "Folhas de Ponto", url: "/timesheets", icon: Clock, requiresPro: true },
       { title: "Orçamentos", url: "/orcamentos", icon: FileText },
       { title: "Faturas", url: "/faturas", icon: Receipt },
       { title: "Despesas", url: "/despesas", icon: Wallet },
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Catálogo", url: "/catalogo", icon: FolderOpen },
-      { title: "NBR 5410", url: "/nbr5410", icon: CheckSquare },
+      { title: "NBR 5410", url: "/nbr5410", icon: CheckSquare, requiresPro: true },
       { title: "Fornecedores", url: "/fornecedores", icon: Building2 },
     ],
   },
@@ -58,6 +61,7 @@ const menuItems = [
 
 const bottomItems = [
   { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+  { title: "Plano", url: "/configuracoes?tab=plano", icon: Crown, showProBadge: true },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
   { title: "Indicações", url: "/indicacoes", icon: UserPlus },
   { title: "Ajuda & Suporte", url: "/suporte", icon: HelpCircle },
@@ -67,8 +71,10 @@ export function AppSidebar() {
   const { open } = useSidebar();
   const { pathname } = useLocation();
   const { isAdmin } = useAdminCheck();
+  const { plan } = useSubscription();
   
   const isActivePath = (url: string) => pathname === url;
+  const isProfessional = plan?.plan_type === 'professional';
 
   const bottomItemsWithAdmin = isAdmin 
     ? [
@@ -107,18 +113,38 @@ export function AppSidebar() {
               )}
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-0.5">
-                  {section.items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActivePath(item.url)} className="h-auto p-0">
-                        <NavLink to={item.url} end>
-                          <div className="flex items-center gap-3 w-full px-3 py-2 rounded-lg">
-                            <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
-                            {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
-                          </div>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                  {section.items.map((item) => {
+                    const isLocked = item.requiresPro && !isProfessional;
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild={!isLocked} 
+                          isActive={isActivePath(item.url)} 
+                          className="h-auto p-0"
+                          disabled={isLocked}
+                        >
+                          {isLocked ? (
+                            <div className="flex items-center gap-3 w-full px-3 py-2 rounded-lg opacity-50 cursor-not-allowed">
+                              <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
+                              {open && (
+                                <div className="flex items-center gap-2 flex-1">
+                                  <span className="text-sm text-sidebar-foreground">{item.title}</span>
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Pro</Badge>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <NavLink to={item.url} end>
+                              <div className="flex items-center gap-3 w-full px-3 py-2 rounded-lg">
+                                <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
+                                {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
+                              </div>
+                            </NavLink>
+                          )}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -136,7 +162,14 @@ export function AppSidebar() {
                       <NavLink to={item.url} end>
                         <div className="flex items-center gap-3 w-full px-3 py-2 rounded-lg">
                           <item.icon className="h-5 w-5 flex-shrink-0 text-sidebar-foreground" strokeWidth={2.5} />
-                          {open && <span className="text-sm text-sidebar-foreground">{item.title}</span>}
+                          {open && (
+                            <div className="flex items-center gap-2 flex-1">
+                              <span className="text-sm text-sidebar-foreground">{item.title}</span>
+                              {item.showProBadge && (
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Pro</Badge>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </NavLink>
                     </SidebarMenuButton>
