@@ -118,51 +118,9 @@ export const PlansTab = () => {
       return;
     }
     
-    setUpgrading(true);
-    
-    // Abre pop-up imediatamente para não ser bloqueado pelo navegador
-    const popup = window.open('about:blank', '_blank', 'noopener,noreferrer');
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('criar-checkout-stripe', {
-        body: { planType: planId, origin: window.location.origin },
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        const url = data.url as string;
-        toast.success("Abrindo checkout...");
-
-        if (popup) {
-          try {
-            popup.location.href = url;
-          } catch {
-            // Se alguma política bloquear, faz fallback
-            window.open(url, '_blank', 'noopener,noreferrer');
-          }
-        } else {
-          // Se pop-up foi bloqueado, tenta redirecionar a janela atual
-          try {
-            if (window.top) {
-              (window.top as Window).location.href = url;
-            } else {
-              window.location.href = url;
-            }
-          } catch {
-            window.location.href = url;
-          }
-        }
-      } else {
-        throw new Error('URL de checkout não recebida');
-      }
-    } catch (error) {
-      console.error('Erro ao criar checkout:', error);
-      toast.error('Erro ao processar pagamento. Tente novamente.');
-      if (popup && !popup.closed) popup.close();
-    } finally {
-      setUpgrading(false);
-    }
+    toast.error("Stripe não configurado", {
+      description: "Crie uma conta gratuita em dashboard.stripe.com e adicione a chave API para habilitar pagamentos."
+    });
   };
 
   const handleCancelSubscription = async () => {
@@ -331,22 +289,11 @@ export const PlansTab = () => {
 
                   <Button
                     onClick={() => handleUpgrade(planItem.id)}
-                    variant={isCurrent ? "outline" : planItem.highlight ? "default" : "secondary"}
+                    variant={isCurrent ? "outline" : "secondary"}
                     className="w-full mt-4"
-                    disabled={isCurrent || upgrading || !isUpgrade}
+                    disabled={true}
                   >
-                    {upgrading ? (
-                      'Processando...'
-                    ) : isCurrent ? (
-                      'Plano Atual'
-                    ) : isUpgrade ? (
-                      <>
-                        <Crown className="mr-2 h-4 w-4" />
-                        Fazer Upgrade
-                      </>
-                    ) : (
-                      'Downgrade não disponível'
-                    )}
+                    {isCurrent ? 'Plano Atual' : 'Stripe não configurado'}
                   </Button>
                 </CardContent>
               </Card>
