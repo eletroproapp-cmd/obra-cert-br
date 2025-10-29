@@ -22,8 +22,7 @@ const plans = [
       '10 orçamentos por mês',
       '5 faturas por mês',
       '20 materiais no catálogo',
-      '5 projetos',
-      '1 usuário'
+      '5 projetos'
     ],
     limitations: ['Recursos básicos', 'Suporte por email']
   },
@@ -40,8 +39,7 @@ const plans = [
       '50 faturas por mês',
       '500 materiais no catálogo',
       '10 funcionários',
-      'Checklist NBR 5410',
-      'Suporte prioritário'
+      'Suporte Premium'
     ]
   },
   {
@@ -51,17 +49,14 @@ const plans = [
     period: '/mês',
     description: 'Para empresas em crescimento',
     features: [
-      'Clientes ilimitados',
+      'Tudo do Básico',
       'Orçamentos ilimitados',
       'Faturas ilimitadas',
-      'Instalações ilimitadas',
-      'Materiais ilimitados',
+      'Clientes ilimitados',
       'Funcionários ilimitados',
-      'Emissão de NF-e',
-      'Relatórios avançados',
-      'API de integração',
-      '5 usuários',
-      'Suporte Premium 24/7'
+      'Materiais ilimitados',
+      'Checklist NBR 5410',
+      'Emissão de NF-e'
     ]
   }
 ];
