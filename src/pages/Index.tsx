@@ -262,15 +262,15 @@ const Index = () => {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-success" />
-                    <span>Orçamentos ilimitados</span>
+                    <span>10 orçamentos por mês</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-success" />
-                    <span>Catálogo elétrico completo</span>
+                    <span>50 materiais no catálogo</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-success" />
-                    <span>Assistente NBR 5410 integrado</span>
+                    <span>5 faturas por mês</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-success" />
@@ -278,7 +278,7 @@ const Index = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-5 w-5 text-success" />
-                    <span>Suporte em português</span>
+                    <span>Suporte por email</span>
                   </div>
                 </div>
                 <Link to="/auth" className="block">
