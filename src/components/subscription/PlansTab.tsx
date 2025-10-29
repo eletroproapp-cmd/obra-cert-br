@@ -113,14 +113,33 @@ export const PlansTab = () => {
   }, [searchParams, setSearchParams, refetch]);
 
   const handleUpgrade = async (planId: string) => {
-    if (planId === 'free') {
-      toast.info('Você já está no plano gratuito');
+    const user = await supabase.auth.getUser();
+    if (!user?.data?.user) {
+      toast.error("Você precisa estar logado para fazer upgrade");
       return;
     }
     
-    toast.error("Stripe não configurado", {
-      description: "Crie uma conta gratuita em dashboard.stripe.com e adicione a chave API para habilitar pagamentos."
-    });
+    setUpgrading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('criar-checkout-stripe', {
+        body: { planType: planId, origin: window.location.origin },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        toast.success("Redirecionando para checkout...");
+        window.location.href = data.url;
+      } else {
+        throw new Error('URL de checkout não recebida');
+      }
+    } catch (error) {
+      console.error('Erro ao criar checkout:', error);
+      toast.error('Erro ao processar pagamento. Tente novamente.');
+    } finally {
+      setUpgrading(false);
+    }
   };
 
   const handleCancelSubscription = async () => {
@@ -289,11 +308,22 @@ export const PlansTab = () => {
 
                   <Button
                     onClick={() => handleUpgrade(planItem.id)}
-                    variant={isCurrent ? "outline" : "secondary"}
+                    variant={isCurrent ? "outline" : planItem.highlight ? "default" : "secondary"}
                     className="w-full mt-4"
-                    disabled={true}
+                    disabled={isCurrent || upgrading || !isUpgrade}
                   >
-                    {isCurrent ? 'Plano Atual' : 'Stripe não configurado'}
+                    {upgrading ? (
+                      'Processando...'
+                    ) : isCurrent ? (
+                      'Plano Atual'
+                    ) : isUpgrade ? (
+                      <>
+                        <Crown className="mr-2 h-4 w-4" />
+                        Fazer Upgrade
+                      </>
+                    ) : (
+                      'Downgrade não disponível'
+                    )}
                   </Button>
                 </CardContent>
               </Card>
