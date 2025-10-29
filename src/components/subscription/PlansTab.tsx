@@ -18,10 +18,11 @@ const plans = [
     period: '/mês',
     description: 'Ideal para começar',
     features: [
-      '50 clientes',
-      '10 orçamentos por mês',
-      '5 faturas por mês',
-      '50 materiais no catálogo'
+      '10 clientes',
+      '3 orçamentos por mês',
+      '3 faturas por mês',
+      '20 materiais no catálogo',
+      '1 usuário'
     ],
     limitations: ['Recursos básicos', 'Suporte por email']
   },
@@ -34,10 +35,11 @@ const plans = [
     highlight: true,
     features: [
       '100 clientes',
-      '100 orçamentos por mês',
+      '50 orçamentos por mês',
       '50 faturas por mês',
       '500 materiais no catálogo',
-      '5 funcionários',
+      '10 funcionários',
+      'Checklist NBR 5410',
       'Suporte prioritário'
     ]
   },
@@ -54,7 +56,11 @@ const plans = [
       'Instalações ilimitadas',
       'Materiais ilimitados',
       'Funcionários ilimitados',
-      'Suporte Premium'
+      'Emissão de NF-e',
+      'Relatórios avançados',
+      'API de integração',
+      '5 usuários',
+      'Suporte Premium 24/7'
     ]
   }
 ];
