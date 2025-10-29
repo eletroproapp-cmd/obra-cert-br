@@ -460,29 +460,71 @@ const handler = async (req: Request): Promise<Response> => {
       yPos += splitObs.length * 3.5 + 8;
     }
     
-    // === QR CODE ===
+    // === QR CODE PIX (EMVCo) ===
     if (empresa?.chave_pix) {
       try {
-        const qrCodeDataUrl = await QRCode.toDataURL(empresa.chave_pix, {
-          width: 120,
-          margin: 1,
-          color: { dark: '#000000', light: '#FFFFFF' }
-        });
+        // Helpers TLV + CRC16
+        const pad = (n: number) => (n < 10 ? '0' + n : String(n));
+        const tlv = (id: string, value: string) => id + pad(value.length) + value;
+        const crc16 = (payload: string) => {
+          let crc = 0xffff;
+          for (let i = 0; i < payload.length; i++) {
+            crc ^= payload.charCodeAt(i) << 8;
+            for (let j = 0; j < 8; j++) {
+              if ((crc & 0x8000) !== 0) crc = (crc << 1) ^ 0x1021;
+              else crc <<= 1;
+              crc &= 0xffff;
+            }
+          }
+          return (crc >>> 0).toString(16).toUpperCase().padStart(4, '0');
+        };
         
-        const qrSize = 35;
+        const gui = tlv('00', 'br.gov.bcb.pix');
+        const kvChave = tlv('01', empresa.chave_pix);
+        const kvDesc = tlv('02', `Fatura ${fatura.numero}`.substring(0,50));
+        const mai = tlv('26', gui + kvChave + kvDesc);
+        const payload = (() => {
+          const pf = tlv('00', '01');
+          const method = tlv('01', '11');
+          const mcc = tlv('52', '0000');
+          const curr = tlv('53', '986');
+          const amount = fatura.valor_total ? tlv('54', Number(fatura.valor_total).toFixed(2)) : '';
+          const country = tlv('58', 'BR');
+          const name = tlv('59', (empresa?.nome_fantasia || 'RECEBEDOR').substring(0,25));
+          const city = tlv('60', (empresa?.cidade || 'BRASIL').substring(0,15));
+          const additional = tlv('62', tlv('05', (fatura.numero || '***').toString().substring(0,25)));
+          let withoutCRC = pf + method + mai + mcc + curr + amount + country + name + city + additional + '6304';
+          const crc = crc16(withoutCRC);
+          return withoutCRC + crc;
+        })();
+        
+        const qrCodeDataUrl = await QRCode.toDataURL(payload, { width: 140, margin: 1, color: { dark: '#000000', light: '#FFFFFF' }});
+        
+        const qrSize = 40;
         const qrX = pageWidth - margin - qrSize;
         const qrY = yPos;
         
-        doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
-        
-        doc.setFontSize(7);
+        // Título
+        doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(0, 0, 0);
-        doc.text('PIX:', qrX, qrY - 2);
+        doc.text('Pague com PIX', qrX, qrY - 2);
         
-        yPos = qrY + qrSize + 5;
+        // QR
+        doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+        
+        // Copia e Cola ao lado
+        const copyX = margin;
+        const copyW = pageWidth - 2 * margin - qrSize - 10;
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(90, 90, 90);
+        const copyLines = doc.splitTextToSize(payload, copyW);
+        doc.text(copyLines, copyX, qrY + 6);
+        
+        yPos = Math.max(yPos + qrSize + 5, (qrY + copyLines.length * 3.5) + 8);
       } catch (error) {
-        console.error('Erro ao gerar QR Code:', error);
+        console.error('Erro ao gerar QR Code PIX:', error);
       }
     }
     

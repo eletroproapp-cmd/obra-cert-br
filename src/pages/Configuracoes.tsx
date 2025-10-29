@@ -78,6 +78,19 @@ const Configuracoes = () => {
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'empresa';
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  const evaluatePassword = (pwd: string) => {
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    // optional special char could add more score, but we limit to 4 bars
+    return Math.min(score, 4);
+  };
 
   // Watch form values for live preview
   const formData = watch();
@@ -1179,46 +1192,60 @@ const Configuracoes = () => {
                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="new-password">Nova Senha</Label>
-                          <Input 
-                            id="new-password" 
-                            type="password" 
-                            placeholder="Digite sua nova senha"
-                          />
+                      <div className="space-y-2">
+                        <Label htmlFor="new-password">Nova Senha</Label>
+                        <Input 
+                          id="new-password" 
+                          type="password" 
+                          placeholder="Digite sua nova senha"
+                          value={newPassword}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setNewPassword(v);
+                            setPasswordStrength(evaluatePassword(v));
+                          }}
+                        />
+                        <div className="mt-2">
+                          <div className="flex gap-1">
+                            {[0,1,2,3].map((i) => (
+                              <div key={i} className={`h-1.5 flex-1 rounded ${passwordStrength > i ? 'bg-primary' : 'bg-muted'}`}></div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Use pelo menos 8 caracteres, incluindo letra maiúscula, minúscula e número.
+                          </p>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="confirm-password">Confirmar Senha</Label>
-                          <Input 
-                            id="confirm-password" 
-                            type="password" 
-                            placeholder="Confirme sua nova senha"
-                          />
-                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirm-password">Confirmar Senha</Label>
+                        <Input 
+                          id="confirm-password" 
+                          type="password" 
+                          placeholder="Confirme sua nova senha"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                      </div>
                         <Button 
                           className="w-full"
                           onClick={async () => {
-                            const newPassword = (document.getElementById('new-password') as HTMLInputElement)?.value;
-                            const confirmPassword = (document.getElementById('confirm-password') as HTMLInputElement)?.value;
-                            
-                            if (!newPassword || newPassword.length < 6) {
-                              toast.error('A senha deve ter pelo menos 6 caracteres');
+                            const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+                            if (!strongRegex.test(newPassword)) {
+                              toast.error('A senha deve ter ao menos 8 caracteres, com letra maiúscula, minúscula e número.');
                               return;
                             }
-                            
                             if (newPassword !== confirmPassword) {
                               toast.error('As senhas não coincidem');
                               return;
                             }
-                            
-                            const { error } = await supabase.auth.updateUser({
-                              password: newPassword
-                            });
-                            
+                            const { error } = await supabase.auth.updateUser({ password: newPassword });
                             if (error) {
                               toast.error('Erro ao alterar senha: ' + error.message);
                             } else {
                               toast.success('Senha alterada com sucesso!');
+                              setNewPassword('');
+                              setConfirmPassword('');
+                              setPasswordStrength(0);
                               (document.querySelector('[data-state="open"]') as HTMLElement)?.click();
                             }
                           }}

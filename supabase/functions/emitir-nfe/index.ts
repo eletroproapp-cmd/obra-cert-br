@@ -73,11 +73,7 @@ serve(async (req) => {
     // Buscar dados da fatura com itens e cliente
     const { data: fatura, error: faturaError } = await supabase
       .from('faturas')
-      .select(`
-        *,
-        fatura_items(*),
-        clientes(*)
-      `)
+      .select('*')
       .eq('id', faturaId)
       .eq('user_id', user.id)
       .single();
@@ -90,6 +86,18 @@ serve(async (req) => {
           status: 404 
         }
       );
+    }
+
+    // Buscar dados do cliente separadamente para evitar dependência de relacionamentos
+    let cliente: any = null;
+    if (fatura.cliente_id) {
+      const { data: clienteData } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('id', fatura.cliente_id)
+        .eq('user_id', user.id)
+        .single();
+      cliente = clienteData;
     }
 
     // Buscar dados da empresa
@@ -138,7 +146,7 @@ serve(async (req) => {
     }
 
     // Validar dados do cliente
-    if (!fatura.clientes?.cpf_cnpj) {
+    if (!cliente?.cpf_cnpj) {
       return new Response(
         JSON.stringify({ 
           error: 'CPF/CNPJ do cliente não encontrado',
@@ -160,9 +168,8 @@ serve(async (req) => {
     // NOTA: Aqui seria feita a integração real com SEFAZ/Prefeitura
     // Por enquanto, vamos simular a emissão
     
-    console.log('Simulando emissão de NF-e...');
     console.log('Empresa:', empresa.nome_fantasia, '- CNPJ:', empresa.cnpj);
-    console.log('Cliente:', fatura.clientes?.nome, '- CPF/CNPJ:', fatura.clientes?.cpf_cnpj);
+    console.log('Cliente:', cliente?.nome, '- CPF/CNPJ:', cliente?.cpf_cnpj);
     console.log('Valor total:', fatura.valor_total);
     console.log('Ambiente:', empresa.ambiente_nfe);
 
@@ -192,8 +199,8 @@ serve(async (req) => {
         <xNome>${empresa.nome_fantasia}</xNome>
       </emit>
       <dest>
-        <CNPJ>${fatura.clientes?.cpf_cnpj}</CNPJ>
-        <xNome>${fatura.clientes?.nome}</xNome>
+        <CNPJ>${cliente?.cpf_cnpj}</CNPJ>
+        <xNome>${cliente?.nome}</xNome>
       </dest>
       <total>
         <ICMSTot>

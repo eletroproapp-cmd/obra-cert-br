@@ -202,7 +202,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }:
       await loadFatura();
     } catch (error: any) {
       console.error('Erro ao emitir NF-e:', error);
-      toast.error(error.message || 'Erro ao emitir NF-e');
+      toast.error('Não foi possível emitir a NF-e. Verifique CNPJ, certificado digital e CPF/CNPJ do cliente nas Configurações.');
     } finally {
       setEmitindoNFe(false);
     }
