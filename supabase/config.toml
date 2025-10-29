@@ -1,5 +1,8 @@
 project_id = "ovnmwhzlwgfvrrjxuplp"
 
+[functions.deletar-usuario]
+verify_jwt = true
+
 [functions.enviar-email-boas-vindas]
 verify_jwt = false
 

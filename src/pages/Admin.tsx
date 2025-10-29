@@ -8,8 +8,18 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useNavigate } from "react-router-dom";
-import { Users, CreditCard, TrendingUp, AlertCircle, Settings } from "lucide-react";
+import { Users, CreditCard, TrendingUp, AlertCircle, Settings, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface SubscriptionStats {
   total_users: number;
@@ -37,6 +47,8 @@ const Admin = () => {
   const [basicPriceId, setBasicPriceId] = useState("");
   const [professionalPriceId, setProfessionalPriceId] = useState("");
   const [savingPrices, setSavingPrices] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -129,6 +141,27 @@ const Admin = () => {
       toast.error('Erro ao salvar: ' + error.message);
     } finally {
       setSavingPrices(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke('deletar-usuario', {
+        body: { userId: userToDelete }
+      });
+
+      if (error) throw error;
+
+      toast.success('Usuário deletado com sucesso!');
+      setUserToDelete(null);
+      loadData(); // Recarregar dados
+    } catch (error: any) {
+      toast.error('Erro ao deletar usuário: ' + error.message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -304,6 +337,15 @@ const Admin = () => {
                         <Badge variant={sub.status === 'active' ? 'default' : 'secondary'}>
                           {sub.status}
                         </Badge>
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setUserToDelete(sub.user_id)}
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -312,6 +354,29 @@ const Admin = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja deletar este usuário? Esta ação não pode ser desfeita.
+                Todos os dados relacionados ao usuário serão permanentemente removidos.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteUser}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? 'Deletando...' : 'Deletar'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
