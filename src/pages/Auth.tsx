@@ -103,10 +103,27 @@ const Auth = () => {
       // Continuar mesmo se o serviço externo falhar
     }
 
-    await signUp(result.data.email, result.data.password, { 
+    const success = await signUp(result.data.email, result.data.password, { 
       full_name: result.data.name, 
       company: result.data.company 
     });
+    
+    // Enviar email de boas-vindas se cadastro foi bem-sucedido
+    if (success) {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        await supabase.functions.invoke('enviar-email-boas-vindas', {
+          body: { 
+            email: result.data.email,
+            name: result.data.name 
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao enviar email de boas-vindas:', error);
+        // Não mostrar erro ao usuário, pois o cadastro foi bem-sucedido
+      }
+    }
+    
     setIsLoading(false);
   };
 

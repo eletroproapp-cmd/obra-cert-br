@@ -221,6 +221,9 @@ export default function Receitas() {
             <DialogTitle>
               {editingReceita ? "Editar Receita" : "Nova Receita"}
             </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Preencha os dados da receita diversa
+            </p>
           </DialogHeader>
           <ReceitaForm
             receita={editingReceita}

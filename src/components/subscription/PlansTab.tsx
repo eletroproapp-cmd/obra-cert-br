@@ -76,9 +76,33 @@ export const PlansTab = () => {
       // Limpar parâmetros da URL
       setSearchParams({});
       
-      // Recarregar dados após 3 segundos
-      setTimeout(() => {
-        refetch();
+      // Recarregar dados e enviar email de upgrade após 3 segundos
+      setTimeout(async () => {
+        await refetch();
+        
+        // Buscar informações do usuário e plano para enviar email
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          const { data: subData } = await supabase
+            .from('user_subscriptions')
+            .select('plan_type, subscription_plans(name, price_monthly)')
+            .eq('user_id', user?.id)
+            .single();
+          
+          if (user && subData) {
+            const planData = subData.subscription_plans as any;
+            await supabase.functions.invoke('enviar-email-upgrade', {
+              body: {
+                email: user.email,
+                name: user.user_metadata?.full_name || user.email?.split('@')[0],
+                planName: planData?.name || 'Premium',
+                price: planData?.price_monthly || 0
+              }
+            });
+          }
+        } catch (error) {
+          console.error('Erro ao enviar email de upgrade:', error);
+        }
       }, 3000);
     } else if (canceled === 'true') {
       toast.error("Pagamento cancelado", {

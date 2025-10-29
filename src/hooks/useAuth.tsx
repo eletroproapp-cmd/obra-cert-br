@@ -67,13 +67,13 @@ export const useAuth = () => {
       if (error) throw error;
 
       toast.success('Conta criada com sucesso! Você já pode fazer login.');
-      return { data, error: null };
+      return true;
     } catch (error: any) {
       const errorMessage = error.message === 'User already registered'
         ? 'Este email já está cadastrado'
         : error.message;
       toast.error(errorMessage);
-      return { data: null, error };
+      return false;
     }
   };
 

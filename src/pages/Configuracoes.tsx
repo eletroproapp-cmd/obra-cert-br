@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown, Palette, Upload, Eye, EyeOff, Gift } from "lucide-react";
+import { Building2, DollarSign, FileText, Settings as SettingsIcon, Save, Crown, Palette, Upload, Eye, EyeOff, Gift, Download } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
@@ -1106,13 +1107,131 @@ const Configuracoes = () => {
           <TabsContent value="sistema" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Preferências do Sistema</CardTitle>
-                <CardDescription>Configurações gerais da aplicação</CardDescription>
+                <CardTitle>Notificações por Email</CardTitle>
+                <CardDescription>Controle quando você deseja receber emails</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Funcionalidade em desenvolvimento. Em breve você poderá configurar notificações e backups.
-                </p>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Novos Orçamentos</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receber email quando um novo orçamento for criado
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Faturas Vencendo</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Alertas 3 dias antes do vencimento de faturas
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Estoque Baixo</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Notificar quando materiais atingirem estoque mínimo
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-base">Atualizações do Sistema</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Novidades e melhorias da plataforma
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Segurança</CardTitle>
+                <CardDescription>Configurações de segurança da conta</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Alterar Senha</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Mantenha sua conta segura alterando sua senha periodicamente
+                  </p>
+                  <Button variant="outline">
+                    Alterar Senha
+                  </Button>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <Label>Sessões Ativas</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Visualize e gerencie dispositivos conectados à sua conta
+                  </p>
+                  <Button variant="outline">
+                    Gerenciar Sessões
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Dados e Privacidade</CardTitle>
+                <CardDescription>Controle seus dados pessoais</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Exportar Dados</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Baixe todos os seus dados em formato JSON
+                  </p>
+                  <Button variant="outline">
+                    <Download className="mr-2 h-4 w-4" />
+                    Exportar Dados
+                  </Button>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <Label>Excluir Conta</Label>
+                  <p className="text-sm text-muted-foreground mb-3 text-destructive">
+                    ⚠️ Ação permanente. Todos os seus dados serão deletados
+                  </p>
+                  <Button variant="destructive" disabled>
+                    Excluir Minha Conta
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações do Sistema</CardTitle>
+                <CardDescription>Versão e status da aplicação</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Versão:</span>
+                  <span className="font-medium">1.0.0</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Última Atualização:</span>
+                  <span className="font-medium">{new Date().toLocaleDateString('pt-BR')}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Status:</span>
+                  <Badge variant="outline" className="bg-success/10 text-success">
+                    ● Operacional
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
