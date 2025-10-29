@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardMetrics {
   totalReceitas: number;
@@ -34,6 +35,7 @@ interface Agendamento {
 }
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalReceitas: 0,
     totalDespesas: 0,
@@ -48,6 +50,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dataInicio, setDataInicio] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [dataFim, setDataFim] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
+
+  const displayName = (user?.user_metadata?.full_name as string) || (user?.email?.split("@")[0] ?? "");
 
   useEffect(() => {
     loadMetrics();
@@ -165,7 +169,7 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-2">Bem-vindo{displayName ? `, ${displayName}` : ''}</h1>
         <p className="text-muted-foreground mb-8">Visão geral do seu negócio</p>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
