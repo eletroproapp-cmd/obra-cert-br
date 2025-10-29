@@ -411,11 +411,27 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
               </div>
               <div className="md:col-span-1">
                 <Label className="text-xs">Und</Label>
-                <Input
+                <Select
                   value={item.unidade}
-                  onChange={(e) => updateItem(index, 'unidade', e.target.value)}
-                  placeholder="un"
-                />
+                  onValueChange={(value) => updateItem(index, 'unidade', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="un" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="un">un</SelectItem>
+                    <SelectItem value="m">m</SelectItem>
+                    <SelectItem value="m²">m²</SelectItem>
+                    <SelectItem value="m³">m³</SelectItem>
+                    <SelectItem value="kg">kg</SelectItem>
+                    <SelectItem value="L">L</SelectItem>
+                    <SelectItem value="h">h</SelectItem>
+                    <SelectItem value="pç">pç</SelectItem>
+                    <SelectItem value="cx">cx</SelectItem>
+                    <SelectItem value="sc">sc</SelectItem>
+                    <SelectItem value="pc">pc</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="md:col-span-2">
                 <Label className="text-xs">Valor Unit. *</Label>
