@@ -89,7 +89,7 @@ export function AppSidebar() {
             {open && (
               <div className="flex-1">
                 <h2 className="font-bold text-lg text-sidebar-foreground tracking-tight">EletroPro</h2>
-                <p className="text-xs text-sidebar-foreground/60 font-medium">Gestão Profissional</p>
+                <p className="text-xs text-sidebar-foreground/60 font-medium">Gestão Elétrica</p>
               </div>
             )}
           </div>
