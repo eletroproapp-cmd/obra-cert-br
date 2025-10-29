@@ -40,18 +40,6 @@ const categorias = [
 
 export function DespesaForm({ despesa, onSuccess, onCancel }: DespesaFormProps) {
   const queryClient = useQueryClient();
-  
-  const { data: projetos } = useQuery({
-    queryKey: ["projetos"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("projetos")
-        .select("id, nome")
-        .order("nome");
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const {
     register,
@@ -196,36 +184,6 @@ export function DespesaForm({ despesa, onSuccess, onCancel }: DespesaFormProps) 
             placeholder="Ex: NF-123456"
           />
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="projeto_id">Projeto (Opcional)</Label>
-        <Select
-          value={watch("projeto_id") || undefined}
-          onValueChange={(value) => setValue("projeto_id", value)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Nenhum projeto selecionado" />
-          </SelectTrigger>
-          <SelectContent>
-            {projetos?.map((projeto) => (
-              <SelectItem key={projeto.id} value={projeto.id}>
-                {projeto.nome}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {watch("projeto_id") && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setValue("projeto_id", "")}
-            className="h-8 px-2 text-xs"
-          >
-            Limpar seleção
-          </Button>
-        )}
       </div>
 
       <div className="space-y-2">

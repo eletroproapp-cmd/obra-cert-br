@@ -57,7 +57,7 @@ export default function Despesas() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("despesas")
-        .select("*, projetos(nome)")
+        .select("*")
         .order("data", { ascending: false });
 
       if (error) throw error;
@@ -150,7 +150,6 @@ export default function Despesas() {
                 <TableHead>Data</TableHead>
                 <TableHead>Categoria</TableHead>
                 <TableHead>Descrição</TableHead>
-                <TableHead>Projeto</TableHead>
                 <TableHead>Nota Fiscal</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
@@ -159,7 +158,7 @@ export default function Despesas() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center">
+                  <TableCell colSpan={6} className="text-center">
                     Carregando...
                   </TableCell>
                 </TableRow>
@@ -178,9 +177,6 @@ export default function Despesas() {
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
                       {despesa.descricao}
-                    </TableCell>
-                    <TableCell>
-                      {despesa.projetos?.nome || "-"}
                     </TableCell>
                     <TableCell>{despesa.numero_nota_fiscal || "-"}</TableCell>
                     <TableCell className="text-right font-medium">
@@ -211,7 +207,7 @@ export default function Despesas() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground">
                     Nenhuma despesa cadastrada
                   </TableCell>
                 </TableRow>
