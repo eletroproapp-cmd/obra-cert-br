@@ -21,7 +21,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
-import logo from "@/assets/logo-eletropro.png";
+import iconLogo from "@/assets/icon-eletropro.png";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 
 import {
@@ -83,9 +83,7 @@ export function AppSidebar() {
         {/* Logo/Header */}
         <div className="p-5 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-xl">
-              <img src={logo} alt="EletroPro" className="h-6" />
-            </div>
+            <img src={iconLogo} alt="EletroPro" className="h-10 w-10 flex-shrink-0" />
             {open && (
               <div className="flex-1">
                 <h2 className="font-bold text-lg text-sidebar-foreground tracking-tight">EletroPro</h2>
