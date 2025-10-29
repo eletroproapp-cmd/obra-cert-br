@@ -120,7 +120,7 @@ serve(async (req) => {
 
     // Enviar email via Resend
     const emailPayload: any = {
-      from: 'EletroPro <noreply@eletropro.com>',
+      from: 'EletroPro <noreply@send.eletroproapp.com>',
       to: [destinatario],
       reply_to: user.email,
       subject: `[${tipoLabel}] ${assunto}`,
