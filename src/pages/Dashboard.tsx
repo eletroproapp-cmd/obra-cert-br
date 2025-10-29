@@ -78,6 +78,14 @@ const Dashboard = () => {
         .gte('data', dataInicio)
         .lte('data', dataFim);
 
+      // Carregar receitas diversas (filtradas por data)
+      const { data: receitas } = await supabase
+        .from('receitas')
+        .select('valor, data')
+        .eq('user_id', user.id)
+        .gte('data', dataInicio)
+        .lte('data', dataFim);
+
       // Carregar instalações
       const { data: instalacoes } = await supabase
         .from('instalacoes')
@@ -94,7 +102,7 @@ const Dashboard = () => {
       const inicioDate = new Date(dataInicio);
       const fimDate = new Date(dataFim);
       
-      const totalReceitas = faturas?.filter(f => {
+      const receitasFaturas = faturas?.filter(f => {
         if (f.status !== 'Pago') return false;
         
         // Usa data_pagamento; se ausente, usa created_at; se ainda ausente, usa data_vencimento
@@ -104,6 +112,9 @@ const Dashboard = () => {
         const dataFatura = new Date(dataParaFiltro);
         return dataFatura >= inicioDate && dataFatura <= fimDate;
       }).reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
+
+      const receitasDiversas = receitas?.reduce((sum, r) => sum + Number(r.valor), 0) || 0;
+      const totalReceitas = receitasFaturas + receitasDiversas;
 
       // Calcular despesas
       const totalDespesas = despesas?.reduce((sum, d) => sum + Number(d.valor), 0) || 0;
@@ -166,7 +177,7 @@ const Dashboard = () => {
             <CardContent>
               <div className="text-2xl font-bold text-success">R$ {metrics.totalReceitas.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
-                Faturas pagas
+                Entradas no período
               </p>
             </CardContent>
           </Card>

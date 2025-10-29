@@ -188,9 +188,19 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("user_id", user.id)
       .single();
     
-    const fromEmail = empresaConfig?.email 
-      ? `${sanitize(empresa?.nome_fantasia || 'EletroPro')} <${empresaConfig.email}>`
-      : "Seu App <no-reply@send.eletroproapp.com>";
+    let fromEmail: string;
+    const empresaEmail = empresaConfig?.email || '';
+    const domain = empresaEmail.split('@')[1]?.toLowerCase() || '';
+    const publicDomains = new Set([
+      'gmail.com','hotmail.com','outlook.com','yahoo.com','live.com','icloud.com',
+      'bol.com.br','uol.com.br','terra.com.br','yahoo.com.br','hotmail.com.br','outlook.com.br','gmail.com.br'
+    ]);
+    if (empresaEmail && !publicDomains.has(domain)) {
+      fromEmail = `${sanitize(empresa?.nome_fantasia || 'EletroPro')} <${empresaEmail}>`;
+    } else {
+      fromEmail = 'EletroPro <no-reply@send.eletroproapp.com>';
+      if (empresaEmail) console.log('Domínio de email não verificado/público. Usando remetente padrão.');
+    }
 
     // Gerar token público para o orçamento
     const token = crypto.randomUUID();
