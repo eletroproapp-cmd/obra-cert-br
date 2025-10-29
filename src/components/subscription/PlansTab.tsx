@@ -157,28 +157,53 @@ export const PlansTab = () => {
     setUpgrading(true);
     
     try {
+      console.log('🚀 Iniciando checkout para plano:', planId);
+      console.log('📍 Origin:', window.location.origin);
+      
       const { data, error } = await supabase.functions.invoke('criar-checkout-stripe', {
         body: { planType: planId, origin: window.location.origin },
       });
 
-      if (error) throw error;
+      console.log('📦 Resposta da edge function:', { data, error });
+
+      if (error) {
+        console.error('❌ Erro da edge function:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('❌ Erro retornado no data:', data.error);
+        throw new Error(data.error);
+      }
 
       if (data?.url) {
+        console.log('✅ URL de checkout recebida:', data.url);
         toast.success("Redirecionando para checkout...");
-        window.location.href = data.url;
+        // Pequeno delay para garantir que o log e toast apareçam
+        setTimeout(() => {
+          console.log('🔄 Redirecionando agora...');
+          window.location.href = data.url;
+        }, 500);
       } else {
+        console.error('❌ Nenhuma URL retornada. Data completo:', JSON.stringify(data));
         throw new Error('URL de checkout não recebida');
       }
     } catch (error: any) {
-      console.error('Erro ao criar checkout:', error);
+      console.error('💥 Erro capturado:', error);
+      console.error('💥 Tipo do erro:', typeof error);
+      console.error('💥 Error message:', error?.message);
+      console.error('💥 Error stack:', error?.stack);
+      
       const errorMsg = error?.message || 'Erro ao processar pagamento';
       
-      if (errorMsg.includes('price_id') || errorMsg.includes('Stripe')) {
+      if (errorMsg.includes('price_id') || errorMsg.includes('Stripe') || errorMsg.includes('Price ID')) {
         toast.error('Configuração necessária', {
           description: 'Os preços do Stripe precisam ser configurados primeiro.',
         });
       } else {
-        toast.error(errorMsg);
+        toast.error('Erro ao processar pagamento', {
+          description: errorMsg,
+        });
       }
     } finally {
       setUpgrading(false);
