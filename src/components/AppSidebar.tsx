@@ -20,6 +20,7 @@ import {
   FolderKanban,
   Wallet,
   Crown,
+  TrendingUp,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import iconLogo from "@/assets/icon-eletropro.png";
@@ -48,6 +49,7 @@ const menuItems = [
       { title: "Orçamentos", url: "/orcamentos", icon: FileText },
       { title: "Faturas", url: "/faturas", icon: Receipt },
       { title: "Despesas", url: "/despesas", icon: Wallet },
+      { title: "Receitas", url: "/receitas", icon: TrendingUp },
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Catálogo", url: "/catalogo", icon: FolderOpen },
       { title: "Fornecedores", url: "/fornecedores", icon: Building2 },

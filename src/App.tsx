@@ -25,6 +25,7 @@ import Admin from "./pages/Admin";
 import EmailTemplates from "./pages/EmailTemplates";
 import Indicacoes from "./pages/Indicacoes";
 import Despesas from "./pages/Despesas";
+import Receitas from "./pages/Receitas";
 import Suporte from "./pages/Suporte";
 import NotFound from "./pages/NotFound";
 
@@ -55,7 +56,8 @@ const App = () => (
         <Route path="/funcionarios" element={<ProtectedRoute><Funcionarios /></ProtectedRoute>} />
         <Route path="/timesheets" element={<ProtectedRoute><Timesheets /></ProtectedRoute>} />
         <Route path="/projetos" element={<ProtectedRoute><Projetos /></ProtectedRoute>} />
-        <Route path="/despesas" element={<ProtectedRoute><Despesas /></ProtectedRoute>} />
+            <Route path="/despesas" element={<ProtectedRoute><Despesas /></ProtectedRoute>} />
+            <Route path="/receitas" element={<ProtectedRoute><Receitas /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
         <Route path="/indicacoes" element={<ProtectedRoute><Indicacoes /></ProtectedRoute>} />
         <Route path="/suporte" element={<ProtectedRoute><Suporte /></ProtectedRoute>} />

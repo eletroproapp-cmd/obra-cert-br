@@ -92,11 +92,20 @@ const Relatorios = () => {
         .eq('user_id', user.id)
         .gte('created_at', dataInicio);
 
+      // Carregar receitas diversas
+      const { data: receitasData } = await supabase
+        .from('receitas')
+        .select('id, descricao, categoria, valor, data, created_at')
+        .eq('user_id', user.id)
+        .gte('created_at', dataInicio);
+
       const orcamentosEmitidos = orcamentos?.length || 0;
       const orcamentosAprovados = orcamentos?.filter(o => o.status === 'Aprovado').length || 0;
       const faturasEmitidas = faturas?.length || 0;
       const faturasPagas = faturas?.filter(f => f.status === 'Pago').length || 0;
-      const receitas = faturas?.filter(f => f.status === 'Pago').reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
+      const receitasFaturas = faturas?.filter(f => f.status === 'Pago').reduce((sum, f) => sum + Number(f.valor_total), 0) || 0;
+      const receitasDiversas = receitasData?.reduce((sum, r) => sum + Number(r.valor), 0) || 0;
+      const receitas = receitasFaturas + receitasDiversas;
       const despesas = despesasData?.reduce((sum, d) => sum + Number(d.valor), 0) || 0;
       const lucro = receitas - despesas;
       const taxaConversao = orcamentosEmitidos > 0 ? (orcamentosAprovados / orcamentosEmitidos) * 100 : 0;
@@ -125,6 +134,19 @@ const Relatorios = () => {
           categoria: `Fatura ${fatura.numero}`,
           valor: Number(fatura.valor_total),
           status: fatura.status
+        });
+      });
+
+      // Adicionar receitas diversas como entradas
+      receitasData?.forEach(receita => {
+        transacoesArray.push({
+          id: receita.id,
+          data: new Date(receita.data).toLocaleDateString('pt-BR'),
+          tipo: 'entrada',
+          descricao: receita.descricao,
+          categoria: receita.categoria,
+          valor: Number(receita.valor),
+          status: 'Recebido'
         });
       });
 
