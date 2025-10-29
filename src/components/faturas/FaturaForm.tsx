@@ -17,6 +17,8 @@ import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 import { Plus, Trash2, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ClienteForm } from '@/components/clientes/ClienteForm';
 
 const faturaSchema = z.object({
   cliente_id: z.string().min(1, 'Selecione um cliente'),
@@ -57,6 +59,7 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
   const [catalogoOptions, setCatalogoOptions] = useState<ComboboxOption[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [isClienteDialogOpen, setIsClienteDialogOpen] = useState(false);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FaturaFormData>({
     resolver: zodResolver(faturaSchema),
@@ -335,22 +338,34 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="cliente">Cliente *</Label>
-          <Select onValueChange={(value) => setValue('cliente_id', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              {clientes.map(cliente => (
-                <SelectItem key={cliente.id} value={cliente.id}>
-                  {cliente.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select onValueChange={(value) => setValue('cliente_id', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                {clientes.map(cliente => (
+                  <SelectItem key={cliente.id} value={cliente.id}>
+                    {cliente.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="icon"
+              onClick={() => setIsClienteDialogOpen(true)}
+              title="Adicionar novo cliente"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
           {errors.cliente_id && (
             <p className="text-sm text-destructive">{errors.cliente_id.message}</p>
           )}
@@ -558,5 +573,21 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
         )}
       </div>
     </form>
+
+    <Dialog open={isClienteDialogOpen} onOpenChange={setIsClienteDialogOpen}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Novo Cliente</DialogTitle>
+        </DialogHeader>
+        <ClienteForm 
+          onSuccess={() => {
+            setIsClienteDialogOpen(false);
+            loadClientes();
+            toast.success('Cliente criado! Selecione-o na lista.');
+          }}
+        />
+      </DialogContent>
+    </Dialog>
+  </>
   );
 };
