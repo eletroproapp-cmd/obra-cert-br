@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Gift, Share2, Users, CheckCircle } from 'lucide-react';
+import { Copy, Gift, Share2, Users, CheckCircle, MessageCircle, Facebook, Mail } from 'lucide-react';
 import { useReferral } from '@/hooks/useReferral';
 import { Separator } from '@/components/ui/separator';
 
@@ -122,18 +122,14 @@ export const ReferralSection = () => {
 
             {referralCode ? (
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     value={referralCode.code}
                     readOnly
-                    className="text-2xl font-mono font-bold text-center"
+                    className="text-xl sm:text-2xl font-mono font-bold text-center"
                   />
-                  <Button onClick={copyReferralLink} variant="outline" size="icon">
+                  <Button onClick={copyReferralLink} variant="outline" size="icon" className="shrink-0">
                     <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button onClick={copyReferralLink} variant="default">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Compartilhar Link
                   </Button>
                 </div>
 
@@ -142,6 +138,62 @@ export const ReferralSection = () => {
                   <code className="text-xs break-all">
                     {window.location.origin}?ref={referralCode.code}
                   </code>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Compartilhar via:</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        const text = `Conheça o EletroPro! Use meu código de indicação ${referralCode.code} e ganhe 30 dias grátis ao assinar qualquer plano pago.`;
+                        const url = `${window.location.origin}?ref=${referralCode.code}`;
+                        window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+                      }}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      WhatsApp
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        const url = `${window.location.origin}?ref=${referralCode.code}`;
+                        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+                      }}
+                    >
+                      <Facebook className="h-4 w-4 mr-2" />
+                      Facebook
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        const subject = 'Indicação EletroPro';
+                        const body = `Olá!\n\nConheça o EletroPro - sistema completo de gestão para eletricistas!\n\nUse meu código de indicação ${referralCode.code} e ganhe 30 dias grátis ao assinar qualquer plano pago.\n\nAcesse: ${window.location.origin}?ref=${referralCode.code}`;
+                        window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+                      }}
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Email
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={copyReferralLink}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copiar
+                    </Button>
+                  </div>
                 </div>
               </div>
             ) : (
