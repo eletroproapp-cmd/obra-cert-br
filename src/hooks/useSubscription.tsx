@@ -127,14 +127,26 @@ export const useSubscription = () => {
         usageMap[item.resource_type] = item.count;
       });
 
-      // Fallback: contar faturas do mês atual diretamente, caso usage_tracking não esteja atualizado
-      const { count: faturasCount, error: faturasCountError } = await supabase
+      // Fallback: contar faturas do mês atual diretamente
+      const { data: faturas, error: faturasCountError } = await supabase
         .from('faturas')
-        .select('id', { count: 'exact', head: true })
+        .select('id')
         .eq('user_id', user.id)
         .gte('created_at', periodStart.toISOString());
-      if (!faturasCountError && typeof faturasCount === 'number') {
-        usageMap['faturas_mes'] = faturasCount;
+      
+      if (!faturasCountError && faturas) {
+        usageMap['faturas_mes'] = faturas.length;
+      }
+
+      // Fallback para orcamentos
+      const { data: orcamentos, error: orcamentosError } = await supabase
+        .from('orcamentos')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('created_at', periodStart.toISOString());
+      
+      if (!orcamentosError && orcamentos) {
+        usageMap['orcamentos_mes'] = orcamentos.length;
       }
 
       setUsage(usageMap);

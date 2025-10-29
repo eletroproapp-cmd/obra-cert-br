@@ -69,7 +69,7 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
     }
   });
 
-const { plan } = useSubscription();
+const { plan, refetch } = useSubscription();
   const selectedClienteId = watch('cliente_id');
 
   useEffect(() => {
@@ -319,6 +319,10 @@ const { plan } = useSubscription();
         }
 
         toast.success('Fatura criada com sucesso!');
+        
+        // Atualizar contadores de uso
+        refetch();
+        
         onSuccess?.();
         return fatura;
       }
