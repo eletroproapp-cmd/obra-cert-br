@@ -46,7 +46,14 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <div className="space-y-4">
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <img src={logo} alt="EletroPro" className="h-16 lg:h-20" />
+                  <div>
+                    <h2 className="text-3xl lg:text-4xl font-bold text-foreground">EletroPro</h2>
+                    <p className="text-sm lg:text-base text-muted-foreground">Gestão elétrica profissional</p>
+                  </div>
+                </div>
                 <h1 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight">
                   Sistema completo de gestão para{" "}
                   <span className="bg-gradient-primary bg-clip-text text-transparent">
