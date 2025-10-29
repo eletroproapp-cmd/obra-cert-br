@@ -2,12 +2,13 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Sparkles, Zap } from "lucide-react";
+import { Check, Crown, Sparkles, Zap, Settings } from "lucide-react";
 import { UsageCard } from "./UsageCard";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const plans = [
   {
@@ -63,6 +64,33 @@ export const PlansTab = () => {
   const [upgrading, setUpgrading] = useState(false);
   const [canceling, setCanceling] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [priceIdsConfigured, setPriceIdsConfigured] = useState(false);
+  const [checkingConfig, setCheckingConfig] = useState(true);
+  const navigate = useNavigate();
+
+  // Check if price IDs are configured
+  useEffect(() => {
+    const checkPriceIds = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('subscription_plans')
+          .select('stripe_price_id, plan_type')
+          .in('plan_type', ['basic', 'professional']);
+        
+        if (!error && data) {
+          const hasBasic = data.some(p => p.plan_type === 'basic' && p.stripe_price_id);
+          const hasPro = data.some(p => p.plan_type === 'professional' && p.stripe_price_id);
+          setPriceIdsConfigured(hasBasic && hasPro);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar Price IDs:', error);
+      } finally {
+        setCheckingConfig(false);
+      }
+    };
+    
+    checkPriceIds();
+  }, []);
 
   useEffect(() => {
     const success = searchParams.get('success');
@@ -113,6 +141,13 @@ export const PlansTab = () => {
   }, [searchParams, setSearchParams, refetch]);
 
   const handleUpgrade = async (planId: string) => {
+    if (!priceIdsConfigured) {
+      toast.error("Configuração pendente", {
+        description: "Os preços do Stripe ainda não foram configurados."
+      });
+      return;
+    }
+
     const user = await supabase.auth.getUser();
     if (!user?.data?.user) {
       toast.error("Você precisa estar logado para fazer upgrade");
@@ -134,9 +169,17 @@ export const PlansTab = () => {
       } else {
         throw new Error('URL de checkout não recebida');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao criar checkout:', error);
-      toast.error('Erro ao processar pagamento. Tente novamente.');
+      const errorMsg = error?.message || 'Erro ao processar pagamento';
+      
+      if (errorMsg.includes('price_id') || errorMsg.includes('Stripe')) {
+        toast.error('Configuração necessária', {
+          description: 'Os preços do Stripe precisam ser configurados primeiro.',
+        });
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setUpgrading(false);
     }
@@ -179,6 +222,34 @@ export const PlansTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Configuration Alert */}
+      {!checkingConfig && !priceIdsConfigured && (
+        <Alert variant="destructive">
+          <Settings className="h-4 w-4" />
+          <AlertTitle>Configuração Necessária</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>
+              Os preços do Stripe precisam ser configurados antes de fazer upgrade.
+              <br />
+              <strong>Você precisa:</strong>
+              <br />
+              1. Copiar os Price IDs do Stripe (começam com "price_")
+              <br />
+              2. Configurá-los na página Admin
+            </span>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/admin')}
+              className="ml-4"
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Ir para Admin
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Current Plan Status */}
       <Card className="border-primary/20">
         <CardHeader>
@@ -310,7 +381,7 @@ export const PlansTab = () => {
                     onClick={() => handleUpgrade(planItem.id)}
                     variant={isCurrent ? "outline" : planItem.highlight ? "default" : "secondary"}
                     className="w-full mt-4"
-                    disabled={isCurrent || upgrading || !isUpgrade}
+                    disabled={isCurrent || upgrading || !isUpgrade || (!priceIdsConfigured && planItem.id !== 'free')}
                   >
                     {upgrading ? (
                       'Processando...'
