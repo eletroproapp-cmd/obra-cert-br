@@ -1,5 +1,8 @@
 project_id = "ovnmwhzlwgfvrrjxuplp"
 
+[functions.enviar-email-boas-vindas]
+verify_jwt = false
+
 [functions.enviar-orcamento]
 verify_jwt = true
 
