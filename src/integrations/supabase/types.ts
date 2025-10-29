@@ -231,7 +231,10 @@ export type Database = {
       }
       empresas: {
         Row: {
+          agencia: string | null
           ambiente_nfe: string | null
+          banco_codigo: string | null
+          banco_nome: string | null
           cep: string | null
           certificado_digital_arquivo: string | null
           certificado_digital_tipo: string | null
@@ -239,6 +242,7 @@ export type Database = {
           chave_pix: string | null
           cidade: string | null
           cnpj: string | null
+          conta: string | null
           cor_borda_linhas: string | null
           cor_borda_secoes: string | null
           cor_primaria: string | null
@@ -254,6 +258,7 @@ export type Database = {
           id: string
           inscricao_estadual: string | null
           inscricao_municipal: string | null
+          instrucoes_pagamento: string | null
           logo_position: string | null
           logo_url: string | null
           mostrar_cnpj: boolean | null
@@ -281,13 +286,19 @@ export type Database = {
           template_fatura: string | null
           template_orcamento: string | null
           termos_condicoes: string | null
+          tipo_conta: string | null
           tipo_pessoa: string | null
+          titular_documento: string | null
+          titular_nome: string | null
           updated_at: string
           user_id: string
           website: string | null
         }
         Insert: {
+          agencia?: string | null
           ambiente_nfe?: string | null
+          banco_codigo?: string | null
+          banco_nome?: string | null
           cep?: string | null
           certificado_digital_arquivo?: string | null
           certificado_digital_tipo?: string | null
@@ -295,6 +306,7 @@ export type Database = {
           chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
+          conta?: string | null
           cor_borda_linhas?: string | null
           cor_borda_secoes?: string | null
           cor_primaria?: string | null
@@ -310,6 +322,7 @@ export type Database = {
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
+          instrucoes_pagamento?: string | null
           logo_position?: string | null
           logo_url?: string | null
           mostrar_cnpj?: boolean | null
@@ -337,13 +350,19 @@ export type Database = {
           template_fatura?: string | null
           template_orcamento?: string | null
           termos_condicoes?: string | null
+          tipo_conta?: string | null
           tipo_pessoa?: string | null
+          titular_documento?: string | null
+          titular_nome?: string | null
           updated_at?: string
           user_id: string
           website?: string | null
         }
         Update: {
+          agencia?: string | null
           ambiente_nfe?: string | null
+          banco_codigo?: string | null
+          banco_nome?: string | null
           cep?: string | null
           certificado_digital_arquivo?: string | null
           certificado_digital_tipo?: string | null
@@ -351,6 +370,7 @@ export type Database = {
           chave_pix?: string | null
           cidade?: string | null
           cnpj?: string | null
+          conta?: string | null
           cor_borda_linhas?: string | null
           cor_borda_secoes?: string | null
           cor_primaria?: string | null
@@ -366,6 +386,7 @@ export type Database = {
           id?: string
           inscricao_estadual?: string | null
           inscricao_municipal?: string | null
+          instrucoes_pagamento?: string | null
           logo_position?: string | null
           logo_url?: string | null
           mostrar_cnpj?: boolean | null
@@ -393,7 +414,10 @@ export type Database = {
           template_fatura?: string | null
           template_orcamento?: string | null
           termos_condicoes?: string | null
+          tipo_conta?: string | null
           tipo_pessoa?: string | null
+          titular_documento?: string | null
+          titular_nome?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null

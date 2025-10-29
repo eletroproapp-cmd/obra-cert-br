@@ -445,6 +445,40 @@ const handler = async (req: Request): Promise<Response> => {
     
     yPos += totalBoxHeight + 8;
     
+    // === DADOS DE PAGAMENTO (se houver) ===
+    if (empresa?.banco_nome || empresa?.chave_pix || empresa?.instrucoes_pagamento) {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Dados de Pagamento', margin, yPos);
+      yPos += 5;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(90, 90, 90);
+      const payLines: string[] = [];
+      if (empresa?.chave_pix) payLines.push('PIX: ' + empresa.chave_pix);
+      if (empresa?.banco_nome) {
+        let linhaBanco = `Banco: ${empresa.banco_nome}`;
+        if (empresa.banco_codigo) linhaBanco += ` (${empresa.banco_codigo})`;
+        payLines.push(linhaBanco);
+      }
+      if (empresa?.agencia || empresa?.conta) {
+        const ag = empresa?.agencia ? `Agência: ${empresa.agencia}` : '';
+        const ct = empresa?.conta ? ` Conta: ${empresa.conta}` : '';
+        const tp = empresa?.tipo_conta ? ` (${empresa.tipo_conta})` : '';
+        payLines.push((ag + (ag && ct ? ' | ' : '') + ct + tp).trim());
+      }
+      if (empresa?.titular_nome) {
+        let t = `Titular: ${empresa.titular_nome}`;
+        if (empresa?.titular_documento) t += ` • Doc: ${empresa.titular_documento}`;
+        payLines.push(t);
+      }
+      if (empresa?.instrucoes_pagamento) payLines.push('Instruções: ' + empresa.instrucoes_pagamento);
+      const splitPay = doc.splitTextToSize(payLines.join('\n'), pageWidth - 2 * margin - 50);
+      doc.text(splitPay, margin, yPos);
+      yPos += splitPay.length * 3.5 + 8;
+    }
+    
     // === OBSERVAÇÕES ===
     if (fatura.observacoes) {
       doc.setFontSize(9);

@@ -37,6 +37,15 @@ interface EmpresaData {
   email: string;
   website: string;
   chave_pix: string;
+  // Novos campos de pagamento
+  banco_nome?: string;
+  banco_codigo?: string;
+  agencia?: string;
+  conta?: string;
+  tipo_conta?: string;
+  titular_nome?: string;
+  titular_documento?: string;
+  instrucoes_pagamento?: string;
   logo_url: string;
   logo_position: string;
   slogan: string;
@@ -609,6 +618,43 @@ const Configuracoes = () => {
                         <p className="text-xs text-muted-foreground">
                           A chave PIX será usada para gerar o QR Code de pagamento nas faturas
                         </p>
+
+                        <Separator className="my-4" />
+                        <Label>Dados de Pagamento (opcional)</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="banco_nome">Banco</Label>
+                            <Input id="banco_nome" {...register('banco_nome')} placeholder="Nome do banco" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="banco_codigo">Código do Banco</Label>
+                            <Input id="banco_codigo" {...register('banco_codigo')} placeholder="ex: 001, 237, 341" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="agencia">Agência</Label>
+                            <Input id="agencia" {...register('agencia')} placeholder="Agência" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="conta">Conta</Label>
+                            <Input id="conta" {...register('conta')} placeholder="Conta" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="tipo_conta">Tipo de Conta</Label>
+                            <Input id="tipo_conta" {...register('tipo_conta')} placeholder="Corrente, Poupança..." />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="titular_nome">Titular</Label>
+                            <Input id="titular_nome" {...register('titular_nome')} placeholder="Nome do titular" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="titular_documento">Documento do Titular</Label>
+                            <Input id="titular_documento" {...register('titular_documento')} placeholder="CPF/CNPJ" />
+                          </div>
+                        </div>
+                        <div className="space-y-2 mt-4">
+                          <Label htmlFor="instrucoes_pagamento">Instruções de Pagamento</Label>
+                          <Textarea id="instrucoes_pagamento" {...register('instrucoes_pagamento')} placeholder="Ex.: Enviar comprovante para e-mail..." />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
