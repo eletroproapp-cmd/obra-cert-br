@@ -34,7 +34,7 @@ const Faturas = () => {
   const [editingFaturaId, setEditingFaturaId] = useState<string | undefined>();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [deletingFaturaId, setDeletingFaturaId] = useState<string | null>(null);
-  const { checkLimit, plan, refetch } = useSubscription();
+  const { checkLimit, plan, refetch, loading: subLoading } = useSubscription();
 
   useEffect(() => {
     loadFaturas();
@@ -67,13 +67,18 @@ const Faturas = () => {
   };
 
   const handleNewFatura = () => {
+    // Se a assinatura ainda está carregando ou o plano não foi carregado, não bloquear a criação
+    if (subLoading || !plan) {
+      setShowForm(true);
+      return;
+    }
+
     const limitCheck = checkLimit('faturas_mes');
-    
     if (!limitCheck.allowed) {
       setShowUpgradeDialog(true);
       return;
     }
-    
+
     setShowForm(true);
   };
 
