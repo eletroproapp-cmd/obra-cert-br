@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useNavigate } from "react-router-dom";
-import { Users, CreditCard, TrendingUp, AlertCircle } from "lucide-react";
+import { Users, CreditCard, TrendingUp, AlertCircle, Settings } from "lucide-react";
 import { toast } from "sonner";
 
 interface SubscriptionStats {
@@ -31,6 +34,9 @@ const Admin = () => {
   const [stats, setStats] = useState<SubscriptionStats | null>(null);
   const [subscriptions, setSubscriptions] = useState<UserSubscription[]>([]);
   const [loading, setLoading] = useState(true);
+  const [basicPriceId, setBasicPriceId] = useState("");
+  const [professionalPriceId, setProfessionalPriceId] = useState("");
+  const [savingPrices, setSavingPrices] = useState(false);
 
   useEffect(() => {
     if (!adminLoading && !isAdmin) {
@@ -57,6 +63,19 @@ const Admin = () => {
 
       setSubscriptions(subs || []);
 
+      // Buscar Price IDs do Stripe
+      const { data: plans } = await supabase
+        .from('subscription_plans')
+        .select('plan_type, stripe_price_id');
+
+      if (plans) {
+        const basicPlan = plans.find(p => p.plan_type === 'basic');
+        const professionalPlan = plans.find(p => p.plan_type === 'professional');
+        
+        setBasicPriceId(basicPlan?.stripe_price_id || '');
+        setProfessionalPriceId(professionalPlan?.stripe_price_id || '');
+      }
+
       // Calcular estatísticas
       const stats: SubscriptionStats = {
         total_users: subs?.length || 0,
@@ -75,6 +94,41 @@ const Admin = () => {
       toast.error('Erro ao carregar dados: ' + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveStripePrices = async () => {
+    if (!basicPriceId || !professionalPriceId) {
+      toast.error('Preencha ambos os Price IDs');
+      return;
+    }
+
+    if (!basicPriceId.startsWith('price_') || !professionalPriceId.startsWith('price_')) {
+      toast.error('Price IDs devem começar com "price_"');
+      return;
+    }
+
+    setSavingPrices(true);
+    try {
+      const { error: basicError } = await supabase
+        .from('subscription_plans')
+        .update({ stripe_price_id: basicPriceId })
+        .eq('plan_type', 'basic');
+
+      if (basicError) throw basicError;
+
+      const { error: proError } = await supabase
+        .from('subscription_plans')
+        .update({ stripe_price_id: professionalPriceId })
+        .eq('plan_type', 'professional');
+
+      if (proError) throw proError;
+
+      toast.success('Price IDs configurados com sucesso!');
+    } catch (error: any) {
+      toast.error('Erro ao salvar: ' + error.message);
+    } finally {
+      setSavingPrices(false);
     }
   };
 
@@ -99,6 +153,66 @@ const Admin = () => {
           <h1 className="text-3xl font-bold mb-2">Dashboard Administrativo</h1>
           <p className="text-muted-foreground">Visão geral de assinaturas e usuários</p>
         </div>
+
+        {/* Stripe Configuration */}
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              <CardTitle>Configuração do Stripe</CardTitle>
+            </div>
+            <CardDescription>
+              Configure os Price IDs dos planos de assinatura do Stripe
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="basic-price">Plano Básico (R$ 9,90/mês)</Label>
+                <Input
+                  id="basic-price"
+                  placeholder="price_xxxxxxxxxxxxx"
+                  value={basicPriceId}
+                  onChange={(e) => setBasicPriceId(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Cole aqui o Price ID do plano básico do Stripe
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="professional-price">Plano Profissional (R$ 29,90/mês)</Label>
+                <Input
+                  id="professional-price"
+                  placeholder="price_xxxxxxxxxxxxx"
+                  value={professionalPriceId}
+                  onChange={(e) => setProfessionalPriceId(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Cole aqui o Price ID do plano profissional do Stripe
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center gap-4">
+              <Button 
+                onClick={handleSaveStripePrices}
+                disabled={savingPrices}
+              >
+                {savingPrices ? 'Salvando...' : 'Salvar Configurações'}
+              </Button>
+              
+              <a 
+                href="https://dashboard.stripe.com/products" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline"
+              >
+                Abrir Dashboard do Stripe →
+              </a>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
