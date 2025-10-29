@@ -395,7 +395,7 @@ const Index = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold">Suporte prioritário</span>
+                    <span className="text-sm">Suporte prioritário</span>
                   </li>
                 </ul>
                 <Link to="/auth">
@@ -421,27 +421,27 @@ const Index = () => {
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold">Clientes ilimitados</span>
+                    <span className="text-sm">Clientes ilimitados</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold">Orçamentos ilimitados</span>
+                    <span className="text-sm">Orçamentos ilimitados</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold">Faturas ilimitadas</span>
+                    <span className="text-sm">Faturas ilimitadas</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold">Instalações ilimitadas</span>
+                    <span className="text-sm">Instalações ilimitadas</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold">Funcionários ilimitados</span>
+                    <span className="text-sm">Funcionários ilimitados</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold">Suporte premium 24/7</span>
+                    <span className="text-sm">Suporte premium 24/7</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-success shrink-0 mt-0.5" />
