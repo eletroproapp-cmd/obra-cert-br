@@ -48,14 +48,14 @@ const Index = () => {
             <div className="space-y-8">
               <div className="space-y-4">
                 <h1 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                  Gestão elétrica completa para{" "}
+                  Sistema completo de gestão para{" "}
                   <span className="bg-gradient-primary bg-clip-text text-transparent">
                     eletricistas profissionais
                   </span>
                 </h1>
                 <p className="text-xl text-muted-foreground">
-                  Crie orçamentos com NBR 5410, emita faturas e gerencie seus serviços elétricos em um único lugar. 
-                  Simples, rápido e desenvolvido para eletricistas brasileiros.
+                  Crie orçamentos técnicos conforme NBR 5410, emita faturas com nota fiscal, gerencie instalações elétricas e controle seu catálogo de materiais. 
+                  Tudo em um único lugar, simples e desenvolvido especialmente para eletricistas brasileiros.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
