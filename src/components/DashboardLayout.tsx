@@ -4,6 +4,8 @@ import { Button } from "./ui/button";
 import { Settings, LogOut, Menu, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +23,28 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const displayName = (user?.user_metadata?.full_name as string) || (user?.email?.split("@")[0] ?? "");
+
+  // Envia email de boas-vindas na primeira navegação autenticada (global)
+  useEffect(() => {
+    const sendWelcomeIfNeeded = async () => {
+      if (!user?.id || !user.email) return;
+      const key = `welcomeEmailSent:${user.id}`;
+      if (localStorage.getItem(key)) return;
+      try {
+        await supabase.functions.invoke('enviar-email-boas-vindas', {
+          body: {
+            email: user.email,
+            name: displayName || user.email.split('@')[0],
+          },
+        });
+        localStorage.setItem(key, '1');
+      } catch (err) {
+        console.error('Falha ao enviar email de boas-vindas (layout):', err);
+      }
+    };
+    sendWelcomeIfNeeded();
+  }, [user?.id, user?.email, displayName]);
 
   return (
     <SidebarProvider>

@@ -53,6 +53,27 @@ const Dashboard = () => {
 
   const displayName = (user?.user_metadata?.full_name as string) || (user?.email?.split("@")[0] ?? "");
 
+  // Envia email de boas-vindas na primeira visita ao dashboard (fallback)
+  useEffect(() => {
+    const sendWelcomeIfNeeded = async () => {
+      if (!user?.id || !user.email) return;
+      const key = `welcomeEmailSent:${user.id}`;
+      if (localStorage.getItem(key)) return;
+      try {
+        await supabase.functions.invoke('enviar-email-boas-vindas', {
+          body: {
+            email: user.email,
+            name: displayName || user.email.split('@')[0],
+          },
+        });
+        localStorage.setItem(key, '1');
+      } catch (err) {
+        console.error('Falha ao enviar email de boas-vindas no dashboard:', err);
+      }
+    };
+    sendWelcomeIfNeeded();
+  }, [user?.id, user?.email, displayName]);
+
   useEffect(() => {
     loadMetrics();
   }, [dataInicio, dataFim]);
