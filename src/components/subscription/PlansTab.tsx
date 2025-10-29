@@ -120,6 +120,9 @@ export const PlansTab = () => {
     
     setUpgrading(true);
     
+    // Abre pop-up imediatamente para não ser bloqueado pelo navegador
+    const popup = window.open('about:blank', '_blank', 'noopener,noreferrer');
+    
     try {
       const { data, error } = await supabase.functions.invoke('criar-checkout-stripe', {
         body: { planType: planId, origin: window.location.origin },
@@ -129,30 +132,35 @@ export const PlansTab = () => {
 
       if (data?.url) {
         const url = data.url as string;
-        toast.success("Abrindo checkout em nova aba...");
-        
-        setTimeout(() => {
-          const win = window.open(url, '_blank', 'noopener,noreferrer');
-          if (!win) {
-            // Pop-up bloqueado: faz fallback para redireciono no contexto atual
-            try {
-              if (window.top) {
-                (window.top as Window).location.href = url;
-              } else {
-                window.location.href = url;
-              }
-            } catch {
+        toast.success("Abrindo checkout...");
+
+        if (popup) {
+          try {
+            popup.location.href = url;
+          } catch {
+            // Se alguma política bloquear, faz fallback
+            window.open(url, '_blank', 'noopener,noreferrer');
+          }
+        } else {
+          // Se pop-up foi bloqueado, tenta redirecionar a janela atual
+          try {
+            if (window.top) {
+              (window.top as Window).location.href = url;
+            } else {
               window.location.href = url;
             }
+          } catch {
+            window.location.href = url;
           }
-          setUpgrading(false);
-        }, 500);
+        }
       } else {
         throw new Error('URL de checkout não recebida');
       }
     } catch (error) {
       console.error('Erro ao criar checkout:', error);
       toast.error('Erro ao processar pagamento. Tente novamente.');
+      if (popup && !popup.closed) popup.close();
+    } finally {
       setUpgrading(false);
     }
   };

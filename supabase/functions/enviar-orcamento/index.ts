@@ -501,6 +501,11 @@ const handler = async (req: Request): Promise<Response> => {
         const qrCodeDataUrl = await QRCode.toDataURL(payload, { width: 140, margin: 1, color: { dark: '#000000', light: '#FFFFFF' }});
         
         const qrSize = 40;
+        const pageHeight = doc.internal.pageSize.getHeight();
+        if (yPos + qrSize + 20 > pageHeight - 20) {
+          doc.addPage();
+          yPos = 20;
+        }
         const qrX = pageWidth - margin - qrSize;
         const qrY = yPos;
         
