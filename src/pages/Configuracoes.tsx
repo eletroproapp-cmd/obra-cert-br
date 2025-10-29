@@ -197,39 +197,45 @@ const Configuracoes = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Configurações</h1>
-          <p className="text-muted-foreground">Gerencie as informações da sua empresa e preferências do sistema</p>
+      <div className="container max-w-7xl mx-auto px-4 py-6 md:py-8">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Configurações</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Gerencie as informações da sua empresa e preferências do sistema</p>
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
-            <TabsTrigger value="empresa">
-              <Building2 className="mr-2 h-4 w-4" />
-              Minha Empresa
-            </TabsTrigger>
-            <TabsTrigger value="plano">
-              <Crown className="mr-2 h-4 w-4" />
-              Plano
-            </TabsTrigger>
-            <TabsTrigger value="indicacoes">
-              <Gift className="mr-2 h-4 w-4" />
-              Indicações
-            </TabsTrigger>
-            <TabsTrigger value="financeiro">
-              <DollarSign className="mr-2 h-4 w-4" />
-              Financeiro
-            </TabsTrigger>
-            <TabsTrigger value="documentos">
-              <FileText className="mr-2 h-4 w-4" />
-              Documentos
-            </TabsTrigger>
-            <TabsTrigger value="sistema">
-              <SettingsIcon className="mr-2 h-4 w-4" />
-              Sistema
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4">
+            <TabsList className="inline-flex w-full min-w-max md:grid md:grid-cols-6 md:w-full">
+              <TabsTrigger value="empresa" className="flex-1 md:flex-none">
+                <Building2 className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Minha Empresa</span>
+                <span className="sm:hidden">Empresa</span>
+              </TabsTrigger>
+              <TabsTrigger value="plano" className="flex-1 md:flex-none">
+                <Crown className="mr-2 h-4 w-4" />
+                Plano
+              </TabsTrigger>
+              <TabsTrigger value="indicacoes" className="flex-1 md:flex-none">
+                <Gift className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Indicações</span>
+                <span className="sm:hidden">Indica</span>
+              </TabsTrigger>
+              <TabsTrigger value="financeiro" className="flex-1 md:flex-none">
+                <DollarSign className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Financeiro</span>
+                <span className="sm:hidden">Fiscal</span>
+              </TabsTrigger>
+              <TabsTrigger value="documentos" className="flex-1 md:flex-none">
+                <FileText className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Documentos</span>
+                <span className="sm:hidden">Docs</span>
+              </TabsTrigger>
+              <TabsTrigger value="sistema" className="flex-1 md:flex-none">
+                <SettingsIcon className="mr-2 h-4 w-4" />
+                Sistema
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="plano">
             <PlansTab />
@@ -240,37 +246,40 @@ const Configuracoes = () => {
           </TabsContent>
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <TabsContent value="empresa" className="space-y-6">
-              <div className="space-y-6">
+            <TabsContent value="empresa" className="space-y-4 md:space-y-6">
+              <div className="space-y-4 md:space-y-6">
                   <Card>
-                    <CardHeader>
-                      <CardTitle>Logo da Empresa</CardTitle>
-                      <CardDescription>Adicione o logo que aparecerá nos documentos</CardDescription>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Logo da Empresa</CardTitle>
+                      <CardDescription className="text-sm">Adicione o logo que aparecerá nos documentos</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-4">
+                    <CardContent className="space-y-4 pt-4">
+                      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                         {formData.logo_url && (
-                          <div className="w-32 h-32 border rounded-lg overflow-hidden flex items-center justify-center bg-muted">
-                            <img src={formData.logo_url} alt="Logo" className="max-w-full max-h-full object-contain" />
+                          <div className="w-24 h-24 md:w-32 md:h-32 border-2 rounded-lg overflow-hidden flex items-center justify-center bg-muted/50">
+                            <img src={formData.logo_url} alt="Logo" className="max-w-full max-h-full object-contain p-2" />
                           </div>
                         )}
-                        <div className="flex-1 space-y-2">
-                          <Label htmlFor="logo">Carregar Logo</Label>
+                        <div className="flex-1 w-full space-y-2">
+                          <Label htmlFor="logo" className="text-sm font-medium">Carregar Logo</Label>
                           <Input
                             id="logo"
                             type="file"
                             accept="image/*"
                             onChange={handleLogoUpload}
                             disabled={uploadingLogo}
+                            className="cursor-pointer"
                           />
                           <p className="text-xs text-muted-foreground">
-                            {uploadingLogo ? 'Enviando...' : 'Formatos: PNG, JPG, WEBP (máx. 2MB)'}
+                            {uploadingLogo ? '📤 Enviando...' : 'Formatos: PNG, JPG, WEBP (máx. 2MB)'}
                           </p>
                         </div>
                       </div>
                       
+                      <Separator />
+                      
                       <div className="space-y-2">
-                        <Label htmlFor="logo_position">Posição da Logo no Documento</Label>
+                        <Label htmlFor="logo_position" className="text-sm font-medium">Posição da Logo no Documento</Label>
                         <Select 
                           value={formData.logo_position || 'center'}
                           onValueChange={(value) => setValue('logo_position', value)}
@@ -289,11 +298,11 @@ const Configuracoes = () => {
                   </Card>
 
                   <Card>
-                    <CardHeader>
-                      <CardTitle>Informações Gerais</CardTitle>
-                      <CardDescription>Dados básicos e controle de visibilidade</CardDescription>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Informações Gerais</CardTitle>
+                      <CardDescription className="text-sm">Dados básicos e controle de visibilidade</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-4 pt-4">
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="tipo_pessoa">Tipo de Pessoa *</Label>
@@ -660,8 +669,8 @@ const Configuracoes = () => {
                     </CardContent>
                   </Card>
 
-                  <div className="flex justify-end">
-                    <Button type="submit" size="lg" disabled={loading}>
+                  <div className="flex justify-end pt-4">
+                    <Button type="submit" size="lg" disabled={loading} className="w-full md:w-auto">
                       <Save className="mr-2 h-4 w-4" />
                       {loading ? 'Salvando...' : 'Salvar Configurações'}
                     </Button>

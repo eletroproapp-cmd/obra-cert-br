@@ -3,6 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { Button } from "./ui/button";
 import { Settings, LogOut, Menu, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <SidebarProvider>
@@ -37,7 +39,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => navigate('/configuracoes')}
+                  title="Configurações"
+                >
                   <Settings className="h-5 w-5" />
                 </Button>
                 
