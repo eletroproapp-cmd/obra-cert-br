@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const funcionarioSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -28,6 +29,7 @@ interface FuncionarioFormProps {
 
 export const FuncionarioForm = ({ onSuccess, funcionarioId }: FuncionarioFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { refetch } = useSubscription();
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FuncionarioFormData>({
     resolver: zodResolver(funcionarioSchema),
@@ -107,6 +109,9 @@ export const FuncionarioForm = ({ onSuccess, funcionarioId }: FuncionarioFormPro
 
         if (error) throw error;
         toast.success('Funcionário cadastrado com sucesso!');
+        
+        // Atualizar contadores
+        refetch();
       }
 
       onSuccess?.();

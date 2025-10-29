@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import type { Database } from '@/integrations/supabase/types';
 import { validarCPFouCNPJ, formatarCPFouCNPJ } from '@/utils/validators';
 import { getUserFriendlyError } from '@/utils/errors';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const clienteSchema = z.object({
   tipo_pessoa: z.enum(['fisica', 'juridica']),
@@ -40,6 +41,7 @@ interface ClienteFormProps {
 
 export const ClienteForm = ({ onSuccess, clienteId }: ClienteFormProps) => {
   const [tipoPessoa, setTipoPessoa] = useState<'fisica' | 'juridica'>('juridica');
+  const { refetch } = useSubscription();
   const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<ClienteFormData>({
     resolver: zodResolver(clienteSchema),
     defaultValues: {
@@ -114,6 +116,9 @@ export const ClienteForm = ({ onSuccess, clienteId }: ClienteFormProps) => {
 
         if (error) throw error;
         toast.success('Cliente cadastrado com sucesso!');
+        
+        // Atualizar contadores
+        refetch();
       }
 
       onSuccess?.();

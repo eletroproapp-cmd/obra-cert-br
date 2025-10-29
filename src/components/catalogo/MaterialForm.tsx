@@ -16,6 +16,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const materialSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -37,6 +38,7 @@ interface MaterialFormProps {
 }
 
 export const MaterialForm = ({ onSuccess, materialId }: MaterialFormProps) => {
+  const { refetch } = useSubscription();
   const { register, handleSubmit, setValue, reset, formState: { errors, isSubmitting } } = useForm<MaterialFormData>({
     resolver: zodResolver(materialSchema),
     defaultValues: {
@@ -105,6 +107,9 @@ export const MaterialForm = ({ onSuccess, materialId }: MaterialFormProps) => {
 
         if (error) throw error;
         toast.success('Material cadastrado com sucesso!');
+        
+        // Atualizar contadores
+        refetch();
       }
 
       onSuccess?.();

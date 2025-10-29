@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ClienteForm } from '@/components/clientes/ClienteForm';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const orcamentoSchema = z.object({
   cliente_id: z.string().min(1, 'Selecione um cliente'),
@@ -59,6 +60,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isClienteDialogOpen, setIsClienteDialogOpen] = useState(false);
+  const { refetch } = useSubscription();
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<OrcamentoFormData>({
     resolver: zodResolver(orcamentoSchema),
@@ -285,6 +287,10 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
         });
 
         toast.success('Orçamento criado com sucesso!');
+        
+        // Atualizar contadores
+        refetch();
+        
         onSuccess?.();
         return orcamento;
       }

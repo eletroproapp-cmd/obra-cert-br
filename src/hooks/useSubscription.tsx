@@ -127,27 +127,20 @@ export const useSubscription = () => {
         usageMap[item.resource_type] = item.count;
       });
 
-      // Fallback: contar faturas do mês atual diretamente
-      const { data: faturas, error: faturasCountError } = await supabase
-        .from('faturas')
-        .select('id')
-        .eq('user_id', user.id)
-        .gte('created_at', periodStart.toISOString());
-      
-      if (!faturasCountError && faturas) {
-        usageMap['faturas_mes'] = faturas.length;
-      }
+      // Fallback: contar recursos diretamente do banco
+      const [faturas, orcamentos, clientes, materiais, funcionarios] = await Promise.all([
+        supabase.from('faturas').select('id').eq('user_id', user.id).gte('created_at', periodStart.toISOString()),
+        supabase.from('orcamentos').select('id').eq('user_id', user.id).gte('created_at', periodStart.toISOString()),
+        supabase.from('clientes').select('id').eq('user_id', user.id),
+        supabase.from('materiais').select('id').eq('user_id', user.id),
+        supabase.from('funcionarios').select('id').eq('user_id', user.id)
+      ]);
 
-      // Fallback para orcamentos
-      const { data: orcamentos, error: orcamentosError } = await supabase
-        .from('orcamentos')
-        .select('id')
-        .eq('user_id', user.id)
-        .gte('created_at', periodStart.toISOString());
-      
-      if (!orcamentosError && orcamentos) {
-        usageMap['orcamentos_mes'] = orcamentos.length;
-      }
+      if (!faturas.error && faturas.data) usageMap['faturas_mes'] = faturas.data.length;
+      if (!orcamentos.error && orcamentos.data) usageMap['orcamentos_mes'] = orcamentos.data.length;
+      if (!clientes.error && clientes.data) usageMap['clientes'] = clientes.data.length;
+      if (!materiais.error && materiais.data) usageMap['materiais'] = materiais.data.length;
+      if (!funcionarios.error && funcionarios.data) usageMap['funcionarios'] = funcionarios.data.length;
 
       setUsage(usageMap);
     } catch (error) {
