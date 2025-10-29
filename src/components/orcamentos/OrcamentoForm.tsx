@@ -419,8 +419,12 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
                   type="number"
                   min="0.01"
                   step="0.01"
-                  value={item.quantidade}
-                  onChange={(e) => updateItem(index, 'quantidade', parseFloat(e.target.value) || 0)}
+                  value={item.quantidade || ''}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    updateItem(index, 'quantidade', isNaN(val) ? 0 : val);
+                  }}
+                  placeholder="0.00"
                   required
                 />
               </div>
@@ -454,8 +458,12 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
                   type="number"
                   min="0"
                   step="0.01"
-                  value={item.valor_unitario}
-                  onChange={(e) => updateItem(index, 'valor_unitario', parseFloat(e.target.value) || 0)}
+                  value={item.valor_unitario || ''}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    updateItem(index, 'valor_unitario', isNaN(val) ? 0 : val);
+                  }}
+                  placeholder="0.00"
                   required
                 />
               </div>
