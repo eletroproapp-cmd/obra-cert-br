@@ -27,17 +27,20 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization') || '';
+    const jwt = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_PUBLISHABLE_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
 
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(jwt);
     
     if (authError || !user) {
       console.error('Auth error:', authError);
