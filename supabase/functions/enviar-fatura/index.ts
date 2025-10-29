@@ -213,10 +213,11 @@ const handler = async (req: Request): Promise<Response> => {
       'gmail.com','hotmail.com','outlook.com','yahoo.com','live.com','icloud.com',
       'bol.com.br','uol.com.br','terra.com.br','yahoo.com.br','hotmail.com.br','outlook.com.br','gmail.com.br'
     ]);
+    const nomeRemetente = sanitize(empresa?.nome_fantasia || 'Sua Empresa');
     if (empresaEmail && !publicDomains.has(domain)) {
-      fromEmail = `${sanitize(empresa?.nome_fantasia || 'EletroPro')} <${empresaEmail}>`;
+      fromEmail = `${nomeRemetente} <${empresaEmail}>`;
     } else {
-      fromEmail = 'EletroPro <no-reply@send.eletroproapp.com>';
+      fromEmail = `${nomeRemetente} <no-reply@send.eletroproapp.com>`;
       if (empresaEmail) console.log('Domínio de email não verificado/público. Usando remetente padrão.');
     }
 
