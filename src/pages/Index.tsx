@@ -7,7 +7,7 @@ import heroImage from "@/assets/hero-construction.jpg";
 import iconEstimates from "@/assets/icon-estimates.png";
 import iconCatalog from "@/assets/icon-catalog.png";
 import iconDashboard from "@/assets/icon-dashboard.png";
-import logo from "@/assets/logo-eletropro.png";
+import iconLogo from "@/assets/icon-eletropro.png";
 
 const Index = () => {
   return (
@@ -16,7 +16,7 @@ const Index = () => {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <img src={logo} alt="EletroPro" className="h-10" />
+            <img src={iconLogo} alt="EletroPro" className="h-10" />
           </Link>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#recursos" className="text-foreground hover:text-primary transition-colors">
@@ -48,10 +48,13 @@ const Index = () => {
             <div className="space-y-8">
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <img src={logo} alt="EletroPro" className="h-16 lg:h-20" />
+                  <img src={iconLogo} alt="EletroPro" className="h-20 lg:h-24" />
                   <div>
-                    <h2 className="text-3xl lg:text-4xl font-bold text-foreground">EletroPro</h2>
-                    <p className="text-sm lg:text-base text-muted-foreground">Gestão elétrica profissional</p>
+                    <h2 className="text-4xl lg:text-5xl font-bold">
+                      <span className="text-[#F97316]">Eletro</span>
+                      <span className="text-[#1976D2]">Pro</span>
+                    </h2>
+                    <p className="text-base lg:text-lg text-muted-foreground font-medium">Gestão elétrica de Ponta a Ponta</p>
                   </div>
                 </div>
                 <h1 className="text-5xl lg:text-6xl font-bold text-foreground leading-tight">
@@ -525,7 +528,7 @@ const Index = () => {
         <div className="container mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <img src={logo} alt="EletroPro" className="h-8 mb-4" />
+              <img src={iconLogo} alt="EletroPro" className="h-8 mb-4" />
               <p className="text-sm text-muted-foreground">
                 Sistema completo de gestão elétrica para eletricistas profissionais.
               </p>
