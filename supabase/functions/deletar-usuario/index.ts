@@ -59,11 +59,59 @@ serve(async (req) => {
       throw new Error("Você não pode deletar sua própria conta");
     }
 
-    // Deletar usuário do Auth (isso vai cascadear para outras tabelas)
+    // Deletar TODOS os dados relacionados primeiro (ordem importa por foreign keys)
+    console.log('Deletando dados relacionados...');
+    
+    const tables = [
+      'timesheet_registros',
+      'tarefas',
+      'movimentacoes_estoque',
+      'nbr5410_checklists',
+      'agendamentos',
+      'orcamentos',
+      'faturas',
+      'receitas',
+      'despesas',
+      'instalacoes',
+      'projetos',
+      'funcionarios',
+      'materiais',
+      'servicos',
+      'clientes',
+      'fornecedores',
+      'referral_rewards',
+      'referral_codes',
+      'usage_tracking',
+      'email_templates',
+      'empresas',
+      'edge_function_rate_limits',
+      'user_roles',
+      'user_subscriptions'
+    ];
+
+    for (const table of tables) {
+      const { error } = await supabaseAdmin
+        .from(table)
+        .delete()
+        .eq('user_id', userId);
+      
+      if (error) {
+        console.warn(`Aviso ao deletar ${table}:`, error.message);
+        // Continua mesmo com erro (tabela pode não existir ou estar vazia)
+      }
+    }
+
+    // Deletar referrals onde o usuário é referrer ou referred
+    await supabaseAdmin.from('referrals').delete().eq('referrer_user_id', userId);
+    await supabaseAdmin.from('referrals').delete().eq('referred_user_id', userId);
+
+    // Agora deletar usuário do Auth
+    console.log('Deletando usuário do Auth...');
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
-      throw deleteError;
+      console.error('Erro ao deletar do Auth:', deleteError);
+      throw new Error(`Database error deleting user: ${deleteError.message}`);
     }
 
     console.log(`Usuário ${userId} deletado com sucesso`);
