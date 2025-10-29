@@ -17,7 +17,7 @@ import { Combobox, ComboboxOption } from '@/components/ui/combobox';
 import { Plus, Trash2, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ClienteForm } from '@/components/clientes/ClienteForm';
 
 const orcamentoSchema = z.object({
@@ -550,6 +550,9 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Novo Cliente</DialogTitle>
+          <DialogDescription>
+            Preencha os dados do cliente para adicioná-lo ao sistema
+          </DialogDescription>
         </DialogHeader>
         <ClienteForm 
           onSuccess={() => {
