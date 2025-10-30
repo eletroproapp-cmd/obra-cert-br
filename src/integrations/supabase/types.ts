@@ -1734,6 +1734,16 @@ export type Database = {
         Args: { _limit: number; _resource_type: string; _user_id: string }
         Returns: boolean
       }
+      create_promo_code: {
+        Args: {
+          p_code: string
+          p_duration_days: number
+          p_expires_at: string
+          p_max_uses: number
+          p_plan_type: string
+        }
+        Returns: string
+      }
       generate_fatura_numero: { Args: never; Returns: string }
       generate_material_codigo: { Args: never; Returns: string }
       generate_orcamento_numero: { Args: never; Returns: string }
