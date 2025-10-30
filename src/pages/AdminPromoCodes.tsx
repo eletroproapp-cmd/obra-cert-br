@@ -104,6 +104,18 @@ export default function AdminPromoCodes() {
     
     setSaving(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar autenticado",
+          variant: "destructive",
+        });
+        setSaving(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('promo_codes')
         .insert({
@@ -112,6 +124,7 @@ export default function AdminPromoCodes() {
           duration_days: parseInt(durationDays),
           max_uses: maxUses ? parseInt(maxUses) : null,
           expires_at: expiresAt || null,
+          created_by: user.id,
         });
       
       if (error) throw error;
