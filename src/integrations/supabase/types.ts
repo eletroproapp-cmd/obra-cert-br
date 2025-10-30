@@ -1165,6 +1165,77 @@ export type Database = {
           },
         ]
       }
+      promo_code_usage: {
+        Row: {
+          applied_at: string | null
+          id: string
+          promo_code_id: string | null
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          id?: string
+          promo_code_id?: string | null
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          id?: string
+          promo_code_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_code_usage_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promo_codes: {
+        Row: {
+          active: boolean | null
+          code: string
+          created_at: string | null
+          created_by: string | null
+          current_uses: number | null
+          duration_days: number
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          plan_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          duration_days?: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          plan_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          duration_days?: number
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          plan_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       receitas: {
         Row: {
           categoria: string
@@ -1343,6 +1414,45 @@ export type Database = {
           tempo_estimado?: number | null
           unidade?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_adjustments: {
+        Row: {
+          adjusted_by: string | null
+          adjustment_type: string
+          created_at: string | null
+          duration_days: number | null
+          id: string
+          new_plan: string
+          previous_plan: string | null
+          reason: string | null
+          reference_code: string | null
+          user_id: string
+        }
+        Insert: {
+          adjusted_by?: string | null
+          adjustment_type: string
+          created_at?: string | null
+          duration_days?: number | null
+          id?: string
+          new_plan: string
+          previous_plan?: string | null
+          reason?: string | null
+          reference_code?: string | null
+          user_id: string
+        }
+        Update: {
+          adjusted_by?: string | null
+          adjustment_type?: string
+          created_at?: string | null
+          duration_days?: number | null
+          id?: string
+          new_plan?: string
+          previous_plan?: string | null
+          reason?: string | null
+          reference_code?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1607,6 +1717,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_promo_code: {
+        Args: { p_code: string; p_user_id: string }
+        Returns: Json
+      }
       check_rate_limit: {
         Args: {
           _function_name: string

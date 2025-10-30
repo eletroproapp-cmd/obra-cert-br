@@ -187,6 +187,52 @@ const Admin = () => {
           <p className="text-muted-foreground">Visão geral de assinaturas e usuários</p>
         </div>
 
+        {/* Quick Links */}
+        <div className="grid gap-4 md:grid-cols-3 mb-8">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/users')}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Gerenciar Usuários</CardTitle>
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>
+                Altere planos e gerencie assinaturas
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/admin/promo-codes')}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Códigos Promocionais</CardTitle>
+                <Settings className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>
+                Crie e gerencie cupons de desconto
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Stripe Dashboard</CardTitle>
+                <CreditCard className="h-5 w-5 text-primary" />
+              </div>
+              <CardDescription>
+                <a 
+                  href="https://dashboard.stripe.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Abrir Stripe →
+                </a>
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
         {/* Stripe Configuration */}
         <Card className="mb-8">
           <CardHeader>

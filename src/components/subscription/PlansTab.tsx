@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Sparkles, Zap, Settings } from "lucide-react";
 import { UsageCard } from "./UsageCard";
+import { PromoCodeInput } from "./PromoCodeInput";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -282,6 +283,9 @@ export const PlansTab = () => {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Promo Code Input */}
+      <PromoCodeInput onSuccess={refetch} />
 
       {/* Current Plan Status */}
       <Card className="border-primary/20">

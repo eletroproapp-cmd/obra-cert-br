@@ -22,6 +22,8 @@ import Funcionarios from "./pages/Funcionarios";
 import Timesheets from "./pages/Timesheets";
 import Projetos from "./pages/Projetos";
 import Admin from "./pages/Admin";
+import AdminUsers from "./pages/AdminUsers";
+import AdminPromoCodes from "./pages/AdminPromoCodes";
 import EmailTemplates from "./pages/EmailTemplates";
 import Indicacoes from "./pages/Indicacoes";
 import Despesas from "./pages/Despesas";
@@ -59,6 +61,8 @@ const App = () => (
             <Route path="/despesas" element={<ProtectedRoute><Despesas /></ProtectedRoute>} />
             <Route path="/receitas" element={<ProtectedRoute><Receitas /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
+        <Route path="/admin/promo-codes" element={<ProtectedRoute><AdminPromoCodes /></ProtectedRoute>} />
         <Route path="/indicacoes" element={<ProtectedRoute><Indicacoes /></ProtectedRoute>} />
         <Route path="/suporte" element={<ProtectedRoute><Suporte /></ProtectedRoute>} />
         
