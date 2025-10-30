@@ -204,14 +204,14 @@ const Configuracoes = () => {
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <div className="overflow-x-auto -mx-4 px-4 pb-2">
+          <div className="overflow-x-auto -mx-4 px-4 pb-2 relative z-10">
             <TabsList className="inline-flex w-full min-w-max md:grid md:grid-cols-6 md:w-full h-auto gap-1">
-              <TabsTrigger value="empresa" className="flex-shrink-0 text-xs md:text-sm px-2 md:px-3">
+              <TabsTrigger value="empresa" className="flex-shrink-0 text-xs md:text-sm px-3 md:px-4 py-2 cursor-pointer">
                 <Building2 className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
                 <span className="hidden sm:inline">Minha Empresa</span>
                 <span className="sm:hidden">Empresa</span>
               </TabsTrigger>
-              <TabsTrigger value="plano" className="flex-shrink-0 text-xs md:text-sm px-2 md:px-3">
+              <TabsTrigger value="plano" className="flex-shrink-0 text-xs md:text-sm px-3 md:px-4 py-2 cursor-pointer">
                 <Crown className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
                 Plano
               </TabsTrigger>
@@ -265,13 +265,14 @@ const Configuracoes = () => {
                           <Input
                             id="logo"
                             type="file"
-                            accept="image/*"
+                            accept="image/*,.pdf"
+                            capture="environment"
                             onChange={handleLogoUpload}
                             disabled={uploadingLogo}
                             className="cursor-pointer"
                           />
                           <p className="text-xs text-muted-foreground">
-                            {uploadingLogo ? '📤 Enviando...' : 'Formatos: PNG, JPG, WEBP (máx. 2MB)'}
+                            {uploadingLogo ? '📤 Enviando...' : 'Escolha da câmera, galeria ou arquivos'}
                           </p>
                         </div>
                       </div>

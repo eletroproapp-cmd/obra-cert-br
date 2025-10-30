@@ -42,6 +42,7 @@ const Planejamento = () => {
   const [editingAgendamento, setEditingAgendamento] = useState<Agendamento | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const loadAgendamentos = async () => {
     try {
@@ -66,6 +67,11 @@ const Planejamento = () => {
 
   const getTodayAgendamentos = () => {
     return agendamentos.filter((ag) => isToday(new Date(ag.data_inicio)));
+  };
+
+  const getSelectedDateAgendamentos = () => {
+    if (!selectedDate) return [];
+    return agendamentos.filter((ag) => isSameDay(new Date(ag.data_inicio), selectedDate));
   };
 
   const getWeekAgendamentos = () => {
@@ -205,8 +211,11 @@ const Planejamento = () => {
           <CardContent>
             <Calendar
               mode="single"
-              selected={date}
-              onSelect={setDate}
+              selected={selectedDate}
+              onSelect={(date) => {
+                setSelectedDate(date);
+                setDate(date);
+              }}
               className="rounded-md border"
               modifiers={{
                 hasEvent: agendamentos.map((ag) => new Date(ag.data_inicio)),
@@ -297,6 +306,84 @@ const Planejamento = () => {
         </Card>
       </div>
 
+      {/* Selected Date Appointments */}
+      {selectedDate && getSelectedDateAgendamentos().length > 0 && (
+        <Card className="mt-6 border-border shadow-medium">
+          <CardHeader>
+            <CardTitle>
+              Compromissos - {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {getSelectedDateAgendamentos().map((agendamento) => {
+                const StatusIcon = getStatusIcon(agendamento.status);
+                return (
+                  <div
+                    key={agendamento.id}
+                    className="flex gap-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                    onClick={() => handleEdit(agendamento)}
+                  >
+                    <StatusIcon
+                      className={`h-5 w-5 mt-0.5 ${getStatusColor(agendamento.status)}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-base">{agendamento.titulo}</h3>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap ml-2">
+                          {format(new Date(agendamento.data_inicio), "HH:mm")} - {format(new Date(agendamento.data_fim), "HH:mm")}
+                        </span>
+                      </div>
+                      {agendamento.descricao && (
+                        <p className="text-sm text-muted-foreground mb-2">{agendamento.descricao}</p>
+                      )}
+                      {agendamento.cliente && (
+                        <p className="text-sm mb-2">
+                          <span className="font-medium">Cliente:</span> {agendamento.cliente}
+                        </p>
+                      )}
+                      {agendamento.localizacao && (
+                        <p className="text-sm mb-2">
+                          <span className="font-medium">Local:</span> {agendamento.localizacao}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 flex-wrap mt-3">
+                        <Badge variant="outline">{getTipoLabel(agendamento.tipo)}</Badge>
+                        <Badge variant="outline">{getStatusLabel(agendamento.status)}</Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExportToCalendar(agendamento);
+                          }}
+                          className="h-7 px-2"
+                        >
+                          <Share2 className="h-3 w-3 mr-1" />
+                          Exportar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDelete(agendamento.id);
+                          }}
+                          className="h-7 px-2 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Excluir
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Week View */}
       <Card className="mt-6 border-border shadow-medium">
         <CardHeader>
@@ -306,7 +393,14 @@ const Planejamento = () => {
           <div className="overflow-x-auto -mx-4 px-4">
             <div className="grid grid-cols-7 gap-1 md:gap-2 min-w-[640px]">
               {getWeekAgendamentos().map(({ day, agendamentos: dayAgendamentos }) => (
-                <div key={day.toISOString()} className="text-center min-w-[80px]">
+                <div 
+                  key={day.toISOString()} 
+                  className="text-center min-w-[80px] cursor-pointer"
+                  onClick={() => {
+                    setSelectedDate(day);
+                    setDate(day);
+                  }}
+                >
                   <p className="text-xs md:text-sm font-medium text-muted-foreground mb-2">
                     {format(day, "EEE", { locale: ptBR })}
                     <br />
@@ -320,7 +414,10 @@ const Planejamento = () => {
                         <div
                           key={ag.id}
                           className="p-1 md:p-2 bg-primary/10 text-primary text-[10px] md:text-xs rounded cursor-pointer hover:bg-primary/20 transition-colors line-clamp-2"
-                          onClick={() => handleEdit(ag)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(ag);
+                          }}
                         >
                           {getTipoLabel(ag.tipo)}
                         </div>
@@ -336,6 +433,81 @@ const Planejamento = () => {
               ))}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* All Appointments List */}
+      <Card className="mt-6 border-border shadow-medium">
+        <CardHeader>
+          <CardTitle>Todos os Compromissos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          ) : agendamentos.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhum compromisso cadastrado
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {agendamentos.slice(0, 10).map((agendamento) => {
+                const StatusIcon = getStatusIcon(agendamento.status);
+                return (
+                  <div
+                    key={agendamento.id}
+                    className="flex gap-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+                    onClick={() => handleEdit(agendamento)}
+                  >
+                    <StatusIcon
+                      className={`h-5 w-5 mt-0.5 ${getStatusColor(agendamento.status)}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-base">{agendamento.titulo}</h3>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap ml-2">
+                          {format(new Date(agendamento.data_inicio), "dd/MM/yyyy HH:mm")}
+                        </span>
+                      </div>
+                      {agendamento.cliente && (
+                        <p className="text-sm text-muted-foreground mb-2">{agendamento.cliente}</p>
+                      )}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline">{getTipoLabel(agendamento.tipo)}</Badge>
+                        <Badge variant="outline">{getStatusLabel(agendamento.status)}</Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExportToCalendar(agendamento);
+                          }}
+                          className="h-7 px-2"
+                        >
+                          <Share2 className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDelete(agendamento.id);
+                          }}
+                          className="h-7 px-2 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {agendamentos.length > 10 && (
+                <p className="text-sm text-muted-foreground text-center pt-2">
+                  Mostrando os 10 próximos compromissos
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
