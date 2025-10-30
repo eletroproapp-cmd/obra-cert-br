@@ -204,34 +204,34 @@ const Configuracoes = () => {
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <div className="overflow-x-auto -mx-4 px-4">
-            <TabsList className="inline-flex w-full min-w-max md:grid md:grid-cols-6 md:w-full">
-              <TabsTrigger value="empresa" className="flex-1 md:flex-none">
-                <Building2 className="mr-2 h-4 w-4" />
+          <div className="overflow-x-auto -mx-4 px-4 pb-2">
+            <TabsList className="inline-flex w-full min-w-max md:grid md:grid-cols-6 md:w-full h-auto gap-1">
+              <TabsTrigger value="empresa" className="flex-shrink-0 text-xs md:text-sm px-2 md:px-3">
+                <Building2 className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
                 <span className="hidden sm:inline">Minha Empresa</span>
                 <span className="sm:hidden">Empresa</span>
               </TabsTrigger>
-              <TabsTrigger value="plano" className="flex-1 md:flex-none">
-                <Crown className="mr-2 h-4 w-4" />
+              <TabsTrigger value="plano" className="flex-shrink-0 text-xs md:text-sm px-2 md:px-3">
+                <Crown className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
                 Plano
               </TabsTrigger>
-              <TabsTrigger value="indicacoes" className="flex-1 md:flex-none">
-                <Gift className="mr-2 h-4 w-4" />
+              <TabsTrigger value="indicacoes" className="flex-shrink-0 text-xs md:text-sm px-2 md:px-3">
+                <Gift className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
                 <span className="hidden sm:inline">Indicações</span>
                 <span className="sm:hidden">Indica</span>
               </TabsTrigger>
-              <TabsTrigger value="financeiro" className="flex-1 md:flex-none">
-                <DollarSign className="mr-2 h-4 w-4" />
+              <TabsTrigger value="financeiro" className="flex-shrink-0 text-xs md:text-sm px-2 md:px-3">
+                <DollarSign className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
                 <span className="hidden sm:inline">Financeiro</span>
                 <span className="sm:hidden">Fiscal</span>
               </TabsTrigger>
-              <TabsTrigger value="documentos" className="flex-1 md:flex-none">
-                <FileText className="mr-2 h-4 w-4" />
+              <TabsTrigger value="documentos" className="flex-shrink-0 text-xs md:text-sm px-2 md:px-3">
+                <FileText className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
                 <span className="hidden sm:inline">Documentos</span>
                 <span className="sm:hidden">Docs</span>
               </TabsTrigger>
-              <TabsTrigger value="sistema" className="flex-1 md:flex-none">
-                <SettingsIcon className="mr-2 h-4 w-4" />
+              <TabsTrigger value="sistema" className="flex-shrink-0 text-xs md:text-sm px-2 md:px-3">
+                <SettingsIcon className="mr-1 md:mr-2 h-3 w-3 md:h-4 md:w-4" />
                 Sistema
               </TabsTrigger>
             </TabsList>

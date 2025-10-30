@@ -303,36 +303,38 @@ const Planejamento = () => {
           <CardTitle>Visão Semanal</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 gap-2">
-            {getWeekAgendamentos().map(({ day, agendamentos: dayAgendamentos }) => (
-              <div key={day.toISOString()} className="text-center">
-                <p className="text-sm font-medium text-muted-foreground mb-2">
-                  {format(day, "EEE", { locale: ptBR })}
-                  <br />
-                  <span className="text-xs">{format(day, "dd/MM")}</span>
-                </p>
-                <div className="space-y-1">
-                  {dayAgendamentos.length === 0 ? (
-                    <div className="p-2 text-xs text-muted-foreground">-</div>
-                  ) : (
-                    dayAgendamentos.slice(0, 3).map((ag) => (
-                      <div
-                        key={ag.id}
-                        className="p-2 bg-primary/10 text-primary text-xs rounded cursor-pointer hover:bg-primary/20 transition-colors"
-                        onClick={() => handleEdit(ag)}
-                      >
-                        {getTipoLabel(ag.tipo)}
+          <div className="overflow-x-auto -mx-4 px-4">
+            <div className="grid grid-cols-7 gap-1 md:gap-2 min-w-[640px]">
+              {getWeekAgendamentos().map(({ day, agendamentos: dayAgendamentos }) => (
+                <div key={day.toISOString()} className="text-center min-w-[80px]">
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground mb-2">
+                    {format(day, "EEE", { locale: ptBR })}
+                    <br />
+                    <span className="text-xs">{format(day, "dd/MM")}</span>
+                  </p>
+                  <div className="space-y-1">
+                    {dayAgendamentos.length === 0 ? (
+                      <div className="p-1 md:p-2 text-xs text-muted-foreground">-</div>
+                    ) : (
+                      dayAgendamentos.slice(0, 3).map((ag) => (
+                        <div
+                          key={ag.id}
+                          className="p-1 md:p-2 bg-primary/10 text-primary text-[10px] md:text-xs rounded cursor-pointer hover:bg-primary/20 transition-colors line-clamp-2"
+                          onClick={() => handleEdit(ag)}
+                        >
+                          {getTipoLabel(ag.tipo)}
+                        </div>
+                      ))
+                    )}
+                    {dayAgendamentos.length > 3 && (
+                      <div className="text-[10px] md:text-xs text-muted-foreground">
+                        +{dayAgendamentos.length - 3}
                       </div>
-                    ))
-                  )}
-                  {dayAgendamentos.length > 3 && (
-                    <div className="text-xs text-muted-foreground">
-                      +{dayAgendamentos.length - 3} mais
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

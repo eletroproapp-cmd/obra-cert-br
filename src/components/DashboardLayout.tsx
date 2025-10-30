@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { CompanyOnboarding } from "@/components/onboarding/CompanyOnboarding";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -48,6 +49,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider>
+      <CompanyOnboarding />
       <div className="min-h-screen flex w-full bg-gradient-subtle">
         <AppSidebar />
         
