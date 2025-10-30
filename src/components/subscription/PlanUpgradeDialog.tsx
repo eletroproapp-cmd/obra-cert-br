@@ -23,11 +23,12 @@ const planFeatures = {
     price: 'R$ 0',
     highlight: false,
     features: [
-      '5 clientes',
-      '10 orçamentos/mês',
-      '5 faturas/mês',
-      '2 instalações ativas',
-      '50 materiais no catálogo'
+      '5 clientes por mês',
+      '10 orçamentos por mês',
+      '5 faturas por mês',
+      '50 materiais no catálogo',
+      'Dashboard com métricas',
+      'Suporte por email'
     ]
   },
   basic: {

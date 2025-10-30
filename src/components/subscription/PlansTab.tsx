@@ -19,13 +19,13 @@ const plans = [
     period: '/mês',
     description: 'Ideal para começar',
     features: [
-      '50 clientes',
+      '5 clientes por mês',
       '10 orçamentos por mês',
       '5 faturas por mês',
-      '20 materiais no catálogo',
-      '5 projetos'
-    ],
-    limitations: ['Recursos básicos', 'Suporte por email']
+      '50 materiais no catálogo',
+      'Dashboard com métricas',
+      'Suporte por email'
+    ]
   },
   {
     id: 'basic',
@@ -401,19 +401,6 @@ export const PlansTab = () => {
                       </li>
                     ))}
                   </ul>
-
-                  {planItem.limitations && (
-                    <div className="pt-4 border-t">
-                      <p className="text-xs text-muted-foreground mb-2">Limitações:</p>
-                      <ul className="space-y-1">
-                        {planItem.limitations.map((limitation, index) => (
-                          <li key={index} className="text-xs text-muted-foreground">
-                            • {limitation}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
 
                   <Button
                     onClick={() => handleUpgrade(planItem.id)}
