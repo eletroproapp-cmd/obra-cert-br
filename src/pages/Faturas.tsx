@@ -23,7 +23,7 @@ interface Fatura {
   created_at: string;
   clientes: {
     nome: string;
-  };
+  } | null;
 }
 
 const Faturas = () => {
@@ -189,7 +189,7 @@ const Faturas = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Cliente</p>
-                    <p className="font-medium">{fatura.clientes.nome}</p>
+                    <p className="font-medium">{fatura.clientes?.nome || 'Sem cliente'}</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Vencimento: {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
                     </p>
