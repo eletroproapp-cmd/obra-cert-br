@@ -38,12 +38,12 @@ export default function NBR5410() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="checklist">Checklist</TabsTrigger>
-          <TabsTrigger value="orcamento">Assistente de Orçamento</TabsTrigger>
-          <TabsTrigger value="tabelas">Tabelas de Referência</TabsTrigger>
-          <TabsTrigger value="anexo">Anexo Técnico</TabsTrigger>
+        <TabsList className="w-full grid grid-cols-2 md:grid-cols-5 gap-1 h-auto">
+          <TabsTrigger value="overview" className="text-xs md:text-sm">Visão Geral</TabsTrigger>
+          <TabsTrigger value="checklist" className="text-xs md:text-sm">Checklist</TabsTrigger>
+          <TabsTrigger value="orcamento" className="text-xs md:text-sm">Orçamento</TabsTrigger>
+          <TabsTrigger value="tabelas" className="text-xs md:text-sm">Tabelas</TabsTrigger>
+          <TabsTrigger value="anexo" className="text-xs md:text-sm">Anexo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
