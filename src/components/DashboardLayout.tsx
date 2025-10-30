@@ -56,10 +56,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-40 shadow-soft">
             <div className="flex items-center justify-between px-3 md:px-4 py-3">
               <div className="flex items-center gap-2 md:gap-3">
-                <SidebarTrigger className="lg:hidden">
+                <SidebarTrigger>
                   <Menu className="h-5 w-5" />
                 </SidebarTrigger>
-                <SidebarTrigger className="hidden lg:flex" />
               </div>
               
               <div className="flex items-center gap-1 md:gap-2">
@@ -86,7 +85,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       </span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56 z-50 bg-popover">
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">Minha Conta</p>
