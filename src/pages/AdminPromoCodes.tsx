@@ -328,6 +328,7 @@ export default function AdminPromoCodes() {
                   <SelectItem value="90">90 dias (3 meses)</SelectItem>
                   <SelectItem value="180">180 dias (6 meses)</SelectItem>
                   <SelectItem value="365">365 dias (1 ano)</SelectItem>
+                  <SelectItem value="3650">3650 dias (10 anos)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
