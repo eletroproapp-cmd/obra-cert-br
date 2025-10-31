@@ -80,16 +80,16 @@ const Fornecedores = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-full">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Fornecedores</h1>
-          <p className="text-muted-foreground">Gerencie seus fornecedores de materiais</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1">Fornecedores</h1>
+          <p className="text-muted-foreground text-sm">Gerencie seus fornecedores de materiais</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-          <Button variant="hero" size="lg" onClick={handleNewFornecedor}>
-            <Plus className="mr-2 h-5 w-5" />
-            Novo Fornecedor
+          <Button variant="hero" size="sm" onClick={handleNewFornecedor}>
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Novo Fornecedor</span>
           </Button>
         </div>
       </div>
@@ -103,7 +103,7 @@ const Fornecedores = () => {
           </Button>
         </Card>
       ) : viewMode === "grid" ? (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {fornecedores.map((fornecedor) => (
             <Card key={fornecedor.id} className="border-border shadow-soft hover:shadow-medium transition-all">
               <CardHeader>
@@ -155,7 +155,7 @@ const Fornecedores = () => {
           ))}
         </div>
       ) : (
-        <Card>
+        <Card className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>

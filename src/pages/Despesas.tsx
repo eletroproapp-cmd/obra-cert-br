@@ -113,18 +113,18 @@ export default function Despesas() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Despesas</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Despesas</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
               Gerencie gastos com funcionários, materiais, alimentação e mais
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-            <Button onClick={() => setIsFormOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Despesa
+            <Button onClick={() => setIsFormOpen(true)} size="sm" variant="hero">
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Nova Despesa</span>
             </Button>
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function Despesas() {
         </div>
 
         {viewMode === "grid" ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {isLoading ? (
               <Card className="col-span-full text-center p-12">
                 <p className="text-muted-foreground">Carregando...</p>
@@ -206,7 +206,7 @@ export default function Despesas() {
             )}
           </div>
         ) : (
-          <div className="rounded-lg border">
+          <div className="rounded-lg border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -282,7 +282,7 @@ export default function Despesas() {
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={handleCloseForm}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingDespesa ? "Editar Despesa" : "Nova Despesa"}

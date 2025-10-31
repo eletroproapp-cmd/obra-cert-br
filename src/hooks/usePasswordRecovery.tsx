@@ -14,17 +14,7 @@ export const usePasswordRecovery = () => {
   useEffect(() => {
     const run = async () => {
       try {
-        // Aguardar um pouco para o auth-bridge processar
         await new Promise(resolve => setTimeout(resolve, 100));
-
-        // Logar envs efetivas em runtime para diagnóstico
-        // Atenção: isso aparece apenas no console do navegador
-        // e mostra apenas o prefixo da chave para segurança
-        console.log(
-          'SUPABASE ENV:',
-          import.meta.env?.VITE_SUPABASE_URL,
-          (import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY || '').slice(0, 10)
-        );
 
         const hash = window.location.hash || "";
         const search = window.location.search || "";
@@ -32,37 +22,34 @@ export const usePasswordRecovery = () => {
         const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
         const searchParams = new URLSearchParams(search.replace(/^\?/, ""));
 
-        // Prioridade 1: token_hash (enviado pelo auth-bridge da Lovable)
+        // Prioridade 1: token_hash
         const token_hash = hashParams.get("token_hash") || searchParams.get("token_hash") || "";
         if (token_hash) {
-          console.log("Detectado token_hash, usando verifyOtp com type='recovery'");
           const { data, error } = await supabase.auth.verifyOtp({ 
             type: "recovery",
             token_hash 
           });
           if (error) {
-            console.error("Erro ao verificar token_hash:", error);
+            toast.error("Erro ao verificar link de recuperação");
+            return;
           }
           if (data?.session) {
-            console.log("Sessão estabelecida via token_hash");
             setIsResetMode(true);
-            // Limpar token_hash da URL e manter apenas type=recovery
             const cleanUrl = `${window.location.pathname}?type=recovery`;
             window.history.replaceState(null, "", cleanUrl);
             return;
           }
         }
 
-        // Prioridade 2: code (PKCE flow)
+        // Prioridade 2: code (PKCE)
         const code = hashParams.get("code") || searchParams.get("code") || "";
         if (code) {
-          console.log("Detectado code, usando exchangeCodeForSession");
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
-            console.error("Erro ao trocar code por sessão:", error);
+            toast.error("Erro ao processar link de recuperação");
+            return;
           }
           if (data?.session) {
-            console.log("Sessão estabelecida via code");
             setIsResetMode(true);
             const cleanUrl = `${window.location.pathname}?type=recovery`;
             window.history.replaceState(null, "", cleanUrl);
@@ -74,13 +61,12 @@ export const usePasswordRecovery = () => {
         const access_token = hashParams.get("access_token") || searchParams.get("access_token") || "";
         const refresh_token = hashParams.get("refresh_token") || searchParams.get("refresh_token") || "";
         if (access_token && refresh_token) {
-          console.log("Detectado access_token, usando setSession");
           const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
           if (error) {
-            console.error("Erro ao aplicar sessão:", error);
+            toast.error("Erro ao estabelecer sessão");
+            return;
           }
           if (data?.session) {
-            console.log("Sessão estabelecida via access_token");
             setIsResetMode(true);
             const cleanUrl = `${window.location.pathname}?type=recovery`;
             window.history.replaceState(null, "", cleanUrl);
@@ -88,15 +74,15 @@ export const usePasswordRecovery = () => {
           }
         }
 
-        // Fallback: verificar se já tem sessão ativa e type=recovery
+        // Verificar sessão existente com type=recovery
         const { data: { session } } = await supabase.auth.getSession();
         const explicitRecovery = searchParams.get("type") === "recovery";
         if (session && explicitRecovery) {
-          console.log("Sessão já existe, entrando em modo recovery");
           setIsResetMode(true);
         }
       } catch (e) {
-        console.error("Falha ao processar modo de recuperação:", e);
+        console.error("Erro ao processar recuperação:", e);
+        toast.error("Erro ao processar link de recuperação");
       }
     };
 
