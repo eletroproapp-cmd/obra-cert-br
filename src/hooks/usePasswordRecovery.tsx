@@ -14,50 +14,84 @@ export const usePasswordRecovery = () => {
   useEffect(() => {
     const run = async () => {
       try {
+        // Aguardar um pouco para o auth-bridge processar
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const hash = window.location.hash || "";
         const search = window.location.search || "";
 
         const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
         const searchParams = new URLSearchParams(search.replace(/^\?/, ""));
 
-        const token_hash = hashParams.get("token_hash") || searchParams.get("token_hash") || "";
-        const type = hashParams.get("type") || searchParams.get("type") || "";
+        // Prioridade 1: code (PKCE flow via auth-bridge)
+        const code = hashParams.get("code") || searchParams.get("code") || "";
+        if (code) {
+          console.log("Detectado code, usando exchangeCodeForSession");
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error("Erro ao trocar code por sessão:", error);
+            toast.error("Link de recuperação inválido ou expirado. Solicite um novo email.");
+            setIsResetMode(false);
+            return;
+          }
+          if (data?.session) {
+            console.log("Sessão estabelecida via code");
+            setIsResetMode(true);
+            const cleanUrl = `${window.location.pathname}?type=recovery`;
+            window.history.replaceState(null, "", cleanUrl);
+            return;
+          }
+        }
+
+        // Prioridade 2: access_token + refresh_token
         const access_token = hashParams.get("access_token") || searchParams.get("access_token") || "";
         const refresh_token = hashParams.get("refresh_token") || searchParams.get("refresh_token") || "";
-
-        // 1) Fluxo token_hash + verifyOtp (quando o email usa {{ .TokenHash }})
-        if (token_hash && type === "recovery") {
-          const { error } = await supabase.auth.verifyOtp({ token_hash, type: "recovery" });
-          if (error) {
-            console.error("Erro ao verificar token de recuperação:", error);
-            toast.error("Link de recuperação inválido ou expirado. Solicite um novo email.");
-            setIsResetMode(false);
-            return;
-          }
-          setIsResetMode(true);
-          const cleanUrl = `${window.location.pathname}?type=recovery`;
-          window.history.replaceState(null, "", cleanUrl);
-          return;
-        }
-
-        // 2) Fluxo action_link do Supabase (/verify) que redireciona com access/refresh
         if (access_token && refresh_token) {
-          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+          console.log("Detectado access_token, usando setSession");
+          const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
           if (error) {
-            console.error("Erro ao aplicar sessão (recovery):", error);
+            console.error("Erro ao aplicar sessão:", error);
             toast.error("Link de recuperação inválido ou expirado. Solicite um novo email.");
             setIsResetMode(false);
             return;
           }
-          setIsResetMode(true);
-          const cleanUrl = `${window.location.pathname}?type=recovery`;
-          window.history.replaceState(null, "", cleanUrl);
-          return;
+          if (data?.session) {
+            console.log("Sessão estabelecida via access_token");
+            setIsResetMode(true);
+            const cleanUrl = `${window.location.pathname}?type=recovery`;
+            window.history.replaceState(null, "", cleanUrl);
+            return;
+          }
         }
 
-        // 3) Fallback: apenas ?type=recovery
+        // Prioridade 3: token_hash + type=recovery
+        const token_hash = hashParams.get("token_hash") || searchParams.get("token_hash") || "";
+        const type = hashParams.get("type") || searchParams.get("type") || "";
+        if (token_hash && type === "recovery") {
+          console.log("Detectado token_hash, usando verifyOtp");
+          const { data, error } = await supabase.auth.verifyOtp({ token_hash, type: "recovery" });
+          if (error) {
+            console.error("Erro ao verificar token:", error);
+            toast.error("Link de recuperação inválido ou expirado. Solicite um novo email.");
+            setIsResetMode(false);
+            return;
+          }
+          if (data?.session) {
+            console.log("Sessão estabelecida via token_hash");
+            setIsResetMode(true);
+            const cleanUrl = `${window.location.pathname}?type=recovery`;
+            window.history.replaceState(null, "", cleanUrl);
+            return;
+          }
+        }
+
+        // Fallback: verificar se já tem sessão ativa e type=recovery
+        const { data: { session } } = await supabase.auth.getSession();
         const explicitRecovery = searchParams.get("type") === "recovery";
-        if (explicitRecovery) setIsResetMode(true);
+        if (session && explicitRecovery) {
+          console.log("Sessão já existe, entrando em modo recovery");
+          setIsResetMode(true);
+        }
       } catch (e) {
         console.error("Falha ao processar modo de recuperação:", e);
       }
