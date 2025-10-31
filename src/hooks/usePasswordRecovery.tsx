@@ -20,30 +20,36 @@ export const usePasswordRecovery = () => {
         const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
         const searchParams = new URLSearchParams(search.replace(/^\?/, ""));
 
-        const access_token =
-          hashParams.get("access_token") || searchParams.get("access_token") || "";
-        const refresh_token =
-          hashParams.get("refresh_token") || searchParams.get("refresh_token") || "";
+        // Supabase generateLink recovery usa token_hash, não access_token
+        const token_hash =
+          hashParams.get("token_hash") || searchParams.get("token_hash") || "";
+        const type = hashParams.get("type") || searchParams.get("type") || "";
 
-        const explicitRecovery =
-          searchParams.get("type") === "recovery" || hashParams.get("type") === "recovery";
-
-        if (access_token && refresh_token) {
-          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+        // Se temos token_hash + type=recovery, verificar o OTP
+        if (token_hash && type === "recovery") {
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash,
+            type: "recovery",
+          });
+          
           if (error) {
-            console.error("Erro ao aplicar sessão (recovery):", error);
+            console.error("Erro ao verificar token de recuperação:", error);
             toast.error(
               "Link de recuperação inválido ou expirado. Solicite um novo email."
             );
             setIsResetMode(false);
             return;
           }
+          
           setIsResetMode(true);
+          // Limpar URL após verificar o token
           const cleanUrl = `${window.location.pathname}?type=recovery`;
           window.history.replaceState(null, "", cleanUrl);
           return;
         }
 
+        // Fallback: verificar se ?type=recovery está presente
+        const explicitRecovery = searchParams.get("type") === "recovery";
         if (explicitRecovery) {
           setIsResetMode(true);
         }
