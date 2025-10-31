@@ -69,18 +69,20 @@ const Auth = () => {
 
   // Apply session from recovery tokens in URL hash (access_token, refresh_token)
   useEffect(() => {
-    const applySessionFromHash = async () => {
+    const applySessionFromUrl = async () => {
       try {
-        const hash = window.location.hash;
-        if (!hash || (!hash.includes('access_token=') && !hash.includes('refresh_token='))) return;
-        const params = new URLSearchParams(hash.replace(/^#/, ''));
-        const access_token = params.get('access_token') || '';
-        const refresh_token = params.get('refresh_token') || '';
+        const hash = window.location.hash || '';
+        const search = window.location.search || '';
+        // Preferir tokens no hash; caso não existam, usar querystring
+        const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
+        const searchParams = new URLSearchParams(search.replace(/^\?/, ''));
+        const access_token = hashParams.get('access_token') || searchParams.get('access_token') || '';
+        const refresh_token = hashParams.get('refresh_token') || searchParams.get('refresh_token') || '';
         if (!access_token || !refresh_token) return;
         const { supabase } = await import("@/integrations/supabase/client");
         const { error } = await supabase.auth.setSession({ access_token, refresh_token });
         if (error) {
-          console.error('Erro ao aplicar sessão do hash:', error);
+          console.error('Erro ao aplicar sessão dos parâmetros:', error);
           toast.error('Link de recuperação inválido ou expirado. Solicite novamente.');
           return;
         }
@@ -91,7 +93,7 @@ const Auth = () => {
         console.error('Falha ao processar tokens de recuperação:', e);
       }
     };
-    applySessionFromHash();
+    applySessionFromUrl();
   }, []);
 
   useEffect(() => {
@@ -210,6 +212,12 @@ const Auth = () => {
         return;
       }
       const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Sessão inválida. Abra o link mais recente do email e tente novamente.');
+        setIsLoading(false);
+        return;
+      }
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
 
