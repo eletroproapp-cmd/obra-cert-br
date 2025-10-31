@@ -22,6 +22,7 @@ import { ClienteForm } from '@/components/clientes/ClienteForm';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ProjetoProgressTab } from './ProjetoProgressTab';
 
 const orcamentoSchema = z.object({
   cliente_id: z.string().min(1, 'Selecione um cliente'),
@@ -117,7 +118,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
         validade_dias: orcamentoData.validade_dias,
         observacoes: orcamentoData.observacoes || '',
         status: orcamentoData.status as any,
-        projeto_id: orcamentoData.projeto_id || '',
+        projeto_id: orcamentoData.projeto_id || 'none',
       });
 
       setItems(itemsData.map(item => ({
@@ -241,7 +242,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             valor_total: valorTotal,
             validade_dias: data.validade_dias,
             observacoes: data.observacoes,
-            projeto_id: (plan?.plan_type === 'professional' ? data.projeto_id : null),
+            projeto_id: (plan?.plan_type === 'professional' && data.projeto_id && data.projeto_id !== 'none' ? data.projeto_id : null),
           })
           .eq('id', orcamentoId);
 
@@ -286,7 +287,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             valor_total: valorTotal,
             validade_dias: data.validade_dias,
             observacoes: data.observacoes,
-            projeto_id: (plan?.plan_type === 'professional' ? data.projeto_id : null),
+            projeto_id: (plan?.plan_type === 'professional' && data.projeto_id && data.projeto_id !== 'none' ? data.projeto_id : null),
           })
           .select()
           .single();
@@ -375,12 +376,13 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
     <>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Tabs defaultValue="dados" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="dados">Dados do Orçamento</TabsTrigger>
           <TabsTrigger value="projeto">
             <Briefcase className="h-4 w-4 mr-2" />
             Projeto
           </TabsTrigger>
+          <TabsTrigger value="progresso">Progresso da Obra</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="space-y-6">
@@ -461,7 +463,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
                   <SelectValue placeholder="Selecione um projeto" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum projeto</SelectItem>
+                  <SelectItem value="none">Nenhum projeto</SelectItem>
                   {projetos.map(projeto => (
                     <SelectItem key={projeto.id} value={projeto.id}>
                       {projeto.nome} {projeto.endereco_obra ? `- ${projeto.endereco_obra}` : ''} ({projeto.status})
@@ -473,6 +475,21 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
                 Vincule este orçamento a um projeto específico para melhor organização
               </p>
             </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="progresso" className="space-y-4">
+          {!isProPlan ? (
+            <Alert>
+              <Briefcase className="h-4 w-4" />
+              <AlertDescription>
+                O acompanhamento de progresso da obra está disponível apenas no <strong>Plano Profissional</strong>.
+                <br />
+                Faça upgrade para desbloquear este recurso.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <ProjetoProgressTab projetoId={watch('projeto_id')} />
           )}
         </TabsContent>
       </Tabs>

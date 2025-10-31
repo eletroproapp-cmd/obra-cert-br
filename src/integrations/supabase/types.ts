@@ -1138,6 +1138,47 @@ export type Database = {
           },
         ]
       }
+      projeto_etapas: {
+        Row: {
+          created_at: string
+          etapa: string
+          id: string
+          ordem: number
+          progresso: number
+          projeto_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          etapa: string
+          id?: string
+          ordem: number
+          progresso?: number
+          projeto_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          etapa?: string
+          id?: string
+          ordem?: number
+          progresso?: number
+          projeto_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projeto_etapas_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projetos: {
         Row: {
           cliente_id: string | null
