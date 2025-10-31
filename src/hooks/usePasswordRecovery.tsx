@@ -32,14 +32,34 @@ export const usePasswordRecovery = () => {
         const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
         const searchParams = new URLSearchParams(search.replace(/^\?/, ""));
 
-        // Prioridade 1: code (PKCE flow via auth-bridge)
+        // Prioridade 1: token_hash (enviado pelo auth-bridge da Lovable)
+        const token_hash = hashParams.get("token_hash") || searchParams.get("token_hash") || "";
+        if (token_hash) {
+          console.log("Detectado token_hash, usando verifyOtp com type='recovery'");
+          const { data, error } = await supabase.auth.verifyOtp({ 
+            type: "recovery",
+            token_hash 
+          });
+          if (error) {
+            console.error("Erro ao verificar token_hash:", error);
+          }
+          if (data?.session) {
+            console.log("Sessão estabelecida via token_hash");
+            setIsResetMode(true);
+            // Limpar token_hash da URL e manter apenas type=recovery
+            const cleanUrl = `${window.location.pathname}?type=recovery`;
+            window.history.replaceState(null, "", cleanUrl);
+            return;
+          }
+        }
+
+        // Prioridade 2: code (PKCE flow)
         const code = hashParams.get("code") || searchParams.get("code") || "";
         if (code) {
           console.log("Detectado code, usando exchangeCodeForSession");
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
             console.error("Erro ao trocar code por sessão:", error);
-            // Continua para tentar outras estratégias (setSession/verifyOtp)
           }
           if (data?.session) {
             console.log("Sessão estabelecida via code");
@@ -50,7 +70,7 @@ export const usePasswordRecovery = () => {
           }
         }
 
-        // Prioridade 2: access_token + refresh_token
+        // Prioridade 3: access_token + refresh_token
         const access_token = hashParams.get("access_token") || searchParams.get("access_token") || "";
         const refresh_token = hashParams.get("refresh_token") || searchParams.get("refresh_token") || "";
         if (access_token && refresh_token) {
@@ -58,29 +78,9 @@ export const usePasswordRecovery = () => {
           const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
           if (error) {
             console.error("Erro ao aplicar sessão:", error);
-            // Continua para tentar verifyOtp
           }
           if (data?.session) {
             console.log("Sessão estabelecida via access_token");
-            setIsResetMode(true);
-            const cleanUrl = `${window.location.pathname}?type=recovery`;
-            window.history.replaceState(null, "", cleanUrl);
-            return;
-          }
-        }
-
-        // Prioridade 3: token_hash + type=recovery
-        const token_hash = hashParams.get("token_hash") || searchParams.get("token_hash") || "";
-        const type = hashParams.get("type") || searchParams.get("type") || "";
-        if (token_hash && type === "recovery") {
-          console.log("Detectado token_hash, usando verifyOtp");
-          const { data, error } = await supabase.auth.verifyOtp({ token_hash, type: "recovery" });
-          if (error) {
-            console.error("Erro ao verificar token:", error);
-            // Sem sucesso com verifyOtp; continuará para fallback final
-          }
-          if (data?.session) {
-            console.log("Sessão estabelecida via token_hash");
             setIsResetMode(true);
             const cleanUrl = `${window.location.pathname}?type=recovery`;
             window.history.replaceState(null, "", cleanUrl);
