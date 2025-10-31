@@ -3,7 +3,8 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, FolderOpen, MapPin, Calendar, Trash2 } from "lucide-react";
+import { Plus, FolderOpen, MapPin, Calendar, Trash2, BarChart3 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ProjetoForm } from "@/components/projetos/ProjetoForm";
@@ -52,6 +53,7 @@ const Projetos = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | undefined>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [progressByProjeto, setProgressByProjeto] = useState<Record<string, number>>({});
 
   useEffect(() => {
     loadProjetos();
@@ -69,6 +71,28 @@ const Projetos = () => {
 
       if (error) throw error;
       setProjetos(data || []);
+
+      // Carregar progresso de cada projeto
+      if (data && data.length > 0) {
+        const { data: etapasData } = await supabase
+          .from('projeto_etapas')
+          .select('projeto_id, progresso')
+          .in('projeto_id', data.map(p => p.id));
+
+        const progressMap: Record<string, number> = {};
+        if (etapasData) {
+          data.forEach(projeto => {
+            const etapasDoProjeto = etapasData.filter(e => e.projeto_id === projeto.id);
+            if (etapasDoProjeto.length > 0) {
+              const total = etapasDoProjeto.reduce((sum, e) => sum + e.progresso, 0);
+              progressMap[projeto.id] = Math.round(total / etapasDoProjeto.length);
+            } else {
+              progressMap[projeto.id] = 0;
+            }
+          });
+        }
+        setProgressByProjeto(progressMap);
+      }
     } catch (error: any) {
       toast.error('Erro ao carregar projetos: ' + error.message);
     } finally {
@@ -194,6 +218,18 @@ const Projetos = () => {
                       </p>
                     </div>
                   </div>
+                  {progressByProjeto[projeto.id] !== undefined && (
+                    <div className="pt-3 border-t space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                          <p className="text-sm font-medium">Progresso da Obra</p>
+                        </div>
+                        <span className="text-sm font-bold text-primary">{progressByProjeto[projeto.id]}%</span>
+                      </div>
+                      <Progress value={progressByProjeto[projeto.id]} className="h-2" />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
