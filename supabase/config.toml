@@ -23,6 +23,3 @@ verify_jwt = false
 
 [functions.enviar-suporte]
 verify_jwt = true
-
-[functions.enviar-reset-senha]
-verify_jwt = false

@@ -136,12 +136,8 @@ const Auth = () => {
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       
-      // Chama função de backend que gera o link oficial e envia email em PT-BR
-      const { error } = await supabase.functions.invoke('enviar-reset-senha', {
-        body: {
-          email: resetEmail,
-          redirectTo: `${window.location.origin}/auth`,
-        },
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) throw error;
@@ -150,7 +146,7 @@ const Auth = () => {
       setShowForgotPassword(false);
       setResetEmail('');
     } catch (error: any) {
-      toast.error('Erro ao enviar email de recuperação: ' + error.message);
+      toast.error('Erro ao enviar email: ' + error.message);
     } finally {
       setIsLoading(false);
     }
