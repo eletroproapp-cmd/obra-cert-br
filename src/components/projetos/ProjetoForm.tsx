@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OrcamentoListTab } from "./OrcamentoListTab";
 
 const projetoSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
@@ -227,17 +229,24 @@ export function ProjetoForm({ onSuccess, projetoId }: ProjetoFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <Label htmlFor="nome">Nome do Projeto *</Label>
-        <Input
-          id="nome"
-          {...register("nome")}
-          placeholder="Digite o nome do projeto"
-        />
-        {errors.nome && (
-          <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>
-        )}
-      </div>
+      <Tabs defaultValue="dados" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="dados">Dados do Projeto</TabsTrigger>
+          <TabsTrigger value="orcamentos">Orçamentos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dados" className="space-y-4">
+          <div>
+            <Label htmlFor="nome">Nome do Projeto *</Label>
+            <Input
+              id="nome"
+              {...register("nome")}
+              placeholder="Digite o nome do projeto"
+            />
+            {errors.nome && (
+              <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>
+            )}
+          </div>
 
       <div>
         <Label htmlFor="cliente_id">Cliente</Label>
@@ -390,6 +399,13 @@ export function ProjetoForm({ onSuccess, projetoId }: ProjetoFormProps) {
           </div>
         )}
       </div>
+
+        </TabsContent>
+
+        <TabsContent value="orcamentos" className="space-y-4">
+          <OrcamentoListTab projetoId={projetoId} />
+        </TabsContent>
+      </Tabs>
 
       <div className="flex gap-2 pt-4">
         <Button type="submit" disabled={loading || uploadingPhotos} className="flex-1">
