@@ -96,6 +96,15 @@ const Orcamentos = () => {
     if (!deletingOrcamentoId) return;
     
     try {
+      // Deletar itens do orçamento primeiro
+      const { error: itemsError } = await supabase
+        .from('orcamento_items')
+        .delete()
+        .eq('orcamento_id', deletingOrcamentoId);
+
+      if (itemsError) throw itemsError;
+
+      // Deletar o orçamento
       const { error } = await supabase
         .from('orcamentos')
         .delete()

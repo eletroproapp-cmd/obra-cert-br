@@ -104,6 +104,15 @@ const Faturas = () => {
     if (!deletingFaturaId) return;
     
     try {
+      // Deletar itens da fatura primeiro
+      const { error: itemsError } = await supabase
+        .from('fatura_items')
+        .delete()
+        .eq('fatura_id', deletingFaturaId);
+
+      if (itemsError) throw itemsError;
+
+      // Deletar a fatura
       const { error } = await supabase
         .from('faturas')
         .delete()
