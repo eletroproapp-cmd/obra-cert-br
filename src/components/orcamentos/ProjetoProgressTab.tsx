@@ -44,7 +44,7 @@ export const ProjetoProgressTab = ({ projetoId }: ProjetoProgressTabProps) => {
       // Check if etapas exist for this project
       const { data: existingEtapas, error: checkError } = await supabase
         .from("projeto_etapas")
-        .select("*")
+        .select("*, ativo")
         .eq("projeto_id", projetoId)
         .order("ordem", { ascending: true });
 
@@ -80,9 +80,9 @@ export const ProjetoProgressTab = ({ projetoId }: ProjetoProgressTabProps) => {
           .select();
 
         if (insertError) throw insertError;
-        setEtapas(newEtapas || []);
+        setEtapas((newEtapas || []).map(e => ({ ...e, ativo: e.ativo ?? true })));
       } else {
-        setEtapas(existingEtapas);
+        setEtapas((existingEtapas || []).map(e => ({ ...e, ativo: e.ativo ?? true })));
       }
     } catch (error: any) {
       console.error("Erro ao carregar etapas:", error);

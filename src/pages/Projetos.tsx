@@ -170,7 +170,7 @@ const Projetos = () => {
               Criar Primeiro Projeto
             </Button>
           </Card>
-        ) : (
+        ) : viewMode === "grid" ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {projetos.map((projeto) => (
               <Card
@@ -240,6 +240,74 @@ const Projetos = () => {
               </Card>
             ))}
           </div>
+        ) : (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Projeto</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Endereço</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Datas</TableHead>
+                  <TableHead>Progresso</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {projetos.map((projeto) => (
+                  <TableRow 
+                    key={projeto.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleEdit(projeto.id)}
+                  >
+                    <TableCell className="font-medium">{projeto.nome}</TableCell>
+                    <TableCell>{projeto.clientes?.nome || 'Sem cliente'}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {projeto.endereco_obra || '-'}
+                    </TableCell>
+                    <TableCell>
+                      <span className={`text-xs px-2 py-1 rounded ${statusColors[projeto.status as keyof typeof statusColors]}`}>
+                        {statusLabels[projeto.status as keyof typeof statusLabels]}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {projeto.data_inicio ? format(new Date(projeto.data_inicio), 'dd/MM/yy') : '-'}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {projeto.data_termino ? format(new Date(projeto.data_termino), 'dd/MM/yy') : '-'}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {progressByProjeto[projeto.id] !== undefined ? (
+                        <div className="flex items-center gap-2">
+                          <Progress value={progressByProjeto[projeto.id]} className="h-2 w-20" />
+                          <span className="text-xs font-medium">{progressByProjeto[projeto.id]}%</span>
+                        </div>
+                      ) : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeletingId(projeto.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
         )}
 
         <Dialog open={showForm} onOpenChange={(open) => {
