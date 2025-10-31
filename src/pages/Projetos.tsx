@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, FolderOpen, MapPin, Calendar, Trash2, BarChart3 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ProjetoForm } from "@/components/projetos/ProjetoForm";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ViewModeToggle } from "@/components/shared/ViewModeToggle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +56,7 @@ const Projetos = () => {
   const [editingId, setEditingId] = useState<string | undefined>();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [progressByProjeto, setProgressByProjeto] = useState<Record<string, number>>({});
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   useEffect(() => {
     loadProjetos();
@@ -149,10 +152,13 @@ const Projetos = () => {
             <h1 className="text-3xl font-bold mb-2">Projetos</h1>
             <p className="text-muted-foreground">Gerencie seus projetos e obras</p>
           </div>
-          <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
-            <Plus className="mr-2 h-5 w-5" />
-            Novo Projeto
-          </Button>
+          <div className="flex items-center gap-3">
+            <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
+              <Plus className="mr-2 h-5 w-5" />
+              Novo Projeto
+            </Button>
+          </div>
         </div>
 
         {projetos.length === 0 ? (
