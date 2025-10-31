@@ -29,6 +29,7 @@ const faturaSchema = z.object({
   status: z.enum(['Pendente', 'Pago', 'Vencido', 'Cancelado']).default('Pendente'),
   forma_pagamento: z.string().optional(),
   observacoes: z.string().optional(),
+  projeto_id: z.string().optional(),
 });
 
 type FaturaFormData = z.infer<typeof faturaSchema>;
@@ -47,6 +48,13 @@ interface Cliente {
   email: string;
 }
 
+interface Projeto {
+  id: string;
+  nome: string;
+  status?: string;
+  endereco_obra?: string;
+}
+
 interface FaturaFormProps {
   onSuccess?: () => void;
   faturaId?: string;
@@ -61,6 +69,7 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isClienteDialogOpen, setIsClienteDialogOpen] = useState(false);
+  const [projetos, setProjetos] = useState<Projeto[]>([]);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<FaturaFormData>({
     resolver: zodResolver(faturaSchema),
@@ -72,13 +81,14 @@ export const FaturaForm = ({ onSuccess, faturaId }: FaturaFormProps) => {
 const { plan, refetch } = useSubscription();
   const selectedClienteId = watch('cliente_id');
 
-  useEffect(() => {
-    loadClientes();
-    loadCatalogo();
-    if (faturaId) {
-      loadFatura();
-    }
-  }, [faturaId]);
+useEffect(() => {
+  loadClientes();
+  loadCatalogo();
+  loadProjetos();
+  if (faturaId) {
+    loadFatura();
+  }
+}, [faturaId]);
 
   const loadFatura = async () => {
     try {
@@ -106,6 +116,7 @@ const { plan, refetch } = useSubscription();
         status: faturaData.status as any,
         forma_pagamento: faturaData.forma_pagamento || '',
         observacoes: faturaData.observacoes || '',
+        projeto_id: (faturaData as any).projeto_id || '',
       });
 
       setItems(itemsData.map(item => ({
@@ -169,6 +180,20 @@ const { plan, refetch } = useSubscription();
     }
   };
 
+  const loadProjetos = async () => {
+    const { data, error } = await supabase
+      .from('projetos')
+      .select('id, nome, status, endereco_obra')
+      .order('nome');
+
+    if (error) {
+      toast.error('Erro ao carregar projetos');
+      return;
+    }
+
+    setProjetos(data || []);
+  };
+
   const calcularValorTotal = () => {
     return items.reduce((sum, item) => sum + item.valor_total, 0);
   };
@@ -216,6 +241,7 @@ const { plan, refetch } = useSubscription();
             data_vencimento: data.data_vencimento,
             forma_pagamento: data.forma_pagamento,
             observacoes: data.observacoes,
+            projeto_id: (plan?.plan_type === 'professional' ? (data as any).projeto_id : null),
           })
           .eq('id', faturaId);
 
@@ -283,6 +309,7 @@ const { plan, refetch } = useSubscription();
             data_vencimento: data.data_vencimento,
             forma_pagamento: data.forma_pagamento,
             observacoes: data.observacoes,
+            projeto_id: (plan?.plan_type === 'professional' ? (data as any).projeto_id : null),
           })
           .select()
           .single();
@@ -427,6 +454,27 @@ const { plan, refetch } = useSubscription();
           placeholder="Descreva o serviço prestado"
           rows={3}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="projeto_id">Projeto (Opcional)</Label>
+        <Select
+          value={watch('projeto_id')}
+          onValueChange={(value) => setValue('projeto_id', value)}
+          disabled={plan?.plan_type !== 'professional'}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={plan?.plan_type === 'professional' ? 'Selecione um projeto' : 'Disponível no Plano Profissional'} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Nenhum projeto</SelectItem>
+            {projetos.map((projeto) => (
+              <SelectItem key={projeto.id} value={projeto.id}>
+                {projeto.nome} {projeto.endereco_obra ? `- ${projeto.endereco_obra}` : ''} {projeto.status ? `(${projeto.status})` : ''}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-4">

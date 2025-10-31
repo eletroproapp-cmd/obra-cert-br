@@ -65,7 +65,11 @@ const Auth = () => {
 
 
   useEffect(() => {
-    if (user && !isResetMode) {
+    const url = new URL(window.location.href);
+    const qs = url.searchParams;
+    const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+    const hasRecoveryParams = qs.get('type') === 'recovery' || hash.get('type') === 'recovery' || qs.has('token_hash') || hash.has('token_hash');
+    if (user && !isResetMode && !hasRecoveryParams) {
       navigate('/dashboard');
     }
   }, [user, isResetMode, navigate]);
