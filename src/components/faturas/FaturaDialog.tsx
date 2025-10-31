@@ -456,12 +456,12 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }:
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(0, 0, 0);
-      doc.text(fatura.cliente.nome, margin + 4, y + 9);
+      doc.text(fatura.cliente?.nome || 'Cliente não informado', margin + 4, y + 9);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
       doc.setTextColor(90, 90, 90);
-      doc.text(fatura.cliente.email || '', margin + 4, y + 14);
-      if (fatura.cliente.telefone) doc.text(fatura.cliente.telefone, margin + 4, y + 18);
+      doc.text(fatura.cliente?.email || '', margin + 4, y + 14);
+      if (fatura.cliente?.telefone) doc.text(fatura.cliente.telefone, margin + 4, y + 18);
       y += clientH + 8;
 
       // Itens
@@ -591,6 +591,13 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }:
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Fatura nº {fatura?.numero || ''}</DialogTitle>
+          <DialogDescription>
+            Visualize os detalhes da fatura e gerencie pagamentos
+          </DialogDescription>
+        </DialogHeader>
+        
         {/* Layout customizado estilo documento */}
         
         <div className="space-y-6 p-2">
@@ -706,10 +713,16 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }:
             }}
           >
             <h3 className="font-semibold mb-2">Cliente</h3>
-            <p className="text-lg">{fatura.cliente.nome}</p>
-            <p className="text-sm text-muted-foreground">{fatura.cliente.email}</p>
-            {fatura.cliente.telefone && (
-              <p className="text-sm text-muted-foreground">{fatura.cliente.telefone}</p>
+            {fatura.cliente ? (
+              <>
+                <p className="text-lg">{fatura.cliente.nome}</p>
+                <p className="text-sm text-muted-foreground">{fatura.cliente.email}</p>
+                {fatura.cliente.telefone && (
+                  <p className="text-sm text-muted-foreground">{fatura.cliente.telefone}</p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Sem cliente associado</p>
             )}
           </div>
 
@@ -952,7 +965,7 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }:
         </div>
       </DialogContent>
 
-      {fatura && (
+      {fatura && fatura.cliente && (
         <EmailDialog
           open={emailDialogOpen}
           onOpenChange={setEmailDialogOpen}
