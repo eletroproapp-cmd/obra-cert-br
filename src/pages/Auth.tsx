@@ -145,9 +145,12 @@ useEffect(() => {
 
     try {
       const { supabase } = await import("@/integrations/supabase/client");
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth?type=recovery`,
+
+      const { error } = await supabase.functions.invoke('enviar-reset-senha', {
+        body: {
+          email: resetEmail,
+          redirectTo: `${window.location.origin}/auth?type=recovery`,
+        },
       });
 
       if (error) throw error;
