@@ -23,8 +23,12 @@ const passwordSchema = z.string()
 const signupSchema = z.object({
   email: z.string().email('Email inválido').max(255),
   password: passwordSchema,
+  confirmPassword: z.string(),
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres').max(100).trim(),
   company: z.string().min(2, 'Empresa deve ter no mínimo 2 caracteres').max(100).trim()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'As senhas não coincidem',
+  path: ['confirmPassword']
 });
 
 const sha1Hex = async (str: string): Promise<string> => {
@@ -86,6 +90,7 @@ const Auth = () => {
     const data = {
       email: formData.get('email') as string,
       password: formData.get('password') as string,
+      confirmPassword: formData.get('confirmPassword') as string,
       name: formData.get('name') as string,
       company: formData.get('company') as string
     };
@@ -347,6 +352,17 @@ const Auth = () => {
                       <p className="text-xs text-muted-foreground">
                         Sua senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.
                       </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-confirm-password">Confirmar Senha</Label>
+                      <Input
+                        id="signup-confirm-password"
+                        name="confirmPassword"
+                        type="password"
+                        placeholder="Digite a senha novamente"
+                        minLength={8}
+                        required
+                      />
                     </div>
                     <Button
                       type="submit"
