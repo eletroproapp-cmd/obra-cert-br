@@ -51,16 +51,26 @@ const isPasswordPwned = async (password: string): Promise<boolean> => {
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
   const { signIn, signUp, user } = useAuth();
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
+// Detect recovery mode from URL and control redirect
+useEffect(() => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const isRecovery = searchParams.get('type') === 'recovery' || hashParams.get('type') === 'recovery';
+  setShowResetPassword(isRecovery);
+}, []);
+
+useEffect(() => {
+  if (user && !showResetPassword) {
+    navigate('/dashboard');
+  }
+}, [user, showResetPassword, navigate]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -137,7 +147,7 @@ const Auth = () => {
       const { supabase } = await import("@/integrations/supabase/client");
       
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
       });
 
       if (error) throw error;
@@ -150,9 +160,38 @@ const Auth = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+};
 
-  return (
+const handleResetPassword = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  try {
+    const parsed = passwordSchema.safeParse(newPassword);
+    if (!parsed.success) {
+      toast.error(parsed.error.errors[0].message);
+      setIsLoading(false);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('As senhas não conferem');
+      setIsLoading(false);
+      return;
+    }
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+
+    toast.success('Senha redefinida com sucesso!');
+    window.history.replaceState(null, '', '/auth');
+    navigate('/dashboard');
+  } catch (error: any) {
+    toast.error('Erro ao redefinir senha: ' + error.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+return (
     <div className="min-h-screen bg-gradient-subtle flex flex-col">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm">
