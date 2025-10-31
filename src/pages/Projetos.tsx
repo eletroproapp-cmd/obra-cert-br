@@ -75,20 +75,20 @@ const Projetos = () => {
       if (error) throw error;
       setProjetos(data || []);
 
-      // Carregar progresso de cada projeto
+      // Carregar progresso de cada projeto (apenas etapas ativas)
       if (data && data.length > 0) {
         const { data: etapasData } = await supabase
           .from('projeto_etapas')
-          .select('projeto_id, progresso')
+          .select('projeto_id, progresso, ativo')
           .in('projeto_id', data.map(p => p.id));
 
         const progressMap: Record<string, number> = {};
         if (etapasData) {
           data.forEach(projeto => {
-            const etapasDoProjeto = etapasData.filter(e => e.projeto_id === projeto.id);
-            if (etapasDoProjeto.length > 0) {
-              const total = etapasDoProjeto.reduce((sum, e) => sum + e.progresso, 0);
-              progressMap[projeto.id] = Math.round(total / etapasDoProjeto.length);
+            const etapasAtivas = etapasData.filter(e => e.projeto_id === projeto.id && e.ativo);
+            if (etapasAtivas.length > 0) {
+              const total = etapasAtivas.reduce((sum, e) => sum + e.progresso, 0);
+              progressMap[projeto.id] = Math.round(total / etapasAtivas.length);
             } else {
               progressMap[projeto.id] = 0;
             }

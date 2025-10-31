@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Pencil, Trash2, Calendar, DollarSign, FileText } from "lucide-react";
 import { toast } from "sonner";
 import {
   Table,
@@ -33,6 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { ViewModeToggle } from "@/components/shared/ViewModeToggle";
 
 interface Despesa {
   id: string;
@@ -50,6 +52,7 @@ export default function Despesas() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDespesa, setEditingDespesa] = useState<Despesa | null>(null);
   const [deletingDespesaId, setDeletingDespesaId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const queryClient = useQueryClient();
 
   const { data: despesas, isLoading } = useQuery({
@@ -117,10 +120,13 @@ export default function Despesas() {
               Gerencie gastos com funcionários, materiais, alimentação e mais
             </p>
           </div>
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Despesa
-          </Button>
+          <div className="flex items-center gap-3">
+            <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            <Button onClick={() => setIsFormOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Despesa
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -143,7 +149,64 @@ export default function Despesas() {
           </div>
         </div>
 
-        <div className="rounded-lg border">
+        {viewMode === "grid" ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {isLoading ? (
+              <Card className="col-span-full text-center p-12">
+                <p className="text-muted-foreground">Carregando...</p>
+              </Card>
+            ) : despesas && despesas.length > 0 ? (
+              despesas.map((despesa) => (
+                <Card key={despesa.id} className="border-border shadow-soft hover:shadow-medium transition-all">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <Badge className={getCategoriaColor(despesa.categoria)}>
+                        {despesa.categoria}
+                      </Badge>
+                      <span className="text-sm font-normal text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {format(new Date(despesa.data), "dd/MM/yyyy", { locale: ptBR })}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm">{despesa.descricao}</p>
+                    {despesa.numero_nota_fiscal && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <FileText className="h-3 w-3" />
+                        NF: {despesa.numero_nota_fiscal}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="h-4 w-4 text-destructive" />
+                        <span className="text-xl font-bold text-destructive">
+                          {new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(Number(despesa.valor))}
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(despesa)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setDeletingDespesaId(despesa.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card className="col-span-full text-center p-12">
+                <p className="text-muted-foreground">Nenhuma despesa cadastrada</p>
+              </Card>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -215,6 +278,7 @@ export default function Despesas() {
             </TableBody>
           </Table>
         </div>
+        )}
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={handleCloseForm}>

@@ -7,6 +7,8 @@ import { Plus, Building2, Phone, Mail, Package, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FornecedorForm } from "@/components/fornecedores/FornecedorForm";
+import { ViewModeToggle } from "@/components/shared/ViewModeToggle";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Fornecedor {
   id: string;
@@ -26,6 +28,7 @@ const Fornecedores = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingFornecedor, setEditingFornecedor] = useState<Fornecedor | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   useEffect(() => {
     loadFornecedores();
@@ -82,10 +85,13 @@ const Fornecedores = () => {
           <h1 className="text-3xl font-bold mb-2">Fornecedores</h1>
           <p className="text-muted-foreground">Gerencie seus fornecedores de materiais</p>
         </div>
-        <Button variant="hero" size="lg" onClick={handleNewFornecedor}>
-          <Plus className="mr-2 h-5 w-5" />
-          Novo Fornecedor
-        </Button>
+        <div className="flex items-center gap-3">
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          <Button variant="hero" size="lg" onClick={handleNewFornecedor}>
+            <Plus className="mr-2 h-5 w-5" />
+            Novo Fornecedor
+          </Button>
+        </div>
       </div>
 
       {fornecedores.length === 0 ? (
@@ -96,7 +102,7 @@ const Fornecedores = () => {
             Cadastrar Primeiro Fornecedor
           </Button>
         </Card>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {fornecedores.map((fornecedor) => (
             <Card key={fornecedor.id} className="border-border shadow-soft hover:shadow-medium transition-all">
@@ -148,6 +154,37 @@ const Fornecedores = () => {
             </Card>
           ))}
         </div>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>CNPJ</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Contato</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {fornecedores.map((fornecedor) => (
+                <TableRow key={fornecedor.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleEdit(fornecedor)}>
+                  <TableCell className="font-medium">{fornecedor.nome}</TableCell>
+                  <TableCell>{fornecedor.cnpj || '-'}</TableCell>
+                  <TableCell>{fornecedor.telefone || '-'}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">{fornecedor.email || '-'}</TableCell>
+                  <TableCell>{fornecedor.contato_nome || '-'}</TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       <Dialog open={showForm} onOpenChange={(open) => {

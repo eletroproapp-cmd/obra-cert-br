@@ -12,6 +12,8 @@ import { FaturaDialog } from "@/components/faturas/FaturaDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
 import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
+import { ViewModeToggle } from "@/components/shared/ViewModeToggle";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Fatura {
   id: string;
@@ -34,6 +36,7 @@ const Faturas = () => {
   const [editingFaturaId, setEditingFaturaId] = useState<string | undefined>();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [deletingFaturaId, setDeletingFaturaId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { checkLimit, plan, refetch, loading: subLoading } = useSubscription();
 
   useEffect(() => {
@@ -146,10 +149,13 @@ const Faturas = () => {
           <h1 className="text-3xl font-bold mb-2">Faturas</h1>
           <p className="text-muted-foreground">Gerencie suas faturas e pagamentos</p>
         </div>
-        <Button variant="hero" size="lg" onClick={handleNewFatura}>
-          <Plus className="mr-2 h-5 w-5" />
-          Nova Fatura
-        </Button>
+        <div className="flex items-center gap-3">
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          <Button variant="hero" size="lg" onClick={handleNewFatura}>
+            <Plus className="mr-2 h-5 w-5" />
+            Nova Fatura
+          </Button>
+        </div>
       </div>
 
       {/* Usage Limit Alert */}
@@ -169,7 +175,7 @@ const Faturas = () => {
             Criar Primeira Fatura
           </Button>
         </Card>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid gap-4">
           {faturas.map((fatura) => (
             <Card
@@ -205,6 +211,41 @@ const Faturas = () => {
             </Card>
           ))}
         </div>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Número</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Vencimento</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {faturas.map((fatura) => (
+                <TableRow 
+                  key={fatura.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => setSelectedFatura(fatura.id)}
+                >
+                  <TableCell className="font-medium">{fatura.numero}</TableCell>
+                  <TableCell>{fatura.clientes?.nome || 'Sem cliente'}</TableCell>
+                  <TableCell>{new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}</TableCell>
+                  <TableCell>
+                    <span className={`text-sm ${getStatusColor(fatura.status)}`}>
+                      {fatura.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right font-bold text-accent">
+                    R$ {fatura.valor_total.toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       {/* Dialog para criar/editar fatura */}

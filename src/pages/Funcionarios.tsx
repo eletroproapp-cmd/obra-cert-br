@@ -10,6 +10,8 @@ import { FuncionarioForm } from "@/components/funcionarios/FuncionarioForm";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
 import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
+import { ViewModeToggle } from "@/components/shared/ViewModeToggle";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Funcionario {
   id: string;
@@ -28,6 +30,7 @@ const Funcionarios = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | undefined>();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { checkLimit, plan, refetch } = useSubscription();
 
   useEffect(() => {
@@ -91,10 +94,13 @@ const Funcionarios = () => {
           <h1 className="text-3xl font-bold mb-2">Funcionários</h1>
           <p className="text-muted-foreground">Gerencie sua equipe</p>
         </div>
-        <Button variant="hero" size="lg" onClick={handleNewFuncionario}>
-          <Plus className="mr-2 h-5 w-5" />
-          Novo Funcionário
-        </Button>
+        <div className="flex items-center gap-3">
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          <Button variant="hero" size="lg" onClick={handleNewFuncionario}>
+            <Plus className="mr-2 h-5 w-5" />
+            Novo Funcionário
+          </Button>
+        </div>
       </div>
 
       {/* Usage Limit Alert */}
@@ -115,7 +121,7 @@ const Funcionarios = () => {
             Cadastrar Primeiro Funcionário
           </Button>
         </Card>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {funcionarios.map((funcionario) => (
             <Card
@@ -150,6 +156,43 @@ const Funcionarios = () => {
             </Card>
           ))}
         </div>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Cargo</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Salário/Hora</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {funcionarios.map((funcionario) => (
+                <TableRow 
+                  key={funcionario.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleEdit(funcionario.id)}
+                >
+                  <TableCell className="font-medium">{funcionario.nome}</TableCell>
+                  <TableCell>{funcionario.cargo || '-'}</TableCell>
+                  <TableCell>{funcionario.email || '-'}</TableCell>
+                  <TableCell>{funcionario.telefone || '-'}</TableCell>
+                  <TableCell className="font-medium text-primary">
+                    R$ {funcionario.salario_hora?.toFixed(2) || '0.00'}
+                  </TableCell>
+                  <TableCell>
+                    <span className={`text-xs px-2 py-1 rounded ${funcionario.ativo ? 'bg-success/20 text-success' : 'bg-muted text-muted-foreground'}`}>
+                      {funcionario.ativo ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       <Dialog open={showForm} onOpenChange={(open) => {

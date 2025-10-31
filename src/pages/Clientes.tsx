@@ -10,6 +10,8 @@ import { ClienteForm } from "@/components/clientes/ClienteForm";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
 import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
+import { ViewModeToggle } from "@/components/shared/ViewModeToggle";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Cliente {
   id: string;
@@ -26,6 +28,7 @@ const Clientes = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingCliente, setEditingCliente] = useState<string | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { checkLimit, plan, refetch } = useSubscription();
 
   useEffect(() => {
@@ -90,10 +93,13 @@ const Clientes = () => {
           <h1 className="text-3xl font-bold mb-2">Clientes</h1>
           <p className="text-muted-foreground">Gerencie seus clientes e contatos</p>
         </div>
-        <Button variant="hero" size="lg" onClick={handleNewClient}>
-          <Plus className="mr-2 h-5 w-5" />
-          Novo Cliente
-        </Button>
+        <div className="flex items-center gap-3">
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          <Button variant="hero" size="lg" onClick={handleNewClient}>
+            <Plus className="mr-2 h-5 w-5" />
+            Novo Cliente
+          </Button>
+        </div>
       </div>
 
       {/* Usage Limit Alert */}
@@ -113,7 +119,7 @@ const Clientes = () => {
             Cadastrar Primeiro Cliente
           </Button>
         </Card>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {clientes.map((cliente) => (
             <Card key={cliente.id} className="border-border shadow-soft hover:shadow-medium transition-all cursor-pointer"
@@ -149,6 +155,37 @@ const Clientes = () => {
             </Card>
           ))}
         </div>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Localização</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {clientes.map((cliente) => (
+                <TableRow 
+                  key={cliente.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleEdit(cliente.id)}
+                >
+                  <TableCell className="font-medium">{cliente.nome}</TableCell>
+                  <TableCell>{cliente.email || '-'}</TableCell>
+                  <TableCell>{cliente.telefone || '-'}</TableCell>
+                  <TableCell>
+                    {cliente.cidade || cliente.estado 
+                      ? `${cliente.cidade || ''}${cliente.cidade && cliente.estado ? ', ' : ''}${cliente.estado || ''}`
+                      : '-'}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       <Dialog open={showForm} onOpenChange={setShowForm}>

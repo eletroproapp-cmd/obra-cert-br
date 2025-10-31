@@ -12,6 +12,8 @@ import { OrcamentoDialog } from "@/components/orcamentos/OrcamentoDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
 import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
+import { ViewModeToggle } from "@/components/shared/ViewModeToggle";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface Orcamento {
   id: string;
@@ -33,6 +35,7 @@ const Orcamentos = () => {
   const [editingOrcamentoId, setEditingOrcamentoId] = useState<string | undefined>();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [deletingOrcamentoId, setDeletingOrcamentoId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { checkLimit, plan, refetch, getUsagePercentage } = useSubscription();
 
   useEffect(() => {
@@ -138,10 +141,13 @@ const Orcamentos = () => {
           <h1 className="text-3xl font-bold mb-2">Orçamentos</h1>
           <p className="text-muted-foreground">Gerencie seus orçamentos elétricos</p>
         </div>
-        <Button variant="hero" size="lg" onClick={handleNewOrcamento}>
-          <Plus className="mr-2 h-5 w-5" />
-          Novo Orçamento
-        </Button>
+        <div className="flex items-center gap-3">
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          <Button variant="hero" size="lg" onClick={handleNewOrcamento}>
+            <Plus className="mr-2 h-5 w-5" />
+            Novo Orçamento
+          </Button>
+        </div>
       </div>
 
       {/* Usage Limit Alert */}
@@ -161,7 +167,7 @@ const Orcamentos = () => {
             Criar Primeiro Orçamento
           </Button>
         </Card>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid gap-4">
           {orcamentos.map((orcamento) => (
             <Card
@@ -195,6 +201,41 @@ const Orcamentos = () => {
             </Card>
           ))}
         </div>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Número</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Título</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orcamentos.map((orcamento) => (
+                <TableRow 
+                  key={orcamento.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => setSelectedOrcamento(orcamento.id)}
+                >
+                  <TableCell className="font-medium">{orcamento.numero}</TableCell>
+                  <TableCell>{orcamento.clientes.nome}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">{orcamento.titulo}</TableCell>
+                  <TableCell>
+                    <span className={`text-sm ${getStatusColor(orcamento.status)}`}>
+                      {orcamento.status}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right font-bold text-primary">
+                    R$ {orcamento.valor_total.toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       {/* Dialog para criar/editar orçamento */}
