@@ -241,7 +241,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             valor_total: valorTotal,
             validade_dias: data.validade_dias,
             observacoes: data.observacoes,
-            projeto_id: data.projeto_id || null,
+            projeto_id: (plan?.plan_type === 'professional' ? data.projeto_id : null),
           })
           .eq('id', orcamentoId);
 
@@ -286,7 +286,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             valor_total: valorTotal,
             validade_dias: data.validade_dias,
             observacoes: data.observacoes,
-            projeto_id: data.projeto_id || null,
+            projeto_id: (plan?.plan_type === 'professional' ? data.projeto_id : null),
           })
           .select()
           .single();
