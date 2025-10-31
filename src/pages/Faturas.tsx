@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FaturaForm } from "@/components/faturas/FaturaForm";
@@ -180,18 +180,35 @@ const Faturas = () => {
           {faturas.map((fatura) => (
             <Card
               key={fatura.id}
-              className="border-border shadow-soft hover:shadow-medium transition-all cursor-pointer"
-              onClick={() => setSelectedFatura(fatura.id)}
+              className="border-border shadow-soft hover:shadow-medium transition-all"
             >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>{fatura.numero}</span>
-                  <span className={`text-sm font-normal ${getStatusColor(fatura.status)}`}>
-                    {fatura.status}
+                  <span 
+                    className="cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => setSelectedFatura(fatura.id)}
+                  >
+                    {fatura.numero}
                   </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-normal ${getStatusColor(fatura.status)}`}>
+                      {fatura.status}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingFaturaId(fatura.id);
+                      }}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent onClick={() => setSelectedFatura(fatura.id)} className="cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Cliente</p>
@@ -221,25 +238,50 @@ const Faturas = () => {
                 <TableHead>Vencimento</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-center w-20">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {faturas.map((fatura) => (
                 <TableRow 
                   key={fatura.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => setSelectedFatura(fatura.id)}
+                  className="hover:bg-muted/50"
                 >
-                  <TableCell className="font-medium">{fatura.numero}</TableCell>
-                  <TableCell>{fatura.clientes?.nome || 'Sem cliente'}</TableCell>
-                  <TableCell>{new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}</TableCell>
-                  <TableCell>
+                  <TableCell 
+                    className="font-medium cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => setSelectedFatura(fatura.id)}
+                  >
+                    {fatura.numero}
+                  </TableCell>
+                  <TableCell onClick={() => setSelectedFatura(fatura.id)} className="cursor-pointer">
+                    {fatura.clientes?.nome || 'Sem cliente'}
+                  </TableCell>
+                  <TableCell onClick={() => setSelectedFatura(fatura.id)} className="cursor-pointer">
+                    {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
+                  </TableCell>
+                  <TableCell onClick={() => setSelectedFatura(fatura.id)} className="cursor-pointer">
                     <span className={`text-sm ${getStatusColor(fatura.status)}`}>
                       {fatura.status}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right font-bold text-accent">
+                  <TableCell 
+                    onClick={() => setSelectedFatura(fatura.id)} 
+                    className="text-right font-bold text-accent cursor-pointer"
+                  >
                     R$ {fatura.valor_total.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingFaturaId(fatura.id);
+                      }}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

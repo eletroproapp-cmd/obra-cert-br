@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { OrcamentoForm } from "@/components/orcamentos/OrcamentoForm";
@@ -172,18 +172,35 @@ const Orcamentos = () => {
           {orcamentos.map((orcamento) => (
             <Card
               key={orcamento.id}
-              className="border-border shadow-soft hover:shadow-medium transition-all cursor-pointer"
-              onClick={() => setSelectedOrcamento(orcamento.id)}
+              className="border-border shadow-soft hover:shadow-medium transition-all"
             >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>{orcamento.numero}</span>
-                  <span className={`text-sm font-normal ${getStatusColor(orcamento.status)}`}>
-                    {orcamento.status}
+                  <span 
+                    className="cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => setSelectedOrcamento(orcamento.id)}
+                  >
+                    {orcamento.numero}
                   </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-normal ${getStatusColor(orcamento.status)}`}>
+                      {orcamento.status}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingOrcamentoId(orcamento.id);
+                      }}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent onClick={() => setSelectedOrcamento(orcamento.id)} className="cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Cliente</p>
@@ -211,25 +228,53 @@ const Orcamentos = () => {
                 <TableHead>Título</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="text-center w-20">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {orcamentos.map((orcamento) => (
                 <TableRow 
                   key={orcamento.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => setSelectedOrcamento(orcamento.id)}
+                  className="hover:bg-muted/50"
                 >
-                  <TableCell className="font-medium">{orcamento.numero}</TableCell>
-                  <TableCell>{orcamento.clientes.nome}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">{orcamento.titulo}</TableCell>
-                  <TableCell>
+                  <TableCell 
+                    className="font-medium cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => setSelectedOrcamento(orcamento.id)}
+                  >
+                    {orcamento.numero}
+                  </TableCell>
+                  <TableCell onClick={() => setSelectedOrcamento(orcamento.id)} className="cursor-pointer">
+                    {orcamento.clientes.nome}
+                  </TableCell>
+                  <TableCell 
+                    onClick={() => setSelectedOrcamento(orcamento.id)} 
+                    className="max-w-[200px] truncate cursor-pointer"
+                  >
+                    {orcamento.titulo}
+                  </TableCell>
+                  <TableCell onClick={() => setSelectedOrcamento(orcamento.id)} className="cursor-pointer">
                     <span className={`text-sm ${getStatusColor(orcamento.status)}`}>
                       {orcamento.status}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right font-bold text-primary">
+                  <TableCell 
+                    onClick={() => setSelectedOrcamento(orcamento.id)} 
+                    className="text-right font-bold text-primary cursor-pointer"
+                  >
                     R$ {orcamento.valor_total.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingOrcamentoId(orcamento.id);
+                      }}
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
