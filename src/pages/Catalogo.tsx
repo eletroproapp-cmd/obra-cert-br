@@ -13,6 +13,7 @@ import { ServicoForm } from "@/components/catalogo/ServicoForm";
 import { useSubscription } from "@/hooks/useSubscription";
 import { UsageLimitAlert } from "@/components/subscription/UsageLimitAlert";
 import { PlanUpgradeDialog } from "@/components/subscription/PlanUpgradeDialog";
+import { ViewModeToggle } from "@/components/shared/ViewModeToggle";
 
 interface Material {
   id: string;
@@ -42,6 +43,7 @@ const Catalogo = () => {
   const [editingMaterialId, setEditingMaterialId] = useState<string | undefined>();
   const [editingServicoId, setEditingServicoId] = useState<string | undefined>();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const { checkLimit, plan, refetch } = useSubscription();
 
   useEffect(() => {
@@ -187,17 +189,20 @@ const Catalogo = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Catálogo</h1>
-          <p className="text-muted-foreground">Gerencie materiais e serviços</p>
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-full">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div className="w-full sm:w-auto">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Catálogo</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Gerencie materiais e serviços</p>
         </div>
-        {materiais.length === 0 && servicos.length === 0 && (
-          <Button onClick={loadExampleData} variant="outline">
-            Carregar Dados de Exemplo
-          </Button>
-        )}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          {materiais.length === 0 && servicos.length === 0 && (
+            <Button onClick={loadExampleData} variant="outline" size="sm" className="flex-1 sm:flex-initial">
+              Carregar Exemplo
+            </Button>
+          )}
+        </div>
       </div>
 
       <Tabs defaultValue="materiais" className="w-full">
@@ -207,11 +212,12 @@ const Catalogo = () => {
         </TabsList>
 
         <TabsContent value="materiais" className="mt-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Materiais Elétricos</h2>
-            <Button variant="hero" onClick={handleNewMaterial}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold">Materiais Elétricos</h2>
+            <Button variant="hero" onClick={handleNewMaterial} size="sm" className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
-              Adicionar Material
+              <span className="hidden sm:inline">Adicionar Material</span>
+              <span className="sm:hidden">Adicionar</span>
             </Button>
           </div>
 
@@ -225,15 +231,15 @@ const Catalogo = () => {
           )}
 
           {materiais.length === 0 ? (
-            <Card className="text-center p-12">
-              <p className="text-muted-foreground mb-4">Nenhum material cadastrado ainda</p>
-              <Button variant="hero" onClick={handleNewMaterial}>
+            <Card className="text-center p-8 sm:p-12">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">Nenhum material cadastrado ainda</p>
+              <Button variant="hero" onClick={handleNewMaterial} size="sm">
                 <Plus className="mr-2 h-4 w-4" />
                 Cadastrar Primeiro Material
               </Button>
             </Card>
-          ) : (
-            <div className="border rounded-lg">
+          ) : viewMode === "list" ? (
+            <div className="border rounded-lg overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -289,28 +295,78 @@ const Catalogo = () => {
                 </TableBody>
               </Table>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {materiais.map((material) => (
+                <Card key={material.id} className="hover:shadow-medium transition-shadow overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center justify-between text-base">
+                      <div className="flex items-center gap-2">
+                        <Cable className="h-4 w-4 text-primary" />
+                        <span className="truncate">{material.nome}</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => handleEditMaterial(material.id, e)}
+                        className="h-8 w-8"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Categoria</span>
+                      <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">
+                        {material.categoria}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Preço</span>
+                      <span className="font-medium text-sm">
+                        R$ {material.preco_venda.toFixed(2)}/{material.unidade}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Estoque</span>
+                      <span className="text-sm">
+                        {material.estoque_atual} {material.unidade}
+                      </span>
+                    </div>
+                    {material.estoque_atual <= material.estoque_minimo && (
+                      <div className="px-2 py-1 bg-destructive/10 text-destructive text-xs font-medium rounded inline-flex items-center gap-1 w-full justify-center">
+                        <AlertTriangle className="h-3 w-3" />
+                        Estoque Baixo
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </TabsContent>
 
         <TabsContent value="servicos" className="mt-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Serviços e Mão de Obra</h2>
-            <Button variant="hero" onClick={() => setShowServicoForm(true)}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold">Serviços e Mão de Obra</h2>
+            <Button variant="hero" onClick={() => setShowServicoForm(true)} size="sm" className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
-              Adicionar Serviço
+              <span className="hidden sm:inline">Adicionar Serviço</span>
+              <span className="sm:hidden">Adicionar</span>
             </Button>
           </div>
 
           {servicos.length === 0 ? (
-            <Card className="text-center p-12">
-              <p className="text-muted-foreground mb-4">Nenhum serviço cadastrado ainda</p>
-              <Button variant="hero" onClick={() => setShowServicoForm(true)}>
+            <Card className="text-center p-8 sm:p-12">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">Nenhum serviço cadastrado ainda</p>
+              <Button variant="hero" onClick={() => setShowServicoForm(true)} size="sm">
                 <Plus className="mr-2 h-4 w-4" />
                 Cadastrar Primeiro Serviço
               </Button>
             </Card>
-          ) : (
-            <div className="border rounded-lg">
+          ) : viewMode === "list" ? (
+            <div className="border rounded-lg overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -354,6 +410,49 @@ const Catalogo = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {servicos.map((servico) => (
+                <Card key={servico.id} className="hover:shadow-medium transition-shadow overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center justify-between text-base">
+                      <div className="flex items-center gap-2">
+                        <Wrench className="h-4 w-4 text-primary" />
+                        <span className="truncate">{servico.nome}</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => handleEditServico(servico.id, e)}
+                        className="h-8 w-8"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Categoria</span>
+                      <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded">
+                        {servico.categoria}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Preço</span>
+                      <span className="font-medium text-sm">
+                        R$ {servico.preco_hora.toFixed(2)}/{servico.unidade}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Tempo Estimado</span>
+                      <span className="text-sm">
+                        {servico.tempo_estimado} {servico.unidade}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </TabsContent>

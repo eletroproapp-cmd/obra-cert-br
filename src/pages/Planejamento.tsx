@@ -182,11 +182,11 @@ const Planejamento = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Planejamento</h1>
-          <p className="text-muted-foreground">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-full">
+      <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="w-full sm:w-auto">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Planejamento</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gerencie seus compromissos e exporte para a agenda do celular
           </p>
         </div>
@@ -195,44 +195,48 @@ const Planejamento = () => {
             setEditingAgendamento(null);
             setDialogOpen(true);
           }}
-          size="lg"
+          size="default"
+          className="w-full sm:w-auto"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Novo Agendamento
+          <span className="hidden sm:inline">Novo Agendamento</span>
+          <span className="sm:hidden">Novo</span>
         </Button>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Calendar */}
-        <Card className="lg:col-span-2 border-border shadow-medium">
+        <Card className="lg:col-span-2 border-border shadow-medium overflow-hidden">
           <CardHeader>
-            <CardTitle>Calendário de Compromissos</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Calendário de Compromissos</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => {
-                setSelectedDate(date);
-                setDate(date);
-              }}
-              className="rounded-md border"
-              modifiers={{
-                hasEvent: agendamentos.map((ag) => new Date(ag.data_inicio)),
-              }}
-              modifiersClassNames={{
-                hasEvent: "bg-primary/10 font-bold",
-              }}
-            />
+          <CardContent className="p-2 sm:p-6">
+            <div className="overflow-x-auto -mx-2 sm:mx-0">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  setSelectedDate(date);
+                  setDate(date);
+                }}
+                className="rounded-md border mx-auto"
+                modifiers={{
+                  hasEvent: agendamentos.map((ag) => new Date(ag.data_inicio)),
+                }}
+                modifiersClassNames={{
+                  hasEvent: "bg-primary/10 font-bold",
+                }}
+              />
+            </div>
           </CardContent>
         </Card>
 
         {/* Today's Schedule */}
-        <Card className="border-border shadow-medium">
+        <Card className="border-border shadow-medium overflow-hidden">
           <CardHeader>
-            <CardTitle>Hoje</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Hoje</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 sm:p-6">
             {loading ? (
               <p className="text-sm text-muted-foreground">Carregando...</p>
             ) : getTodayAgendamentos().length === 0 ? (

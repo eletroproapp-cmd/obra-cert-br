@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Settings, LogOut, Menu, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -25,6 +25,28 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const displayName = (user?.user_metadata?.full_name as string) || (user?.email?.split("@")[0] ?? "");
+  const [companyLogo, setCompanyLogo] = useState<string | null>(null);
+
+  // Busca logo da empresa
+  useEffect(() => {
+    const fetchCompanyLogo = async () => {
+      if (!user?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from('empresas')
+          .select('logo_url')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (!error && data?.logo_url) {
+          setCompanyLogo(data.logo_url);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar logo da empresa:', err);
+      }
+    };
+    fetchCompanyLogo();
+  }, [user?.id]);
 
   // Envia email de boas-vindas na primeira navegação autenticada (global)
   useEffect(() => {
@@ -78,9 +100,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="gap-2 h-9 md:h-10 px-2 md:px-3">
                       <Avatar className="h-7 w-7 md:h-8 md:w-8">
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          <User className="h-3 w-3 md:h-4 md:w-4" />
-                        </AvatarFallback>
+                        {companyLogo ? (
+                          <img src={companyLogo} alt="Logo" className="object-cover w-full h-full rounded-full" />
+                        ) : (
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            <User className="h-3 w-3 md:h-4 md:w-4" />
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <span className="hidden md:inline text-sm truncate max-w-[120px] lg:max-w-[200px]">
                         {user?.email}
