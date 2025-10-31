@@ -39,9 +39,7 @@ export const usePasswordRecovery = () => {
           const { data, error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) {
             console.error("Erro ao trocar code por sessão:", error);
-            toast.error("Link de recuperação inválido ou expirado. Solicite um novo email.");
-            setIsResetMode(false);
-            return;
+            // Continua para tentar outras estratégias (setSession/verifyOtp)
           }
           if (data?.session) {
             console.log("Sessão estabelecida via code");
@@ -60,9 +58,7 @@ export const usePasswordRecovery = () => {
           const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
           if (error) {
             console.error("Erro ao aplicar sessão:", error);
-            toast.error("Link de recuperação inválido ou expirado. Solicite um novo email.");
-            setIsResetMode(false);
-            return;
+            // Continua para tentar verifyOtp
           }
           if (data?.session) {
             console.log("Sessão estabelecida via access_token");
@@ -81,9 +77,7 @@ export const usePasswordRecovery = () => {
           const { data, error } = await supabase.auth.verifyOtp({ token_hash, type: "recovery" });
           if (error) {
             console.error("Erro ao verificar token:", error);
-            toast.error("Link de recuperação inválido ou expirado. Solicite um novo email.");
-            setIsResetMode(false);
-            return;
+            // Sem sucesso com verifyOtp; continuará para fallback final
           }
           if (data?.session) {
             console.log("Sessão estabelecida via token_hash");
