@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Clock, Calendar, FileDown, FileSpreadsheet, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
@@ -414,6 +414,9 @@ const Timesheets = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editingId ? 'Editar Registro' : 'Novo Registro de Horas'}</DialogTitle>
+            <DialogDescription>
+              {editingId ? 'Edite as informações do registro de horas' : 'Preencha os dados para criar um novo registro de horas'}
+            </DialogDescription>
           </DialogHeader>
           <TimesheetForm onSuccess={handleSuccess} registroId={editingId} />
         </DialogContent>

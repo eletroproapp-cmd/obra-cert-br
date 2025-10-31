@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Cable, AlertTriangle, Wrench, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -366,6 +366,9 @@ const Catalogo = () => {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingMaterialId ? 'Editar Material' : 'Novo Material'}</DialogTitle>
+            <DialogDescription>
+              {editingMaterialId ? 'Edite as informações do material' : 'Preencha os dados para cadastrar um novo material'}
+            </DialogDescription>
           </DialogHeader>
           <MaterialForm onSuccess={handleMaterialSuccess} materialId={editingMaterialId} />
         </DialogContent>
@@ -378,6 +381,9 @@ const Catalogo = () => {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingServicoId ? 'Editar Serviço' : 'Novo Serviço'}</DialogTitle>
+            <DialogDescription>
+              {editingServicoId ? 'Edite as informações do serviço' : 'Preencha os dados para cadastrar um novo serviço'}
+            </DialogDescription>
           </DialogHeader>
           <ServicoForm onSuccess={handleServicoSuccess} servicoId={editingServicoId} />
         </DialogContent>

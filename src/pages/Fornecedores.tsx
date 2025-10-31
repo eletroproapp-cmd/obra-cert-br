@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Building2, Phone, Mail, Package, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -194,6 +194,9 @@ const Fornecedores = () => {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingFornecedor ? 'Editar Fornecedor' : 'Novo Fornecedor'}</DialogTitle>
+            <DialogDescription>
+              {editingFornecedor ? 'Edite as informações do fornecedor' : 'Preencha os dados para cadastrar um novo fornecedor'}
+            </DialogDescription>
           </DialogHeader>
           <FornecedorForm fornecedor={editingFornecedor} onSuccess={handleSuccess} />
         </DialogContent>
