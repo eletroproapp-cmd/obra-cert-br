@@ -140,17 +140,20 @@ const Auth = () => {
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       
+      
       // Envia email customizado via função com link oficial e redirect correto
-      const { error } = await supabase.functions.invoke('enviar-reset-senha', {
+      const { data, error } = await supabase.functions.invoke('enviar-reset-senha', {
         body: {
           email: resetEmail,
           redirectTo: `${window.location.origin}/auth?type=recovery`,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Erro ao enviar email de recuperação (tratado como sucesso):', error);
+      }
 
-      toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      toast.success('Se o email estiver cadastrado, você receberá um link para redefinir a senha.');
       setShowForgotPassword(false);
       setResetEmail('');
     } catch (error: any) {
