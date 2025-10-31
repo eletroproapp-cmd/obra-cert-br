@@ -17,6 +17,15 @@ export const usePasswordRecovery = () => {
         // Aguardar um pouco para o auth-bridge processar
         await new Promise(resolve => setTimeout(resolve, 100));
 
+        // Logar envs efetivas em runtime para diagnóstico
+        // Atenção: isso aparece apenas no console do navegador
+        // e mostra apenas o prefixo da chave para segurança
+        console.log(
+          'SUPABASE ENV:',
+          import.meta.env?.VITE_SUPABASE_URL,
+          (import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY || '').slice(0, 10)
+        );
+
         const hash = window.location.hash || "";
         const search = window.location.search || "";
 
