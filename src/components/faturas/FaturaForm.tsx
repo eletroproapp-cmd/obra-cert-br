@@ -467,7 +467,6 @@ useEffect(() => {
             <SelectValue placeholder={plan?.plan_type === 'professional' ? 'Selecione um projeto' : 'Disponível no Plano Profissional'} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Nenhum projeto</SelectItem>
             {projetos.map((projeto) => (
               <SelectItem key={projeto.id} value={projeto.id}>
                 {projeto.nome} {projeto.endereco_obra ? `- ${projeto.endereco_obra}` : ''} {projeto.status ? `(${projeto.status})` : ''}
