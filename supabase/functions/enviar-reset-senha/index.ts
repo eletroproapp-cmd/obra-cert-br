@@ -50,6 +50,15 @@ serve(async (req: Request) => {
 
     if (linkError) {
       console.error("Erro generateLink:", linkError);
+      const msg = String((linkError as any)?.message || (linkError as any)?.error_description || (linkError as any)?.name || "");
+      if (/not found/i.test(msg)) {
+        // Evitar enumeração de usuários: sempre responder 200 mesmo se email não existir
+        console.log("Email não encontrado, retornando sucesso para evitar enumeração.");
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
       throw linkError;
     }
 
