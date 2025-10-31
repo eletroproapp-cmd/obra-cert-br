@@ -53,51 +53,12 @@ const isPasswordPwned = async (password: string): Promise<boolean> => {
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
   const { signIn, signUp, user } = useAuth();
   const { isResetMode, exitResetMode } = usePasswordRecovery();
 
-  // Detect recovery mode from URL and control redirect
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const hash = window.location.hash;
-    const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
-    const isRecovery = searchParams.get('type') === 'recovery' || hashParams.get('type') === 'recovery' || hash.includes('access_token=');
-    setShowResetPassword(isRecovery);
-  }, []);
 
-  // Apply session from recovery tokens in URL hash (access_token, refresh_token)
-  useEffect(() => {
-    const applySessionFromUrl = async () => {
-      try {
-        const hash = window.location.hash || '';
-        const search = window.location.search || '';
-        // Preferir tokens no hash; caso não existam, usar querystring
-        const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
-        const searchParams = new URLSearchParams(search.replace(/^\?/, ''));
-        const access_token = hashParams.get('access_token') || searchParams.get('access_token') || '';
-        const refresh_token = hashParams.get('refresh_token') || searchParams.get('refresh_token') || '';
-        if (!access_token || !refresh_token) return;
-        const { supabase } = await import("@/integrations/supabase/client");
-        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-        if (error) {
-          console.error('Erro ao aplicar sessão dos parâmetros:', error);
-          toast.error('Link de recuperação inválido ou expirado. Solicite novamente.');
-          return;
-        }
-        setShowResetPassword(true);
-        const cleanUrl = `${window.location.pathname}?type=recovery`;
-        window.history.replaceState(null, '', cleanUrl);
-      } catch (e) {
-        console.error('Falha ao processar tokens de recuperação:', e);
-      }
-    };
-    applySessionFromUrl();
-  }, []);
 
   useEffect(() => {
     if (user && !isResetMode) {
@@ -183,7 +144,7 @@ const Auth = () => {
       const { error } = await supabase.functions.invoke('enviar-reset-senha', {
         body: {
           email: resetEmail,
-          redirectTo: `${window.location.origin}/auth`,
+          redirectTo: `${window.location.origin}/auth?type=recovery`,
         },
       });
 
@@ -199,40 +160,6 @@ const Auth = () => {
     }
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      const parsed = passwordSchema.safeParse(newPassword);
-      if (!parsed.success) {
-        toast.error(parsed.error.errors[0].message);
-        setIsLoading(false);
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        toast.error('As senhas não conferem');
-        setIsLoading(false);
-        return;
-      }
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('Sessão inválida. Abra o link mais recente do email e tente novamente.');
-        setIsLoading(false);
-        return;
-      }
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-
-      toast.success('Senha redefinida com sucesso!');
-      window.history.replaceState(null, '', '/auth');
-      navigate('/dashboard');
-    } catch (error: any) {
-      toast.error('Erro ao redefinir senha: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle flex flex-col">
