@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSubscription } from '@/hooks/useSubscription';
+import { formatPhoneNumber } from '@/utils/formatters';
 
 const funcionarioSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -166,7 +167,12 @@ export const FuncionarioForm = ({ onSuccess, funcionarioId }: FuncionarioFormPro
           <Input
             id="telefone"
             {...register('telefone')}
-            placeholder="(11) 99999-9999"
+            placeholder="(00) 00000-0000"
+            onChange={(e) => {
+              const formatted = formatPhoneNumber(e.target.value);
+              e.target.value = formatted;
+            }}
+            maxLength={15}
           />
         </div>
       </div>

@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { validarCNPJ, formatarCNPJ, formatarCPFouCNPJ } from "@/utils/validators";
 import { PlansTab } from "@/components/subscription/PlansTab";
+import { formatPhoneNumber } from "@/utils/formatters";
 import { ReferralSection } from "@/components/configuracoes/ReferralSection";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
@@ -564,7 +565,16 @@ const Configuracoes = () => {
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <Input id="telefone" {...register('telefone')} placeholder="(00) 00000-0000" />
+                        <Input 
+                          id="telefone" 
+                          {...register('telefone')} 
+                          placeholder="(00) 00000-0000" 
+                          onChange={(e) => {
+                            const formatted = formatPhoneNumber(e.target.value);
+                            e.target.value = formatted;
+                          }}
+                          maxLength={15}
+                        />
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">

@@ -13,6 +13,7 @@ import type { Database } from '@/integrations/supabase/types';
 import { validarCPFouCNPJ, formatarCPFouCNPJ } from '@/utils/validators';
 import { getUserFriendlyError } from '@/utils/errors';
 import { useSubscription } from '@/hooks/useSubscription';
+import { formatPhoneNumber } from '@/utils/formatters';
 
 const clienteSchema = z.object({
   tipo_pessoa: z.enum(['fisica', 'juridica']),
@@ -185,6 +186,11 @@ export const ClienteForm = ({ onSuccess, clienteId }: ClienteFormProps) => {
             id="telefone"
             {...register('telefone')}
             placeholder="(00) 00000-0000"
+            onChange={(e) => {
+              const formatted = formatPhoneNumber(e.target.value);
+              e.target.value = formatted;
+            }}
+            maxLength={15}
           />
         </div>
 

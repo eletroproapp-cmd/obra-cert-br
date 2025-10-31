@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
 import { useEffect } from 'react';
+import { formatPhoneNumber } from '@/utils/formatters';
 
 const fornecedorSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -141,7 +142,12 @@ export const FornecedorForm = ({ fornecedor, onSuccess }: FornecedorFormProps) =
           <Input
             id="telefone"
             {...register('telefone')}
-            placeholder="(00) 0000-0000"
+            placeholder="(00) 00000-0000"
+            onChange={(e) => {
+              const formatted = formatPhoneNumber(e.target.value);
+              e.target.value = formatted;
+            }}
+            maxLength={15}
           />
         </div>
       </div>
