@@ -153,16 +153,17 @@ const Faturas = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Faturas</h1>
-          <p className="text-muted-foreground">Gerencie suas faturas e pagamentos</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Faturas</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Gerencie suas faturas e pagamentos</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-          <Button variant="hero" size="lg" onClick={handleNewFatura}>
-            <Plus className="mr-2 h-5 w-5" />
-            Nova Fatura
+          <Button variant="hero" size="lg" onClick={handleNewFatura} className="flex-1 sm:flex-none">
+            <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Nova Fatura</span>
+            <span className="sm:hidden">Nova</span>
           </Button>
         </div>
       </div>
@@ -238,15 +239,15 @@ const Faturas = () => {
           ))}
         </div>
       ) : (
-        <Card>
+        <Card className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Número</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Vencimento</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="min-w-[100px]">Número</TableHead>
+                <TableHead className="min-w-[150px]">Cliente</TableHead>
+                <TableHead className="min-w-[120px]">Vencimento</TableHead>
+                <TableHead className="min-w-[100px]">Status</TableHead>
+                <TableHead className="text-right min-w-[120px]">Valor</TableHead>
                 <TableHead className="text-center w-20">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -304,7 +305,7 @@ const Faturas = () => {
         setShowForm(open);
         if (!open) setEditingFaturaId(undefined);
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingFaturaId ? 'Editar Fatura' : 'Nova Fatura'}</DialogTitle>
           </DialogHeader>

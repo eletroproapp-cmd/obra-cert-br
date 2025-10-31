@@ -145,16 +145,17 @@ const Orcamentos = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Orçamentos</h1>
-          <p className="text-muted-foreground">Gerencie seus orçamentos elétricos</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Orçamentos</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Gerencie seus orçamentos elétricos</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-          <Button variant="hero" size="lg" onClick={handleNewOrcamento}>
-            <Plus className="mr-2 h-5 w-5" />
-            Novo Orçamento
+          <Button variant="hero" size="lg" onClick={handleNewOrcamento} className="flex-1 sm:flex-none">
+            <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Novo Orçamento</span>
+            <span className="sm:hidden">Novo</span>
           </Button>
         </div>
       </div>
@@ -228,15 +229,15 @@ const Orcamentos = () => {
           ))}
         </div>
       ) : (
-        <Card>
+        <Card className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Número</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="min-w-[100px]">Número</TableHead>
+                <TableHead className="min-w-[150px]">Cliente</TableHead>
+                <TableHead className="min-w-[150px]">Título</TableHead>
+                <TableHead className="min-w-[100px]">Status</TableHead>
+                <TableHead className="text-right min-w-[120px]">Valor</TableHead>
                 <TableHead className="text-center w-20">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -297,7 +298,7 @@ const Orcamentos = () => {
         setShowForm(open);
         if (!open) setEditingOrcamentoId(undefined);
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingOrcamentoId ? 'Editar Orçamento' : 'Novo Orçamento'}</DialogTitle>
           </DialogHeader>

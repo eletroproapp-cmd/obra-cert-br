@@ -147,16 +147,17 @@ const Projetos = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Projetos</h1>
-            <p className="text-muted-foreground">Gerencie seus projetos e obras</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Projetos</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Gerencie seus projetos e obras</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-            <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
-              <Plus className="mr-2 h-5 w-5" />
-              Novo Projeto
+            <Button variant="hero" size="lg" onClick={() => setShowForm(true)} className="flex-1 sm:flex-none">
+              <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Novo Projeto</span>
+              <span className="sm:hidden">Novo</span>
             </Button>
           </div>
         </div>
@@ -241,16 +242,16 @@ const Projetos = () => {
             ))}
           </div>
         ) : (
-          <Card>
+          <Card className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Projeto</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Endereço</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Datas</TableHead>
-                  <TableHead>Progresso</TableHead>
+                  <TableHead className="min-w-[150px]">Projeto</TableHead>
+                  <TableHead className="min-w-[150px]">Cliente</TableHead>
+                  <TableHead className="min-w-[180px]">Endereço</TableHead>
+                  <TableHead className="min-w-[100px]">Status</TableHead>
+                  <TableHead className="min-w-[120px]">Datas</TableHead>
+                  <TableHead className="min-w-[120px]">Progresso</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -314,7 +315,7 @@ const Projetos = () => {
           setShowForm(open);
           if (!open) setEditingId(undefined);
         }}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingId ? 'Editar Projeto' : 'Novo Projeto'}</DialogTitle>
               <DialogDescription>

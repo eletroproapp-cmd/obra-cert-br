@@ -190,8 +190,8 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-2">🎉 Bem-vindo{displayName ? `, ${displayName}` : ''}!</h1>
-        <p className="text-muted-foreground mb-8">Visão geral do seu negócio</p>
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">🎉 Bem-vindo{displayName ? `, ${displayName}` : ''}!</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mb-8">Visão geral do seu negócio</p>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="border-l-4 border-l-success">
@@ -266,7 +266,7 @@ const Dashboard = () => {
           </Card>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-6 mt-6">
+        <div className="grid gap-6 lg:grid-cols-3 mt-6">
           <Card>
             <CardHeader>
               <CardTitle>Ações Rápidas</CardTitle>
@@ -307,7 +307,7 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 {/* Filtros de Data */}
-                <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                   <div className="space-y-2">
                     <Label htmlFor="dataInicio" className="text-xs font-medium flex items-center gap-1">
                       <Filter className="h-3 w-3" />
@@ -335,7 +335,7 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                   <div className="text-center p-3 bg-success/10 rounded-lg">
                     <p className="text-xs text-muted-foreground mb-1">Receitas</p>
                     <p className="font-bold text-success">R$ {metrics.totalReceitas.toFixed(2)}</p>
