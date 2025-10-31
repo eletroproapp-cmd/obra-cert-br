@@ -22,7 +22,7 @@ import { ClienteForm } from '@/components/clientes/ClienteForm';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ProjetoProgressTab } from './ProjetoProgressTab';
+import { ProjetoListTab } from './ProjetoListTab';
 
 const orcamentoSchema = z.object({
   cliente_id: z.string().min(1, 'Selecione um cliente'),
@@ -376,13 +376,12 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
     <>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Tabs defaultValue="dados" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="dados">Dados do Orçamento</TabsTrigger>
           <TabsTrigger value="projeto">
             <Briefcase className="h-4 w-4 mr-2" />
-            Projeto
+            Projetos
           </TabsTrigger>
-          <TabsTrigger value="progresso">Progresso da Obra</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="space-y-6">
@@ -446,52 +445,19 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             <Alert>
               <Briefcase className="h-4 w-4" />
               <AlertDescription>
-                A vinculação de projetos aos orçamentos está disponível apenas no <strong>Plano Profissional</strong>.
+                A gestão de projetos e progresso está disponível apenas no <strong>Plano Profissional</strong>.
                 <br />
                 Faça upgrade para desbloquear este recurso.
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="space-y-2">
-              <Label htmlFor="projeto_id">Vincular a um Projeto (Opcional)</Label>
-              <Select 
-                value={watch('projeto_id')} 
-                onValueChange={(value) => setValue('projeto_id', value)}
-                disabled={!isProPlan}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um projeto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum projeto</SelectItem>
-                  {projetos.map(projeto => (
-                    <SelectItem key={projeto.id} value={projeto.id}>
-                      {projeto.nome} {projeto.endereco_obra ? `- ${projeto.endereco_obra}` : ''} ({projeto.status})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-sm text-muted-foreground">
-                Vincule este orçamento a um projeto específico para melhor organização
-              </p>
-            </div>
+            <ProjetoListTab
+              selectedProjetoId={watch('projeto_id') as string}
+              onSelectProjeto={(id) => setValue('projeto_id', id)}
+            />
           )}
         </TabsContent>
 
-        <TabsContent value="progresso" className="space-y-4">
-          {!isProPlan ? (
-            <Alert>
-              <Briefcase className="h-4 w-4" />
-              <AlertDescription>
-                O acompanhamento de progresso da obra está disponível apenas no <strong>Plano Profissional</strong>.
-                <br />
-                Faça upgrade para desbloquear este recurso.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <ProjetoProgressTab projetoId={watch('projeto_id')} />
-          )}
-        </TabsContent>
       </Tabs>
 
       <div className="space-y-4">
