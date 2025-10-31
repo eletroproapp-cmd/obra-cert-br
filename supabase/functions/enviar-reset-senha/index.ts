@@ -63,8 +63,13 @@ serve(async (req: Request) => {
     }
 
     const actionLink = (linkData as any)?.properties?.action_link || (linkData as any)?.action_link;
-    console.log("Action link:", actionLink);
-    if (!actionLink) throw new Error("Não foi possível gerar o link de recuperação");
+    const hashedToken = (linkData as any)?.properties?.hashed_token || (linkData as any)?.hashed_token;
+    // Preferir link direto para o app com token_hash para evitar problemas de assinatura com access_token
+    const appLink = finalRedirectTo && hashedToken
+      ? `${finalRedirectTo}${finalRedirectTo.includes('?') ? '&' : '?'}type=recovery&token_hash=${encodeURIComponent(hashedToken)}`
+      : actionLink;
+    console.log("Links:", { actionLink, hashedToken, appLink });
+    if (!appLink) throw new Error("Não foi possível gerar o link de recuperação");
 
     const emailResponse = await resend.emails.send({
       from: "EletroPro <noreply@send.eletroproapp.com>",
@@ -95,7 +100,7 @@ serve(async (req: Request) => {
               <p>Olá,</p>
               <p>Recebemos uma solicitação para redefinir a senha da sua conta EletroPro.</p>
               <p>Clique no botão abaixo para criar uma nova senha:</p>
-              <div style="text-align: center;"><a href="${actionLink}" class="button">Redefinir Senha</a></div>
+              <div style="text-align: center;"><a href="${appLink}" class="button">Redefinir Senha</a></div>
               <div class="warning"><strong>⚠️ Importante:</strong> Este link expira em 1 hora por motivos de segurança.</div>
               <p>Se você não solicitou a redefinição de senha, ignore este email. Sua senha permanecerá inalterada.</p>
             </div>
