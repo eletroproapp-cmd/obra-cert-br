@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OrcamentoListTab } from "./OrcamentoListTab";
+import { ProjetoProgressTab } from "../orcamentos/ProjetoProgressTab";
 
 const projetoSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
@@ -230,9 +231,10 @@ export function ProjetoForm({ onSuccess, projetoId }: ProjetoFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <Tabs defaultValue="dados" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="dados">Dados do Projeto</TabsTrigger>
           <TabsTrigger value="orcamentos">Orçamentos</TabsTrigger>
+          <TabsTrigger value="progresso">Progresso da Obra</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dados" className="space-y-4">
@@ -404,6 +406,10 @@ export function ProjetoForm({ onSuccess, projetoId }: ProjetoFormProps) {
 
         <TabsContent value="orcamentos" className="space-y-4">
           <OrcamentoListTab projetoId={projetoId} />
+        </TabsContent>
+
+        <TabsContent value="progresso" className="space-y-4">
+          <ProjetoProgressTab projetoId={projetoId} />
         </TabsContent>
       </Tabs>
 
