@@ -524,6 +524,7 @@ export type Database = {
           nfe_xml: string | null
           numero: string
           observacoes: string | null
+          projeto_id: string | null
           status: string
           titulo: string
           updated_at: string
@@ -550,6 +551,7 @@ export type Database = {
           nfe_xml?: string | null
           numero: string
           observacoes?: string | null
+          projeto_id?: string | null
           status?: string
           titulo: string
           updated_at?: string
@@ -576,6 +578,7 @@ export type Database = {
           nfe_xml?: string | null
           numero?: string
           observacoes?: string | null
+          projeto_id?: string | null
           status?: string
           titulo?: string
           updated_at?: string
@@ -588,6 +591,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_faturas_projeto"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
             referencedColumns: ["id"]
           },
         ]
