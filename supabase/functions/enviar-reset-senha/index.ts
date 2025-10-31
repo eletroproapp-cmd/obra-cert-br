@@ -40,18 +40,33 @@ serve(async (req: Request): Promise<Response> => {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
     // Gerar link oficial de recuperação com redirect configurado
+    const finalRedirectTo = redirectTo || `${new URL(req.url).origin}/auth`;
+    
+    console.log("Gerando link de recuperação para:", email);
+    console.log("RedirectTo:", finalRedirectTo);
+    
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
       type: "recovery",
       email,
       options: {
-        redirectTo: redirectTo || `${new URL(req.url).origin}/auth`,
+        redirectTo: finalRedirectTo,
       },
     });
 
-    if (linkError) throw linkError;
+    if (linkError) {
+      console.error("Erro ao gerar link:", linkError);
+      throw linkError;
+    }
 
+    console.log("Link data recebido:", JSON.stringify(linkData, null, 2));
+    
     const actionLink = (linkData as any)?.properties?.action_link || (linkData as any)?.action_link;
-    if (!actionLink) throw new Error("Não foi possível gerar o link de recuperação");
+    
+    console.log("Action link extraído:", actionLink);
+    
+    if (!actionLink) {
+      throw new Error("Não foi possível gerar o link de recuperação");
+    }
 
     const emailResponse = await resend.emails.send({
       from: "EletroPro <noreply@send.eletroproapp.com>",
