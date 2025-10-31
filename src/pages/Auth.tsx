@@ -67,6 +67,33 @@ const Auth = () => {
     setShowResetPassword(isRecovery);
   }, []);
 
+  // Apply session from recovery tokens in URL hash (access_token, refresh_token)
+  useEffect(() => {
+    const applySessionFromHash = async () => {
+      try {
+        const hash = window.location.hash;
+        if (!hash || (!hash.includes('access_token=') && !hash.includes('refresh_token='))) return;
+        const params = new URLSearchParams(hash.replace(/^#/, ''));
+        const access_token = params.get('access_token') || '';
+        const refresh_token = params.get('refresh_token') || '';
+        if (!access_token || !refresh_token) return;
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (error) {
+          console.error('Erro ao aplicar sessão do hash:', error);
+          toast.error('Link de recuperação inválido ou expirado. Solicite novamente.');
+          return;
+        }
+        setShowResetPassword(true);
+        const cleanUrl = `${window.location.pathname}?type=recovery`;
+        window.history.replaceState(null, '', cleanUrl);
+      } catch (e) {
+        console.error('Falha ao processar tokens de recuperação:', e);
+      }
+    };
+    applySessionFromHash();
+  }, []);
+
   useEffect(() => {
     if (user && !showResetPassword) {
       navigate('/dashboard');
