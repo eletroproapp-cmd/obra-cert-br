@@ -8,6 +8,8 @@ import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo-eletropro.png";
 import { useAuth } from "@/hooks/useAuth";
+import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
+import { usePasswordRecovery } from "@/hooks/usePasswordRecovery";
 import { z } from "zod";
 import { toast } from "sonner";
 
@@ -57,6 +59,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
   const { signIn, signUp, user } = useAuth();
+  const { isResetMode, exitResetMode } = usePasswordRecovery();
 
   // Detect recovery mode from URL and control redirect
   useEffect(() => {
@@ -97,10 +100,10 @@ const Auth = () => {
   }, []);
 
   useEffect(() => {
-    if (user && !showResetPassword) {
+    if (user && !isResetMode) {
       navigate('/dashboard');
     }
-  }, [user, showResetPassword, navigate]);
+  }, [user, isResetMode, navigate]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -258,54 +261,29 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {showResetPassword ? (
-              <div className="space-y-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => { setShowResetPassword(false); window.history.replaceState(null, '', '/auth'); }}
-                  className="mb-2"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Voltar ao login
-                </Button>
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold">Definir nova senha</h3>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Crie uma nova senha para sua conta
-                  </p>
-                </div>
-                <form onSubmit={handleResetPassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">Nova senha</Label>
-                    <Input
-                      id="new-password"
-                      type="password"
-                      placeholder="Mín. 8 caracteres com maiúsc., números e símbolos"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      required
-                      minLength={8}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar senha</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="Repita a nova senha"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      required
-                      minLength={8}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" variant="hero" disabled={isLoading}>
-                    {isLoading ? "Salvando..." : "Salvar nova senha"}
+              {isResetMode ? (
+                <div className="space-y-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { exitResetMode(); window.history.replaceState(null, '', '/auth'); }}
+                    className="mb-2"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Voltar ao login
                   </Button>
-                </form>
-              </div>
-            ) : showForgotPassword ? (
+                  <div className="text-center mb-4">
+                    <h3 className="text-lg font-semibold">Definir nova senha</h3>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Crie uma nova senha para sua conta
+                    </p>
+                  </div>
+                  <ResetPasswordForm onSuccess={() => {
+                    window.history.replaceState(null, '', '/auth');
+                    navigate('/dashboard');
+                  }} />
+                </div>
+              ) : showForgotPassword ? (
               <div className="space-y-4">
                 <Button
                   variant="ghost"
