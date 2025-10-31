@@ -72,6 +72,7 @@ interface EmpresaInfo {
   cor_secundaria?: string;
   cor_borda_secoes?: string;
   cor_borda_linhas?: string;
+  ocultar_marca_eletropro?: boolean;
 }
 
 export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit, onDelete }: OrcamentoDialogProps) => {
@@ -640,6 +641,15 @@ export const OrcamentoDialog = ({ orcamentoId, open, onOpenChange, onEdit, onDel
         if (empresaInfo.cidade) footerAddress += ' - ' + empresaInfo.cidade;
         if (empresaInfo.estado) footerAddress += ' - ' + empresaInfo.estado;
         doc.text(footerAddress, pageWidth / 2, footerYPos, { align: 'center' });
+        footerYPos += 3.5;
+      }
+      
+      // Adicionar marca d'água EletroPro se não estiver oculta
+      if (!empresaInfo.ocultar_marca_eletropro) {
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(6);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Powered by EletroPro', pageWidth / 2, footerYPos, { align: 'center' });
       }
 
       doc.save(`Orcamento_${orcamento.numero}.pdf`);

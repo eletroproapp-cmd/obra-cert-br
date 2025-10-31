@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Clock, Calendar, FileDown, FileSpreadsheet, User } from "lucide-react";
+import { Plus, Clock, Calendar, FileDown, FileSpreadsheet, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -144,45 +144,76 @@ const Timesheets = () => {
     toast.success('Exportado para Excel com sucesso!');
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    const funcionarioNome = selectedFuncionario === "todos" 
-      ? "Todos os Funcionários" 
-      : funcionarios.find(f => f.id === selectedFuncionario)?.nome || "";
-    
-    doc.setFontSize(18);
-    doc.text('FOLHA DE PONTO', 14, 15);
-    
-    doc.setFontSize(12);
-    doc.text(`Funcionário: ${funcionarioNome}`, 14, 25);
-    doc.text(`Período: ${format(selectedMonth, 'MMMM/yyyy', { locale: ptBR })}`, 14, 32);
-    
-    doc.setFontSize(10);
-    doc.text(`Total de Horas: ${totalHoras.toFixed(2)}h`, 14, 39);
-    doc.text(`Horas Aprovadas: ${horasAprovadas.toFixed(2)}h`, 14, 45);
-    
-    const tableData = registros.map(r => [
-      format(new Date(r.data), 'dd/MM/yyyy'),
-      r.funcionarios.nome,
-      r.projetos?.nome || 'Sem projeto',
-      `${r.hora_inicio} - ${r.hora_fim}`,
-      r.horas_totais.toFixed(2),
-      r.tipo_trabalho,
-      r.aprovado ? 'Aprovado' : 'Pendente'
-    ]);
+  const exportToPDF = async () => {
+    try {
+      // Carregar informações da empresa para adicionar marca d'água
+      const { data: { user } } = await supabase.auth.getUser();
+      let ocultarMarca = false;
+      
+      if (user) {
+        const { data: empresaData } = await supabase
+          .from('empresas')
+          .select('ocultar_marca_eletropro')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (empresaData) {
+          ocultarMarca = empresaData.ocultar_marca_eletropro || false;
+        }
+      }
 
-    autoTable(doc, {
-      startY: 52,
-      head: [['Data', 'Funcionário', 'Projeto', 'Horário', 'Horas', 'Tipo', 'Status']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [99, 102, 241] },
-      styles: { fontSize: 8 },
-    });
+      const doc = new jsPDF();
+      const funcionarioNome = selectedFuncionario === "todos" 
+        ? "Todos os Funcionários" 
+        : funcionarios.find(f => f.id === selectedFuncionario)?.nome || "";
+      
+      doc.setFontSize(18);
+      doc.text('FOLHA DE PONTO', 14, 15);
+      
+      doc.setFontSize(12);
+      doc.text(`Funcionário: ${funcionarioNome}`, 14, 25);
+      doc.text(`Período: ${format(selectedMonth, 'MMMM/yyyy', { locale: ptBR })}`, 14, 32);
+      
+      doc.setFontSize(10);
+      doc.text(`Total de Horas: ${totalHoras.toFixed(2)}h`, 14, 39);
+      doc.text(`Horas Aprovadas: ${horasAprovadas.toFixed(2)}h`, 14, 45);
+      
+      const tableData = registros.map(r => [
+        format(new Date(r.data), 'dd/MM/yyyy'),
+        r.funcionarios.nome,
+        r.projetos?.nome || 'Sem projeto',
+        `${r.hora_inicio} - ${r.hora_fim}`,
+        r.horas_totais.toFixed(2),
+        r.tipo_trabalho,
+        r.aprovado ? 'Aprovado' : 'Pendente'
+      ]);
 
-    const fileName = `folha-ponto-${selectedFuncionario === "todos" ? "geral" : funcionarioNome.replace(/\s/g, '-')}-${format(selectedMonth, 'MM-yyyy')}.pdf`;
-    doc.save(fileName);
-    toast.success('Exportado para PDF com sucesso!');
+      autoTable(doc, {
+        startY: 52,
+        head: [['Data', 'Funcionário', 'Projeto', 'Horário', 'Horas', 'Tipo', 'Status']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [99, 102, 241] },
+        styles: { fontSize: 8 },
+        didDrawPage: function (data) {
+          // Adicionar marca d'água no rodapé de cada página
+          if (!ocultarMarca) {
+            const pageHeight = doc.internal.pageSize.getHeight();
+            doc.setFontSize(6);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(150, 150, 150);
+            doc.text('Powered by EletroPro', doc.internal.pageSize.getWidth() / 2, pageHeight - 5, { align: 'center' });
+          }
+        }
+      });
+
+      const fileName = `folha-ponto-${selectedFuncionario === "todos" ? "geral" : funcionarioNome.replace(/\s/g, '-')}-${format(selectedMonth, 'MM-yyyy')}.pdf`;
+      doc.save(fileName);
+      toast.success('Exportado para PDF com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar PDF: ' + error.message);
+    }
   };
 
   const totalHoras = registros.reduce((sum, r) => sum + (r.horas_totais || 0), 0);
@@ -207,6 +238,32 @@ const Timesheets = () => {
             <p className="text-muted-foreground">Registro e controle de horas trabalhadas</p>
           </div>
           <div className="flex flex-wrap gap-2 items-center">
+            {/* Filtro de Mês */}
+            <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-background">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setSelectedMonth(new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex items-center gap-2 min-w-[140px] justify-center">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">
+                  {format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}
+                </span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setSelectedMonth(new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
             <Select value={selectedFuncionario} onValueChange={setSelectedFuncionario}>
               <SelectTrigger className="w-[200px]">
                 <User className="mr-2 h-4 w-4" />

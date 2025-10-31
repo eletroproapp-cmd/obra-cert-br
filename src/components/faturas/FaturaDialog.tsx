@@ -41,7 +41,8 @@ interface EmpresaInfo {
   cor_secundaria: string;
   cor_borda_secoes: string;
   cor_borda_linhas: string;
-  chave_pix?: string; // opcional
+  chave_pix?: string;
+  ocultar_marca_eletropro?: boolean;
 }
 
 
@@ -541,7 +542,18 @@ export const FaturaDialog = ({ faturaId, open, onOpenChange, onEdit, onDelete }:
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(7);
       doc.setTextColor(110, 110, 110);
-      doc.text(empresaInfo.nome_fantasia, pageWidth / 2, footerY + 4, { align: 'center' });
+      
+      let footerYPos = footerY + 4;
+      doc.text(empresaInfo.nome_fantasia, pageWidth / 2, footerYPos, { align: 'center' });
+      
+      // Adicionar marca d'água EletroPro se não estiver oculta
+      if (!empresaInfo.ocultar_marca_eletropro) {
+        footerYPos += 3.5;
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(6);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Powered by EletroPro', pageWidth / 2, footerYPos, { align: 'center' });
+      }
 
       doc.save(`Fatura_${fatura.numero}.pdf`);
       toast.success('PDF gerado com sucesso!');
