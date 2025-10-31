@@ -136,18 +136,11 @@ const Auth = () => {
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       
-      // Gerar token de reset
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) throw error;
-
-      // Enviar email customizado em português
-      const resetLink = `${window.location.origin}/auth?reset=true`;
-      await supabase.functions.invoke('enviar-reset-senha', {
-        body: { email: resetEmail, resetLink }
-      });
 
       toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
       setShowForgotPassword(false);
