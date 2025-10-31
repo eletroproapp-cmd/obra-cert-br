@@ -136,8 +136,12 @@ const Auth = () => {
     try {
       const { supabase } = await import("@/integrations/supabase/client");
       
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth`,
+      // Chama função de backend que gera o link oficial e envia email em PT-BR
+      const { error } = await supabase.functions.invoke('enviar-reset-senha', {
+        body: {
+          email: resetEmail,
+          redirectTo: `${window.location.origin}/auth`,
+        },
       });
 
       if (error) throw error;
