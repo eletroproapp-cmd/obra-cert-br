@@ -58,19 +58,20 @@ const Auth = () => {
   const navigate = useNavigate();
   const { signIn, signUp, user } = useAuth();
 
-// Detect recovery mode from URL and control redirect
-useEffect(() => {
-  const searchParams = new URLSearchParams(window.location.search);
-  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  const isRecovery = searchParams.get('type') === 'recovery' || hashParams.get('type') === 'recovery';
-  setShowResetPassword(isRecovery);
-}, []);
+  // Detect recovery mode from URL and control redirect
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash;
+    const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
+    const isRecovery = searchParams.get('type') === 'recovery' || hashParams.get('type') === 'recovery' || hash.includes('access_token=');
+    setShowResetPassword(isRecovery);
+  }, []);
 
-useEffect(() => {
-  if (user && !showResetPassword) {
-    navigate('/dashboard');
-  }
-}, [user, showResetPassword, navigate]);
+  useEffect(() => {
+    if (user && !showResetPassword) {
+      navigate('/dashboard');
+    }
+  }, [user, showResetPassword, navigate]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -145,11 +146,12 @@ useEffect(() => {
 
     try {
       const { supabase } = await import("@/integrations/supabase/client");
-
+      
+      // Envia email customizado via função com link oficial e redirect correto
       const { error } = await supabase.functions.invoke('enviar-reset-senha', {
         body: {
           email: resetEmail,
-          redirectTo: `${window.location.origin}/auth?type=recovery`,
+          redirectTo: `${window.location.origin}/auth`,
         },
       });
 
@@ -163,38 +165,38 @@ useEffect(() => {
     } finally {
       setIsLoading(false);
     }
-};
+  };
 
-const handleResetPassword = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
-  try {
-    const parsed = passwordSchema.safeParse(newPassword);
-    if (!parsed.success) {
-      toast.error(parsed.error.errors[0].message);
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const parsed = passwordSchema.safeParse(newPassword);
+      if (!parsed.success) {
+        toast.error(parsed.error.errors[0].message);
+        setIsLoading(false);
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        toast.error('As senhas não conferem');
+        setIsLoading(false);
+        return;
+      }
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+
+      toast.success('Senha redefinida com sucesso!');
+      window.history.replaceState(null, '', '/auth');
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast.error('Erro ao redefinir senha: ' + error.message);
+    } finally {
       setIsLoading(false);
-      return;
     }
-    if (newPassword !== confirmPassword) {
-      toast.error('As senhas não conferem');
-      setIsLoading(false);
-      return;
-    }
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) throw error;
+  };
 
-    toast.success('Senha redefinida com sucesso!');
-    window.history.replaceState(null, '', '/auth');
-    navigate('/dashboard');
-  } catch (error: any) {
-    toast.error('Erro ao redefinir senha: ' + error.message);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-return (
+  return (
     <div className="min-h-screen bg-gradient-subtle flex flex-col">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm">
@@ -221,7 +223,54 @@ return (
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {showForgotPassword ? (
+            {showResetPassword ? (
+              <div className="space-y-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setShowResetPassword(false); window.history.replaceState(null, '', '/auth'); }}
+                  className="mb-2"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Voltar ao login
+                </Button>
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold">Definir nova senha</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Crie uma nova senha para sua conta
+                  </p>
+                </div>
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">Nova senha</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      placeholder="Mín. 8 caracteres com maiúsc., números e símbolos"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={8}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirmar senha</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder="Repita a nova senha"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={8}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" variant="hero" disabled={isLoading}>
+                    {isLoading ? "Salvando..." : "Salvar nova senha"}
+                  </Button>
+                </form>
+              </div>
+            ) : showForgotPassword ? (
               <div className="space-y-4">
                 <Button
                   variant="ghost"
@@ -310,73 +359,73 @@ return (
                   </form>
                 </TabsContent>
 
-              <TabsContent value="signup">
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nome Completo</Label>
-                    <Input
-                      id="signup-name"
-                      name="name"
-                      type="text"
-                      placeholder="Seu nome"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-company">Empresa</Label>
-                    <Input
-                      id="signup-company"
-                      name="company"
-                      type="text"
-                      placeholder="Nome da sua empresa"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      name="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
-                    <Input
-                      id="signup-password"
-                      name="password"
-                      type="password"
-                      placeholder="Mín. 8 caracteres com maiúsc., números e símbolos"
-                      minLength={8}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Sua senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.
+                <TabsContent value="signup">
+                  <form onSubmit={handleSignup} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name">Nome Completo</Label>
+                      <Input
+                        id="signup-name"
+                        name="name"
+                        type="text"
+                        placeholder="Seu nome"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-company">Empresa</Label>
+                      <Input
+                        id="signup-company"
+                        name="company"
+                        type="text"
+                        placeholder="Nome da sua empresa"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        name="email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Senha</Label>
+                      <Input
+                        id="signup-password"
+                        name="password"
+                        type="password"
+                        placeholder="Mín. 8 caracteres com maiúsc., números e símbolos"
+                        minLength={8}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Sua senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.
+                      </p>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      variant="hero"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Criando conta..." : "Criar Conta Grátis"}
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Ao criar uma conta, você concorda com nossos{" "}
+                      <a href="#" className="text-primary hover:underline">
+                        Termos de Uso
+                      </a>{" "}
+                      e{" "}
+                      <a href="#" className="text-primary hover:underline">
+                        Política de Privacidade
+                      </a>
                     </p>
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    variant="hero"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Criando conta..." : "Criar Conta Grátis"}
-                  </Button>
-                  <p className="text-xs text-center text-muted-foreground">
-                    Ao criar uma conta, você concorda com nossos{" "}
-                    <a href="#" className="text-primary hover:underline">
-                      Termos de Uso
-                    </a>{" "}
-                    e{" "}
-                    <a href="#" className="text-primary hover:underline">
-                      Política de Privacidade
-                    </a>
-                  </p>
-                </form>
-              </TabsContent>
-            </Tabs>
+                  </form>
+                </TabsContent>
+              </Tabs>
             )}
           </CardContent>
         </Card>
