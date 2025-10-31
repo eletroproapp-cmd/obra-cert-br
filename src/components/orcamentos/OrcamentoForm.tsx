@@ -14,12 +14,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Combobox, ComboboxOption } from '@/components/ui/combobox';
-import { Plus, Trash2, Send } from 'lucide-react';
+import { Plus, Trash2, Send, Briefcase } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ClienteForm } from '@/components/clientes/ClienteForm';
 import { useSubscription } from '@/hooks/useSubscription';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const orcamentoSchema = z.object({
   cliente_id: z.string().min(1, 'Selecione um cliente'),
@@ -28,6 +30,7 @@ const orcamentoSchema = z.object({
   validade_dias: z.number().min(1).default(30),
   observacoes: z.string().optional(),
   status: z.enum(['Pendente', 'Aprovado', 'Rejeitado', 'Em Análise']).default('Pendente'),
+  projeto_id: z.string().optional(),
 });
 
 type OrcamentoFormData = z.infer<typeof orcamentoSchema>;
@@ -46,6 +49,13 @@ interface Cliente {
   email: string;
 }
 
+interface Projeto {
+  id: string;
+  nome: string;
+  status: string;
+  endereco_obra?: string;
+}
+
 interface OrcamentoFormProps {
   onSuccess?: () => void;
   orcamentoId?: string;
@@ -53,6 +63,7 @@ interface OrcamentoFormProps {
 
 export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [items, setItems] = useState<OrcamentoItem[]>([
     { descricao: '', quantidade: 1, unidade: 'un', valor_unitario: 0, valor_total: 0 }
   ]);
@@ -60,7 +71,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isClienteDialogOpen, setIsClienteDialogOpen] = useState(false);
-  const { refetch } = useSubscription();
+  const { refetch, plan } = useSubscription();
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<OrcamentoFormData>({
     resolver: zodResolver(orcamentoSchema),
@@ -75,6 +86,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
   useEffect(() => {
     loadClientes();
     loadCatalogo();
+    loadProjetos();
     if (orcamentoId) {
       loadOrcamento();
     }
@@ -105,6 +117,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
         validade_dias: orcamentoData.validade_dias,
         observacoes: orcamentoData.observacoes || '',
         status: orcamentoData.status as any,
+        projeto_id: orcamentoData.projeto_id || '',
       });
 
       setItems(itemsData.map(item => ({
@@ -131,6 +144,20 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
     }
 
     setClientes(data || []);
+  };
+
+  const loadProjetos = async () => {
+    const { data, error } = await supabase
+      .from('projetos')
+      .select('id, nome, status, endereco_obra')
+      .order('nome');
+
+    if (error) {
+      toast.error('Erro ao carregar projetos');
+      return;
+    }
+
+    setProjetos(data || []);
   };
 
   const loadCatalogo = async () => {
@@ -214,6 +241,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             valor_total: valorTotal,
             validade_dias: data.validade_dias,
             observacoes: data.observacoes,
+            projeto_id: data.projeto_id || null,
           })
           .eq('id', orcamentoId);
 
@@ -258,6 +286,7 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
             valor_total: valorTotal,
             validade_dias: data.validade_dias,
             observacoes: data.observacoes,
+            projeto_id: data.projeto_id || null,
           })
           .select()
           .single();
@@ -340,62 +369,113 @@ export const OrcamentoForm = ({ onSuccess, orcamentoId }: OrcamentoFormProps) =>
     }
   };
 
+  const isProPlan = plan?.plan_type === 'professional';
+
   return (
     <>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="cliente">Cliente *</Label>
-          <div className="flex gap-2">
-            <Select value={watch('cliente_id')} onValueChange={(value) => setValue('cliente_id', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clientes.map(cliente => (
-                  <SelectItem key={cliente.id} value={cliente.id}>
-                    {cliente.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button 
-              type="button" 
-              variant="outline" 
-              size="icon"
-              onClick={() => setIsClienteDialogOpen(true)}
-              title="Adicionar novo cliente"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+      <Tabs defaultValue="dados" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="dados">Dados do Orçamento</TabsTrigger>
+          <TabsTrigger value="projeto">
+            <Briefcase className="h-4 w-4 mr-2" />
+            Projeto
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dados" className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="cliente">Cliente *</Label>
+              <div className="flex gap-2">
+                <Select value={watch('cliente_id')} onValueChange={(value) => setValue('cliente_id', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o cliente" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientes.map(cliente => (
+                      <SelectItem key={cliente.id} value={cliente.id}>
+                        {cliente.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => setIsClienteDialogOpen(true)}
+                  title="Adicionar novo cliente"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {errors.cliente_id && (
+                <p className="text-sm text-destructive">{errors.cliente_id.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="titulo">Título *</Label>
+              <Input
+                id="titulo"
+                {...register('titulo')}
+                placeholder="Ex: Instalação elétrica residencial"
+              />
+              {errors.titulo && (
+                <p className="text-sm text-destructive">{errors.titulo.message}</p>
+              )}
+            </div>
           </div>
-          {errors.cliente_id && (
-            <p className="text-sm text-destructive">{errors.cliente_id.message}</p>
-          )}
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="titulo">Título *</Label>
-          <Input
-            id="titulo"
-            {...register('titulo')}
-            placeholder="Ex: Instalação elétrica residencial"
-          />
-          {errors.titulo && (
-            <p className="text-sm text-destructive">{errors.titulo.message}</p>
-          )}
-        </div>
-      </div>
+          <div className="space-y-2">
+            <Label htmlFor="descricao">Descrição</Label>
+            <Textarea
+              id="descricao"
+              {...register('descricao')}
+              placeholder="Descreva o escopo do orçamento"
+              rows={3}
+            />
+          </div>
+        </TabsContent>
 
-      <div className="space-y-2">
-        <Label htmlFor="descricao">Descrição</Label>
-        <Textarea
-          id="descricao"
-          {...register('descricao')}
-          placeholder="Descreva o escopo do orçamento"
-          rows={3}
-        />
-      </div>
+        <TabsContent value="projeto" className="space-y-4">
+          {!isProPlan ? (
+            <Alert>
+              <Briefcase className="h-4 w-4" />
+              <AlertDescription>
+                A vinculação de projetos aos orçamentos está disponível apenas no <strong>Plano Profissional</strong>.
+                <br />
+                Faça upgrade para desbloquear este recurso.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="projeto_id">Vincular a um Projeto (Opcional)</Label>
+              <Select 
+                value={watch('projeto_id')} 
+                onValueChange={(value) => setValue('projeto_id', value)}
+                disabled={!isProPlan}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um projeto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum projeto</SelectItem>
+                  {projetos.map(projeto => (
+                    <SelectItem key={projeto.id} value={projeto.id}>
+                      {projeto.nome} {projeto.endereco_obra ? `- ${projeto.endereco_obra}` : ''} ({projeto.status})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                Vincule este orçamento a um projeto específico para melhor organização
+              </p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
