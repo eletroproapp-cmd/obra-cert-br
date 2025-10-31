@@ -201,138 +201,154 @@ const Timesheets = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Folhas de Ponto</h1>
-          <p className="text-muted-foreground">Registro de horas trabalhadas</p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Folhas de Ponto</h1>
+            <p className="text-muted-foreground">Registro e controle de horas trabalhadas</p>
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <Select value={selectedFuncionario} onValueChange={setSelectedFuncionario}>
+              <SelectTrigger className="w-[200px]">
+                <User className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Funcionário" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos Funcionários</SelectItem>
+                {funcionarios.map((func) => (
+                  <SelectItem key={func.id} value={func.id}>
+                    {func.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="default" onClick={exportToExcel} disabled={registros.length === 0}>
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Excel
+            </Button>
+            <Button variant="outline" size="default" onClick={exportToPDF} disabled={registros.length === 0}>
+              <FileDown className="mr-2 h-4 w-4" />
+              PDF
+            </Button>
+            <Button variant="hero" size="default" onClick={() => setShowForm(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Registro
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2 items-center">
-          <Select value={selectedFuncionario} onValueChange={setSelectedFuncionario}>
-            <SelectTrigger className="w-[200px]">
-              <User className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Funcionário" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {funcionarios.map((func) => (
-                <SelectItem key={func.id} value={func.id}>
-                  {func.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={exportToExcel} disabled={registros.length === 0}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Excel
-          </Button>
-          <Button variant="outline" onClick={exportToPDF} disabled={registros.length === 0}>
-            <FileDown className="mr-2 h-4 w-4" />
-            PDF
-          </Button>
-          <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
-            <Plus className="mr-2 h-5 w-5" />
-            Novo Registro
-          </Button>
-        </div>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-3 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Horas</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalHoras.toFixed(2)}h</div>
-            <p className="text-xs text-muted-foreground">
-              {format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}
+        <div className="grid gap-4 md:grid-cols-3 mb-8">
+          <Card className="border-primary/20 shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-medium">Total de Horas</CardTitle>
+              <div className="p-2 bg-primary/10 rounded-full">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">{totalHoras.toFixed(2)}h</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-success/20 shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-medium">Horas Aprovadas</CardTitle>
+              <div className="p-2 bg-success/10 rounded-full">
+                <Clock className="h-5 w-5 text-success" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-success">{horasAprovadas.toFixed(2)}h</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {((horasAprovadas / totalHoras) * 100 || 0).toFixed(0)}% do total
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-accent/20 shadow-md hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-medium">Total de Registros</CardTitle>
+              <div className="p-2 bg-accent/10 rounded-full">
+                <Calendar className="h-5 w-5 text-accent" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-accent">{registros.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">Entradas no mês</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {registros.length === 0 ? (
+          <Card className="text-center p-12 shadow-lg">
+            <div className="p-4 bg-muted/50 rounded-full inline-block mb-4">
+              <Clock className="h-16 w-16 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">Nenhum registro encontrado</h3>
+            <p className="text-muted-foreground mb-6">
+              Comece criando o primeiro registro de horas para {format(selectedMonth, 'MMMM yyyy', { locale: ptBR })}
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Horas Aprovadas</CardTitle>
-            <Clock className="h-4 w-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">{horasAprovadas.toFixed(2)}h</div>
-            <p className="text-xs text-muted-foreground">
-              {((horasAprovadas / totalHoras) * 100 || 0).toFixed(0)}% do total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Registros</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{registros.length}</div>
-            <p className="text-xs text-muted-foreground">Entradas no mês</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {registros.length === 0 ? (
-        <Card className="text-center p-12">
-          <Clock className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground mb-4">Nenhum registro de horas neste mês</p>
-          <Button variant="hero" onClick={() => setShowForm(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Criar Primeiro Registro
-          </Button>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {registros.map((registro) => (
-            <Card
-              key={registro.id}
-              className="border-border shadow-soft hover:shadow-medium transition-all cursor-pointer"
-              onClick={() => handleEdit(registro.id)}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    {format(new Date(registro.data), "dd 'de' MMMM, yyyy", { locale: ptBR })}
-                  </span>
-                  <span className={`text-xs px-2 py-1 rounded ${registro.aprovado ? 'bg-success/20 text-success' : 'bg-accent/20 text-accent'}`}>
-                    {registro.aprovado ? 'Aprovado' : 'Pendente'}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Funcionário</p>
-                    <p className="font-medium">{registro.funcionarios.nome}</p>
+            <Button variant="hero" size="lg" onClick={() => setShowForm(true)}>
+              <Plus className="mr-2 h-5 w-5" />
+              Criar Primeiro Registro
+            </Button>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {registros.map((registro) => (
+              <Card
+                key={registro.id}
+                className="border-border hover:border-primary/50 shadow-soft hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                onClick={() => handleEdit(registro.id)}
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center justify-between text-base">
+                    <span className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                      <Calendar className="h-4 w-4" />
+                      {format(new Date(registro.data), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                    </span>
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${registro.aprovado ? 'bg-success/20 text-success' : 'bg-amber-500/20 text-amber-600'}`}>
+                      {registro.aprovado ? '✓ Aprovado' : '⏳ Pendente'}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid md:grid-cols-4 gap-4 pb-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground font-medium">Funcionário</p>
+                      <p className="font-semibold text-sm">{registro.funcionarios.nome}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground font-medium">Projeto</p>
+                      <p className="font-semibold text-sm">{registro.projetos?.nome || '—'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground font-medium">Horário</p>
+                      <p className="font-semibold text-sm">{registro.hora_inicio} → {registro.hora_fim}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground font-medium">Total de Horas</p>
+                      <p className="text-xl font-bold text-primary">{registro.horas_totais.toFixed(2)}h</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Projeto</p>
-                    <p className="font-medium">{registro.projetos?.nome || 'Sem projeto'}</p>
+                  <div className="pt-3 border-t space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-muted-foreground">Tipo:</span>
+                      <span className="text-sm font-semibold px-2 py-0.5 bg-primary/10 text-primary rounded">
+                        {registro.tipo_trabalho}
+                      </span>
+                    </div>
+                    {registro.descricao && (
+                      <p className="text-sm text-muted-foreground leading-relaxed">{registro.descricao}</p>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Horário</p>
-                    <p className="font-medium">{registro.hora_inicio} - {registro.hora_fim}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total</p>
-                    <p className="text-lg font-bold text-primary">{registro.horas_totais.toFixed(2)}h</p>
-                  </div>
-                </div>
-                <div className="mt-3 pt-3 border-t">
-                  <p className="text-sm text-muted-foreground">Tipo: <span className="text-foreground font-medium">{registro.tipo_trabalho}</span></p>
-                  {registro.descricao && (
-                    <p className="text-sm mt-1 text-muted-foreground">{registro.descricao}</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
       <Dialog open={showForm} onOpenChange={(open) => {
         setShowForm(open);

@@ -69,6 +69,7 @@ interface EmpresaData {
   tamanho_fonte: number;
   estilo_borda: string;
   mostrar_logo: boolean;
+  ocultar_marca_eletropro: boolean;
   mostrar_nome_fantasia: boolean;
   mostrar_razao_social: boolean;
   mostrar_cnpj: boolean;
@@ -985,21 +986,47 @@ const Configuracoes = () => {
                           </p>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="mostrar_logo">Logotipo EletroPro</Label>
-                          <div className="flex items-center space-x-2 pt-2">
-                            <Switch
-                              id="mostrar_logo"
-                              defaultChecked={true}
-                              onCheckedChange={(checked) => setValue('mostrar_logo', checked)}
-                            />
-                            <Label htmlFor="mostrar_logo" className="font-normal cursor-pointer">
-                              Mostrar logo nos documentos
-                            </Label>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="mostrar_logo">Logotipo EletroPro</Label>
+                            <div className="flex items-center space-x-2 pt-2">
+                              <Switch
+                                id="mostrar_logo"
+                                checked={formData.mostrar_logo !== false}
+                                onCheckedChange={(checked) => setValue('mostrar_logo', checked)}
+                              />
+                              <Label htmlFor="mostrar_logo" className="font-normal cursor-pointer">
+                                Mostrar logo nos documentos
+                              </Label>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              ⭐ Remover o logo está disponível apenas em planos pagos
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground">
-                            ⭐ Remover o logo está disponível apenas em planos pagos
-                          </p>
+
+                          <Separator />
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="ocultar_marca_eletropro">Marca d'água EletroPro</Label>
+                              <Badge variant={formData.ocultar_marca_eletropro ? "default" : "secondary"} className="text-xs">
+                                {formData.ocultar_marca_eletropro ? "Removida" : "Ativa"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center space-x-2 pt-2">
+                              <Switch
+                                id="ocultar_marca_eletropro"
+                                checked={formData.ocultar_marca_eletropro === true}
+                                onCheckedChange={(checked) => setValue('ocultar_marca_eletropro', checked)}
+                              />
+                              <Label htmlFor="ocultar_marca_eletropro" className="font-normal cursor-pointer">
+                                Remover marca d'água "EletroPro"
+                              </Label>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              ⭐ Disponível apenas em planos pagos (Basic e Professional)
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </CardContent>

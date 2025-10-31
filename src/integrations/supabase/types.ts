@@ -274,6 +274,7 @@ export type Database = {
           mostrar_website: boolean | null
           nome_fantasia: string
           observacoes_padrao: string | null
+          ocultar_marca_eletropro: boolean | null
           proximo_numero_fatura: number | null
           proximo_numero_nfe: number | null
           proximo_numero_orcamento: number | null
@@ -338,6 +339,7 @@ export type Database = {
           mostrar_website?: boolean | null
           nome_fantasia: string
           observacoes_padrao?: string | null
+          ocultar_marca_eletropro?: boolean | null
           proximo_numero_fatura?: number | null
           proximo_numero_nfe?: number | null
           proximo_numero_orcamento?: number | null
@@ -402,6 +404,7 @@ export type Database = {
           mostrar_website?: boolean | null
           nome_fantasia?: string
           observacoes_padrao?: string | null
+          ocultar_marca_eletropro?: boolean | null
           proximo_numero_fatura?: number | null
           proximo_numero_nfe?: number | null
           proximo_numero_orcamento?: number | null
