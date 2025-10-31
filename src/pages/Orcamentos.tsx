@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Plus } from "lucide-react";
+import { Plus, Briefcase } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { OrcamentoForm } from "@/components/orcamentos/OrcamentoForm";
@@ -20,13 +21,20 @@ interface Orcamento {
   status: string;
   valor_total: number;
   created_at: string;
+  projeto_id: string | null;
   clientes: {
     nome: string;
   };
+  projetos?: {
+    id: string;
+    nome: string;
+    status: string;
+  } | null;
 }
 
 const Orcamentos = () => {
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
+  const [progressByProjeto, setProgressByProjeto] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [selectedOrcamento, setSelectedOrcamento] = useState<string | null>(null);
@@ -41,22 +49,51 @@ const Orcamentos = () => {
 
   const loadOrcamentos = async () => {
     try {
-      const { data, error } = await supabase
-        .from('orcamentos')
-        .select(`
-          id,
-          numero,
-          titulo,
-          status,
-          valor_total,
-          created_at,
-          clientes:cliente_id (nome)
-        `)
-        .order('created_at', { ascending: false });
+      const [orcRes, etapasRes] = await Promise.all([
+        supabase
+          .from('orcamentos')
+          .select(`
+            id,
+            numero,
+            titulo,
+            status,
+            valor_total,
+            created_at,
+            projeto_id,
+            clientes:cliente_id (nome),
+            projetos:projeto_id (id, nome, status)
+          `)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('projeto_etapas')
+          .select('projeto_id, progresso')
+      ]);
 
-      if (error) throw error;
+      if (orcRes.error) throw orcRes.error;
+      if (etapasRes.error) throw etapasRes.error;
 
-      setOrcamentos(data || []);
+      setOrcamentos(orcRes.data || []);
+
+      // Calcular progresso médio por projeto
+      const progressMap = new Map<string, number>();
+      const etapasAgrupadas = new Map<string, number[]>();
+      
+      (etapasRes.data || []).forEach((etapa: any) => {
+        const projId = etapa.projeto_id;
+        if (!etapasAgrupadas.has(projId)) {
+          etapasAgrupadas.set(projId, []);
+        }
+        etapasAgrupadas.get(projId)!.push(Number(etapa.progresso));
+      });
+
+      etapasAgrupadas.forEach((progressos, projId) => {
+        const avg = progressos.length > 0 
+          ? Math.round(progressos.reduce((a, b) => a + b, 0) / progressos.length)
+          : 0;
+        progressMap.set(projId, avg);
+      });
+
+      setProgressByProjeto(progressMap);
     } catch (error: any) {
       toast.error('Erro ao carregar orçamentos: ' + error.message);
     } finally {
@@ -180,10 +217,30 @@ const Orcamentos = () => {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Cliente</p>
                     <p className="font-medium">{orcamento.clientes.nome}</p>
                     <p className="text-xs text-muted-foreground mt-1">{orcamento.titulo}</p>
+                    
+                    {orcamento.projetos && (
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Briefcase className="h-4 w-4 text-primary" />
+                          <span className="font-medium">{orcamento.projetos.nome}</span>
+                          <span className="text-xs text-muted-foreground">• {orcamento.projetos.status}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-muted-foreground min-w-[60px]">Progresso:</span>
+                          <Progress 
+                            value={progressByProjeto.get(orcamento.projetos.id) || 0} 
+                            className="h-2 flex-1 max-w-[200px]" 
+                          />
+                          <span className="text-xs font-medium text-primary min-w-[35px]">
+                            {progressByProjeto.get(orcamento.projetos.id) || 0}%
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Valor</p>
